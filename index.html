@@ -1,76 +1,33 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deli Daily Check-in</title>
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <style>
-        body { font-family: sans-serif; padding: 20px; text-align: center; background-color: #f4f7f6; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        img { width: 80px; border-radius: 50%; }
-        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
-        button { background-color: #00b900; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; }
-    </style>
-</head>
-<body>
+// ... (Code ส่วนบนเหมือนเดิม) ...
 
-    <div class="card">
-        <img id="pictureUrl" src="" alt="Profile Picture">
-        <h2 id="displayName">กำลังโหลด...</h2>
-        <p>User ID: <span id="userId" style="color: #888; font-size: 12px;">...</span></p>
-        
-        <hr>
-        
-        <p>กรอกยอดขายวันนี้ (บาท)</p>
-        <input type="number" id="salesAmount" placeholder="0.00">
-        <button onclick="sendData()">ส่งข้อมูลเข้า n8n</button>
-    </div>
+async function sendData() {
+    const sales = document.getElementById("salesAmount").value;
+    if (!sales) { alert("กรุณากรอกยอดขายก่อนครับ"); return; }
 
-    <script>
-        // 1. เริ่มการทำงานของ LIFF
-        async function main() {
-            await liff.init({ liffId: "2010194217-lnwYLoTq" }); // <--- อย่าลืมเปลี่ยนตรงนี้!
-            if (liff.isLoggedIn()) {
-                getUserProfile();
-            } else {
-                liff.login();
-            }
-        }
+    const profile = await liff.getProfile();
+    // เปลี่ยน URL ด้านล่างนี้เป็น Webhook URL ของคุณจาก n8n
+    const webhookUrl = "https://n8n.yourdomain.com/webhook/deli-daily-liff-input"; 
 
-        // 2. ดึงข้อมูล Profile มาโชว์
-        async function getUserProfile() {
-            const profile = await liff.getProfile();
-            document.getElementById("displayName").innerText = "สวัสดีคุณ " + profile.displayName;
-            document.getElementById("userId").innerText = profile.userId;
-            document.getElementById("pictureUrl").src = profile.pictureUrl;
-        }
+    const data = {
+        action: "RECORD_SALES", // ระบุประเภท Event
+        userId: profile.userId,
+        name: profile.displayName,
+        sales: parseFloat(sales),
+        timestamp: new Date().toISOString()
+    };
 
-        // 3. ส่งข้อมูลไปที่ n8n Webhook
-        async function sendData() {
-            const sales = document.getElementById("salesAmount").value;
-            const profile = await liff.getProfile();
-            const webhookUrl = "ใส่_WEBHOOK_URL_ของ_N8N_ที่นี่"; // <--- ใส่ URL จาก n8n
+    try {
+        // ยิงข้อมูลไปที่ n8n
+        await fetch(webhookUrl, {
+            method: "POST",
+            mode: "no-cors", // เพื่อลดปัญหา Cross-Origin ในช่วงเริ่มต้น
+            body: JSON.stringify(data),
+            headers: { "Content-Type": "application/json" }
+        });
 
-            const data = {
-                userId: profile.userId,
-                name: profile.displayName,
-                sales: sales,
-                timestamp: new Date().toLocaleString()
-            };
-
-            // ยิงข้อมูลไปที่ n8n
-            await fetch(webhookUrl, {
-                method: "POST",
-                body: JSON.stringify(data),
-                headers: { "Content-Type": "application/json" }
-            });
-
-            alert("ส่งข้อมูลสำเร็จ!");
-            liff.closeWindow(); // ปิดหน้าต่าง LIFF ทันทีเมื่อส่งเสร็จ
-        }
-
-        main();
-    </script>
-</body>
-</html>
+        alert("บันทึกยอดขายเรียบร้อย! ขอบคุณครับ " + profile.displayName);
+        liff.closeWindow(); // ปิดหน้าต่างทันที
+    } catch (error) {
+        alert("เกิดข้อผิดพลาด: " + error);
+    }
+}
