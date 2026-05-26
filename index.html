@@ -81,7 +81,7 @@ async function checkPermission(uid) {
         const userData = await response.json();
 
         // ⚠️ แก้ตรงนี้: ต้องใช้ Role (R ตัวใหญ่) ตามที่ n8n ส่งมา
-        if (userData && userData.Role === 'Cashier') { 
+        if (userData && userData.Role === if (userData)) { 
             document.getElementById("displayRole").innerText = userData.Role;
             document.getElementById("displayShopName").innerText = userData.Branch; // B ตัวใหญ่
             document.getElementById("displayBranchId").innerText = userData.Branch; // B ตัวใหญ่
