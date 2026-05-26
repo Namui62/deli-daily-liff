@@ -79,12 +79,13 @@
                 });
                 const userData = await response.json();
 
-                if (userData && userData.Role === 'Cashier') {
-                    document.getElementById("displayRole").innerText = userData.Role;
-                    document.getElementById("displayShopName").innerText = userData.Branch; // หรือ Shop_Name
-                    document.getElementById("displayBranchId").innerText = userData.Branch;
-                    document.getElementById("formArea").style.display = "block";
-                } else {
+                // แก้ในฟังก์ชัน checkPermission
+if (userData && userData.Role) {
+    document.getElementById("displayRole").innerText = userData.Role;
+    document.getElementById("displayShopName").innerText = userData.Branch; // ดึงจากคอลัมน์ Branch ในชีท
+    document.getElementById("displayBranchId").innerText = userData.Branch; 
+    document.getElementById("formArea").style.display = "block";
+} else {
                     document.getElementById("displayRole").innerText = "ไม่มีสิทธิ์";
                     document.getElementById("errorArea").style.display = "block";
                 }
