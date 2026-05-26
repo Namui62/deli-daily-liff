@@ -30,7 +30,7 @@
         
         <div class="info-box">
             <p>ตำแหน่ง: <span id="displayRole" class="badge">Checking...</span></p>
-            <p>ร้าน: <b id="displayShopName">...</b></p>
+            <p>ID สาขา: <b id="displayBranchId">...</b></p>
             <p style="font-size: 11px; opacity: 0.6;">UID: <span id="userId">...</span></p>
         </div>
 
@@ -82,17 +82,17 @@
                 const user = Array.isArray(data) ? data[0] : data;
 
                 if (user) {
-                    // Logic: ดึงค่า Role และ Branch พร้อมลบเครื่องหมาย = ทิ้งถ้ามีแถมมา
+                    // ดึงค่า Role และ Branch พร้อมลบเครื่องหมาย = ออกให้อัตโนมัติ
                     let role = (user.Role || user.role || "Unknown").toString().replace(/^=/, '');
                     let branch = (user.Branch || user.branch || "Unknown").toString().replace(/^=/, '');
 
                     document.getElementById("displayRole").innerText = role;
-                    document.getElementById("displayShopName").innerText = branch;
+                    document.getElementById("displayBranchId").innerText = branch;
 
                     if (role.toLowerCase() === "cashier") {
                         document.getElementById("formArea").style.display = "block";
                     } else {
-                        showError("⚠️ คุณไม่มีสิทธิ์เข้าถึงระบบ (Role: " + role + ")");
+                        showError("⚠️ คุณไม่มีสิทธิ์เข้าถึง (Role: " + role + ")");
                     }
                 }
             } catch (err) {
@@ -111,7 +111,7 @@
                     action: "RECORD_SALES_CLOSING",
                     userId: profile.userId,
                     displayName: profile.displayName,
-                    shop: document.getElementById("displayShopName").innerText,
+                    branch: document.getElementById("displayBranchId").innerText,
                     shop_transfer: parseFloat(document.getElementById("shopTransfer").value) || 0,
                     shop_cash: parseFloat(document.getElementById("shopCash").value) || 0,
                     grab_net: parseFloat(document.getElementById("grabNet").value) || 0,
