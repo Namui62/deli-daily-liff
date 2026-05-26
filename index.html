@@ -6,47 +6,33 @@
     <title>Deli Daily - Closing Auditor</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 15px; background-color: #1a1a1a; color: #fff; }
-        .card { background: #2d2d2d; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-width: 400px; margin: auto; }
-        .profile-img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #00b900; margin-bottom: 10px; }
-        .info-box { background: #3d3d3d; padding: 10px; border-radius: 12px; margin-bottom: 20px; font-size: 14px; text-align: left; }
-        .info-box p { margin: 5px 0; color: #ccc; }
-        .info-box b { color: #00b900; }
-        .form-group { text-align: left; margin-bottom: 15px; }
-        label { display: block; font-size: 13px; color: #aaa; margin-bottom: 5px; margin-left: 5px; }
-        input { width: 100%; padding: 12px; border: 1px solid #444; border-radius: 10px; font-size: 18px; background: #333; color: #fff; box-sizing: border-box; outline: none; }
-        input:focus { border-color: #00b900; }
-        button { background: linear-gradient(90deg, #00b900, #009900); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 18px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        button:disabled { background: #555 !important; cursor: not-allowed; opacity: 0.6; }
-        hr { border: 0; border-top: 1px solid #444; margin: 20px 0; }
-        .badge { background: #00b900; color: #000; padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; vertical-align: middle; }
-        #errorArea { display: none; color: #ff4d4d; margin-top: 20px; font-weight: bold; border: 1px solid #ff4d4d; padding: 10px; border-radius: 10px; }
+        body { font-family: sans-serif; padding: 15px; background-color: #1a1a1a; color: #fff; }
+        .card { background: #2d2d2d; padding: 20px; border-radius: 20px; max-width: 400px; margin: auto; text-align: center; }
+        .info-box { background: #3d3d3d; padding: 15px; border-radius: 12px; margin: 15px 0; text-align: left; font-size: 14px; }
+        .badge { background: #00b900; color: #000; padding: 2px 8px; border-radius: 5px; font-weight: bold; }
+        #formArea { display: none; }
+        input { width: 100%; padding: 10px; margin: 5px 0 15px; border-radius: 8px; border: 1px solid #444; background: #333; color: white; font-size: 18px; box-sizing: border-box; }
+        button { background: #00b900; color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; font-size: 18px; cursor: pointer; }
+        #debugLog { background: #000; color: #0f0; font-family: monospace; font-size: 10px; padding: 10px; margin-top: 20px; text-align: left; border-radius: 5px; display: block; white-space: pre-wrap; }
     </style>
 </head>
 <body>
-    <div class="card" id="mainCard">
-        <img id="pictureUrl" class="profile-img" src="https://via.placeholder.com/70" alt="Profile">
-        <h2 id="displayName" style="margin: 10px 0 5px 0; font-size: 22px;">Loading...</h2>
-        
+    <div class="card">
+        <h2 id="displayName">Loading...</h2>
         <div class="info-box">
-            <p>ตำแหน่ง: <span id="displayRole" class="badge">Checking...</span></p>
-            <p>ร้าน: <b id="displayShopName">...</b></p>
-            <p>ID สาขา: <b id="displayBranchId">...</b></p>
-            <p style="font-size: 11px; opacity: 0.6;">UID: <span id="userId">...</span></p>
+            <p>Role: <span id="displayRole" class="badge">Checking...</span></p>
+            <p>Shop: <b id="displayShopName">...</b></p>
+            <p>UID: <small id="userId">...</small></p>
         </div>
 
-        <div id="formArea" style="display: none;">
-            <hr>
-            <p style="font-size: 16px; font-weight: bold; color: #00b900; margin-bottom: 15px;">สรุปยอดปิดร้านประจำวัน</p>
-            <div class="form-group"><label>🏠 หน้าร้าน (เงินโอน)</label><input type="number" id="shopTransfer" value="0" inputmode="decimal"></div>
-            <div class="form-group"><label>💵 หน้าร้าน (เงินสด)</label><input type="number" id="shopCash" value="0" inputmode="decimal"></div>
-            <div class="form-group"><label>🛵 ยอด Grab (สุทธิ)</label><input type="number" id="grabNet" value="0" inputmode="decimal"></div>
-            <div class="form-group"><label>🧡 ยอด Shopee (สุทธิ)</label><input type="number" id="shopeeNet" value="0" inputmode="decimal"></div>
-            <div class="form-group"><label>💚 ยอด LINEMAN (สุทธิ)</label><input type="number" id="linemanNet" value="0" inputmode="decimal"></div>
-            <button id="submitBtn" onclick="sendData()">ยืนยันปิดยอดขาย</button>
+        <div id="formArea">
+            <p style="color:#00b900">✅ เข้าใช้งานสำเร็จ</p>
+            <input type="number" id="shopTransfer" placeholder="เงินโอน">
+            <input type="number" id="shopCash" placeholder="เงินสด">
+            <button onclick="sendData()">ยืนยันปิดยอด</button>
         </div>
 
-        <div id="errorArea"></div>
+        <div id="debugLog">Debug: Waiting for data...</div>
     </div>
 
     <script>
@@ -54,243 +40,50 @@
         const MY_N8N_URL = "https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B";
 
         async function main() {
-            try {
-                await liff.init({ liffId: MY_LIFF_ID });
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                    return;
-                }
-                const profile = await liff.getProfile();
-                document.getElementById("displayName").innerText = profile.displayName;
-                document.getElementById("userId").innerText = profile.userId;
-                document.getElementById("pictureUrl").src = profile.pictureUrl;
-
-                await checkPermission(profile.userId);
-            } catch (err) {
-                showError("LIFF Init Error: " + err.message);
-            }
+            await liff.init({ liffId: MY_LIFF_ID });
+            if (!liff.isLoggedIn()) { liff.login(); return; }
+            const profile = await liff.getProfile();
+            document.getElementById("displayName").innerText = profile.displayName;
+            document.getElementById("userId").innerText = profile.userId;
+            
+            checkPermission(profile.userId);
         }
 
         async function checkPermission(uid) {
+            const log = document.getElementById("debugLog");
             try {
-                const response = await fetch(MY_N8N_URL, {
+                const res = await fetch(MY_N8N_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ action: "CHECK_PERMISSION", userId: uid })
                 });
-
-                if (!response.ok) throw new Error("n8n Server Error (" + response.status + ")");
                 
-                const data = await response.json();
-                // ดักจับกรณี n8n ส่งมาเป็น Array [{...}] หรือ Object {...}
-                const user = Array.isArray(data) ? data[0] : data;
+                const data = await res.json();
+                log.innerText = "Raw Data from n8n: " + JSON.stringify(data, null, 2);
 
-                if (user && user.Role === "Cashier") {
-                    document.getElementById("displayRole").innerText = user.Role;
-                    document.getElementById("displayShopName").innerText = user.Branch || "Baan Ya Steak House";
-                    document.getElementById("displayBranchId").innerText = user.Branch || "-";
+                // --- 🛠️ Logic "ดัดหลัง" n8n (มาแบบไหนก็ต้องอ่านได้) ---
+                const raw = Array.isArray(data) ? data[0] : data;
+                // เช็คทั้งตัวเล็กตัวใหญ่
+                const role = raw.Role || raw.role || "Unknown";
+                const branch = raw.Branch || raw.branch || "Unknown";
+
+                document.getElementById("displayRole").innerText = role;
+                document.getElementById("displayShopName").innerText = branch;
+
+                if (role.toLowerCase() === "cashier") {
                     document.getElementById("formArea").style.display = "block";
                 } else {
-                    showError("⚠️ ขออภัย คุณไม่มีสิทธิ์เข้าถึง (Role: " + (user ? user.Role : 'Unknown') + ")");
+                    log.innerText += "\n\n❌ สิทธิ์ไม่ผ่าน: ระบบต้องการ 'Cashier' แต่ได้รับ '" + role + "'";
                 }
+
             } catch (err) {
-                showError("Network Error: ไม่สามารถคุยกับ n8n ได้ (" + err.message + ")");
+                log.innerText = "Network Error: " + err.message;
             }
         }
 
         async function sendData() {
-            const btn = document.getElementById("submitBtn");
-            btn.disabled = true;
-            btn.innerText = "กำลังบันทึก...";
-
-            try {
-                const profile = await liff.getProfile();
-                const payload = {
-                    action: "RECORD_SALES_CLOSING",
-                    userId: profile.userId,
-                    displayName: profile.displayName,
-                    shop: document.getElementById("displayShopName").innerText,
-                    branch: document.getElementById("displayBranchId").innerText,
-                    shop_transfer: parseFloat(document.getElementById("shopTransfer").value) || 0,
-                    shop_cash: parseFloat(document.getElementById("shopCash").value) || 0,
-                    grab_net: parseFloat(document.getElementById("grabNet").value) || 0,
-                    shopee_net: parseFloat(document.getElementById("shopeeNet").value) || 0,
-                    lineman_net: parseFloat(document.getElementById("linemanNet").value) || 0
-                };
-
-                const response = await fetch(MY_N8N_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.ok) {
-                    alert("✅ บันทึกยอดสำเร็จ!");
-                    liff.closeWindow();
-                } else {
-                    throw new Error("Save Failed");
-                }
-            } catch (err) {
-                alert("❌ พัง: " + err.message);
-                btn.disabled = false;
-                btn.innerText = "ยืนยันปิดยอดขาย";
-            }
-        }
-
-        function showError(msg) {
-            const errDiv = document.getElementById("errorArea");
-            errDiv.innerHTML = msg;
-            errDiv.style.display = "block";
-            document.getElementById("displayRole").innerText = "Denied";
-        }
-
-        main();
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deli Daily - Closing Auditor</title>
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 15px; background-color: #1a1a1a; color: #fff; }
-        .card { background: #2d2d2d; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-width: 400px; margin: auto; }
-        .profile-img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #00b900; margin-bottom: 10px; }
-        .info-box { background: #3d3d3d; padding: 10px; border-radius: 12px; margin-bottom: 20px; font-size: 14px; text-align: left; }
-        .info-box p { margin: 5px 0; color: #ccc; }
-        .info-box b { color: #00b900; }
-        .form-group { text-align: left; margin-bottom: 15px; }
-        label { display: block; font-size: 13px; color: #aaa; margin-bottom: 5px; margin-left: 5px; }
-        input { width: 100%; padding: 12px; border: 1px solid #444; border-radius: 10px; font-size: 18px; background: #333; color: #fff; box-sizing: border-box; outline: none; }
-        input:focus { border-color: #00b900; }
-        button { background: linear-gradient(90deg, #00b900, #009900); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 18px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        button:disabled { background: #555 !important; cursor: not-allowed; opacity: 0.6; }
-        hr { border: 0; border-top: 1px solid #444; margin: 20px 0; }
-        .badge { background: #00b900; color: #000; padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; vertical-align: middle; }
-        #errorArea { display: none; color: #ff4d4d; margin-top: 20px; font-weight: bold; border: 1px solid #ff4d4d; padding: 10px; border-radius: 10px; }
-    </style>
-</head>
-<body>
-    <div class="card" id="mainCard">
-        <img id="pictureUrl" class="profile-img" src="https://via.placeholder.com/70" alt="Profile">
-        <h2 id="displayName" style="margin: 10px 0 5px 0; font-size: 22px;">Loading...</h2>
-        
-        <div class="info-box">
-            <p>ตำแหน่ง: <span id="displayRole" class="badge">Checking...</span></p>
-            <p>ร้าน: <b id="displayShopName">...</b></p>
-            <p>ID สาขา: <b id="displayBranchId">...</b></p>
-            <p style="font-size: 11px; opacity: 0.6;">UID: <span id="userId">...</span></p>
-        </div>
-
-        <div id="formArea" style="display: none;">
-            <hr>
-            <p style="font-size: 16px; font-weight: bold; color: #00b900; margin-bottom: 15px;">สรุปยอดปิดร้านประจำวัน</p>
-            <div class="form-group"><label>🏠 หน้าร้าน (เงินโอน)</label><input type="number" id="shopTransfer" value="0" inputmode="decimal"></div>
-            <div class="form-group"><label>💵 หน้าร้าน (เงินสด)</label><input type="number" id="shopCash" value="0" inputmode="decimal"></div>
-            <div class="form-group"><label>🛵 ยอด Grab (สุทธิ)</label><input type="number" id="grabNet" value="0" inputmode="decimal"></div>
-            <div class="form-group"><label>🧡 ยอด Shopee (สุทธิ)</label><input type="number" id="shopeeNet" value="0" inputmode="decimal"></div>
-            <div class="form-group"><label>💚 ยอด LINEMAN (สุทธิ)</label><input type="number" id="linemanNet" value="0" inputmode="decimal"></div>
-            <button id="submitBtn" onclick="sendData()">ยืนยันปิดยอดขาย</button>
-        </div>
-
-        <div id="errorArea"></div>
-    </div>
-
-    <script>
-        const MY_LIFF_ID = "2010194217-lnwYLoTq"; 
-        const MY_N8N_URL = "https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B";
-
-        async function main() {
-            try {
-                await liff.init({ liffId: MY_LIFF_ID });
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                    return;
-                }
-                const profile = await liff.getProfile();
-                document.getElementById("displayName").innerText = profile.displayName;
-                document.getElementById("userId").innerText = profile.userId;
-                document.getElementById("pictureUrl").src = profile.pictureUrl;
-
-                await checkPermission(profile.userId);
-            } catch (err) {
-                showError("LIFF Init Error: " + err.message);
-            }
-        }
-
-        async function checkPermission(uid) {
-            try {
-                const response = await fetch(MY_N8N_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ action: "CHECK_PERMISSION", userId: uid })
-                });
-
-                if (!response.ok) throw new Error("n8n Server Error (" + response.status + ")");
-                
-                const data = await response.json();
-                // ดักจับกรณี n8n ส่งมาเป็น Array [{...}] หรือ Object {...}
-                const user = Array.isArray(data) ? data[0] : data;
-
-                if (user && user.Role === "Cashier") {
-                    document.getElementById("displayRole").innerText = user.Role;
-                    document.getElementById("displayShopName").innerText = user.Branch || "Baan Ya Steak House";
-                    document.getElementById("displayBranchId").innerText = user.Branch || "-";
-                    document.getElementById("formArea").style.display = "block";
-                } else {
-                    showError("⚠️ ขออภัย คุณไม่มีสิทธิ์เข้าถึง (Role: " + (user ? user.Role : 'Unknown') + ")");
-                }
-            } catch (err) {
-                showError("Network Error: ไม่สามารถคุยกับ n8n ได้ (" + err.message + ")");
-            }
-        }
-
-        async function sendData() {
-            const btn = document.getElementById("submitBtn");
-            btn.disabled = true;
-            btn.innerText = "กำลังบันทึก...";
-
-            try {
-                const profile = await liff.getProfile();
-                const payload = {
-                    action: "RECORD_SALES_CLOSING",
-                    userId: profile.userId,
-                    displayName: profile.displayName,
-                    shop: document.getElementById("displayShopName").innerText,
-                    branch: document.getElementById("displayBranchId").innerText,
-                    shop_transfer: parseFloat(document.getElementById("shopTransfer").value) || 0,
-                    shop_cash: parseFloat(document.getElementById("shopCash").value) || 0,
-                    grab_net: parseFloat(document.getElementById("grabNet").value) || 0,
-                    shopee_net: parseFloat(document.getElementById("shopeeNet").value) || 0,
-                    lineman_net: parseFloat(document.getElementById("linemanNet").value) || 0
-                };
-
-                const response = await fetch(MY_N8N_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.ok) {
-                    alert("✅ บันทึกยอดสำเร็จ!");
-                    liff.closeWindow();
-                } else {
-                    throw new Error("Save Failed");
-                }
-            } catch (err) {
-                alert("❌ พัง: " + err.message);
-                btn.disabled = false;
-                btn.innerText = "ยืนยันปิดยอดขาย";
-            }
-        }
-
-        function showError(msg) {
-            const errDiv = document.getElementById("errorArea");
-            errDiv.innerHTML = msg;
-            errDiv.style.display = "block";
-            document.getElementById("displayRole").innerText = "Denied";
+            alert("กำลังส่งข้อมูล...");
+            // ฟังก์ชันส่งข้อมูลเดิม...
         }
 
         main();
