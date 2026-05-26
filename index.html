@@ -61,19 +61,25 @@
                 const data = await res.json();
                 log.innerText = "Raw Data from n8n: " + JSON.stringify(data, null, 2);
 
-                // --- 🛠️ Logic "ดัดหลัง" n8n (มาแบบไหนก็ต้องอ่านได้) ---
-                const raw = Array.isArray(data) ? data[0] : data;
-                // เช็คทั้งตัวเล็กตัวใหญ่
-                const role = raw.Role || raw.role || "Unknown";
-                const branch = raw.Branch || raw.branch || "Unknown";
+                // เจาะเข้าไปใน Array ตัวแรกที่ได้รับจาก n8n
+                const result = Array.isArray(data) ? data[0] : data;
 
-                document.getElementById("displayRole").innerText = role;
-                document.getElementById("displayShopName").innerText = branch;
+                if (result) {
+                    // รองรับทั้ง Role (ตัวใหญ่) และ role (ตัวเล็ก)
+                    const role = result.Role || result.role || "Unknown";
+                    const branch = result.Branch || result.branch || "Unknown";
 
-                if (role.toLowerCase() === "cashier") {
-                    document.getElementById("formArea").style.display = "block";
+                    document.getElementById("displayRole").innerText = role;
+                    document.getElementById("displayShopName").innerText = branch;
+
+                    // ตรวจสอบเงื่อนไขว่าต้องเป็น Cashier
+                    if (role.toLowerCase() === "cashier") {
+                        document.getElementById("formArea").style.display = "block";
+                    } else {
+                        log.innerText += "\n\n❌ สิทธิ์ไม่ผ่าน: ระบบต้องการ 'Cashier' แต่ได้รับ '" + role + "'";
+                    }
                 } else {
-                    log.innerText += "\n\n❌ สิทธิ์ไม่ผ่าน: ระบบต้องการ 'Cashier' แต่ได้รับ '" + role + "'";
+                    log.innerText += "\n\n⚠️ ไม่พบข้อมูลโครงสร้างข้อมูลในระบบ";
                 }
 
             } catch (err) {
