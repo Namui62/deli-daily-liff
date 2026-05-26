@@ -63,12 +63,14 @@
                     document.getElementById("userId").innerText = profile.userId;
                     document.getElementById("pictureUrl").src = profile.pictureUrl;
 
+                    // ยิงเช็คสิทธิ์ทันที
                     await checkPermission(profile.userId);
                 } else {
                     liff.login();
                 }
             } catch (err) {
                 console.error("LIFF Initialization failed", err);
+                document.getElementById("displayName").innerText = "Error: LIFF Load Failed";
             }
         }
 
@@ -80,27 +82,28 @@
                     headers: { "Content-Type": "application/json" }
                 });
                 
-                if (!response.ok) throw new Error("n8n communication failed");
+                if (!response.ok) throw new Error("Network response was not ok");
                 
-                const userData = await response.json();
+                const rawData = await response.json();
+                
+                // รองรับทั้งกรณี n8n ส่งมาเป็น [ {Data} ] หรือ {Data} ตรงๆ
+                const userData = Array.isArray(rawData) ? rawData[0] : rawData;
 
-                // เช็คว่ามีข้อมูลส่งกลับมาและเป็น Cashier หรือไม่ (ใช้ตัวพิมพ์ใหญ่ตาม n8n)
                 if (userData && userData.Role === "Cashier") { 
                     document.getElementById("displayRole").innerText = userData.Role;
-                    document.getElementById("displayShopName").innerText = userData.Branch || "Deli Daily Store";
+                    document.getElementById("displayShopName").innerText = userData.Branch || "Baan Ya Steak House";
                     document.getElementById("displayBranchId").innerText = userData.Branch || "-";
                     document.getElementById("formArea").style.display = "block";
                     document.getElementById("errorArea").style.display = "none";
                 } else {
-                    // กรณีไม่มีสิทธิ์ หรือดึงข้อมูลไม่สำเร็จ
                     document.getElementById("displayRole").innerText = "ไม่มีสิทธิ์";
                     document.getElementById("errorArea").style.display = "block";
                     document.getElementById("formArea").style.display = "none";
                 }
             } catch (e) {
                 console.error("Permission check failed", e);
-                document.getElementById("displayRole").innerText = "Error";
-                document.getElementById("errorArea").innerText = "⚠️ ไม่สามารถเชื่อมต่อฐานข้อมูลได้";
+                document.getElementById("displayRole").innerText = "Timeout";
+                document.getElementById("errorArea").innerText = "⚠️ ไม่สามารถเชื่อมต่อฐานข้อมูลได้ (n8n Error)";
                 document.getElementById("errorArea").style.display = "block";
             }
         }
@@ -135,16 +138,20 @@
                     total_sales: parseFloat(transfer) + parseFloat(cash) + parseFloat(grab) + parseFloat(shopee) + parseFloat(lineman)
                 };
 
-                await fetch(MY_N8N_URL, {
+                const response = await fetch(MY_N8N_URL, {
                     method: "POST",
                     body: JSON.stringify(data),
                     headers: { "Content-Type": "application/json" }
                 });
-                
-                alert("บันทึกยอดสำเร็จ!");
-                liff.closeWindow();
+
+                if (response.ok) {
+                    alert("บันทึกยอดสำเร็จ!");
+                    liff.closeWindow();
+                } else {
+                    throw new Error("Save failed");
+                }
             } catch (err) {
-                alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+                alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง");
                 btn.disabled = false;
                 btn.innerText = "ยืนยันปิดยอดขาย";
             }
