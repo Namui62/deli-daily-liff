@@ -9,7 +9,7 @@
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 15px; background-color: #1a1a1a; color: #fff; }
         .card { background: #2d2d2d; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-width: 400px; margin: auto; }
         .profile-img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #00b900; margin-bottom: 10px; }
-        .info-box { background: #3d3d3d; padding: 10px; border-radius: 12px; margin-bottom: 20px; font-size: 14px; }
+        .info-box { background: #3d3d3d; padding: 10px; border-radius: 12px; margin-bottom: 20px; font-size: 14px; text-align: left; }
         .info-box p { margin: 5px 0; color: #ccc; }
         .info-box b { color: #00b900; }
         .form-group { text-align: left; margin-bottom: 15px; }
@@ -28,39 +28,20 @@
         <h2 id="displayName" style="margin: 10px 0 5px 0; font-size: 22px;">กำลังโหลด...</h2>
         
         <div class="info-box">
-            <p>ตำแหน่ง: <span class="badge">Cashier</span></p>
-            <p>ร้าน: <b>Baan Ya Steak House</b></p>
-            <p>ID สาขา: <b>Korat-01</b></p>
+            <p>ตำแหน่ง: <span id="displayRole" class="badge">กำลังโหลด...</span></p>
+            <p>ร้าน: <b id="displayShopName">กำลังโหลด...</b></p>
+            <p>ID สาขา: <b id="displayBranchId">กำลังโหลด...</b></p>
             <p style="font-size: 11px; opacity: 0.6;">UID: <span id="userId">...</span></p>
         </div>
 
         <hr>
         <p style="font-size: 16px; font-weight: bold; color: #00b900; margin-bottom: 15px;">สรุปยอดปิดร้านประจำวัน</p>
         
-        <div class="form-group">
-            <label>🏠 หน้าร้าน (เงินโอน)</label>
-            <input type="number" id="shopTransfer" placeholder="0.00" inputmode="decimal">
-        </div>
-
-        <div class="form-group">
-            <label>💵 หน้าร้าน (เงินสด)</label>
-            <input type="number" id="shopCash" placeholder="0.00" inputmode="decimal">
-        </div>
-
-        <div class="form-group">
-            <label>🛵 ยอด Grab (สุทธิ)</label>
-            <input type="number" id="grabNet" placeholder="0.00" inputmode="decimal">
-        </div>
-
-        <div class="form-group">
-            <label>🧡 ยอด Shopee (สุทธิ)</label>
-            <input type="number" id="shopeeNet" placeholder="0.00" inputmode="decimal">
-        </div>
-
-        <div class="form-group">
-            <label>💚 ยอด LINEMAN (สุทธิ)</label>
-            <input type="number" id="linemanNet" placeholder="0.00" inputmode="decimal">
-        </div>
+        <div class="form-group"><label>🏠 หน้าร้าน (เงินโอน)</label><input type="number" id="shopTransfer" placeholder="0.00" inputmode="decimal"></div>
+        <div class="form-group"><label>💵 หน้าร้าน (เงินสด)</label><input type="number" id="shopCash" placeholder="0.00" inputmode="decimal"></div>
+        <div class="form-group"><label>🛵 ยอด Grab (สุทธิ)</label><input type="number" id="grabNet" placeholder="0.00" inputmode="decimal"></div>
+        <div class="form-group"><label>🧡 ยอด Shopee (สุทธิ)</label><input type="number" id="shopeeNet" placeholder="0.00" inputmode="decimal"></div>
+        <div class="form-group"><label>💚 ยอด LINEMAN (สุทธิ)</label><input type="number" id="linemanNet" placeholder="0.00" inputmode="decimal"></div>
 
         <button onclick="sendData()">ยืนยันปิดยอดขาย</button>
     </div>
@@ -76,6 +57,12 @@
                 document.getElementById("displayName").innerText = profile.displayName;
                 document.getElementById("userId").innerText = profile.userId;
                 document.getElementById("pictureUrl").src = profile.pictureUrl;
+
+                // ท่าที่ 1: ดึงค่าจาก URL Parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                document.getElementById("displayRole").innerText = urlParams.get('role') || 'Staff';
+                document.getElementById("displayShopName").innerText = urlParams.get('shop') || 'Baan Ya Steak House';
+                document.getElementById("displayBranchId").innerText = urlParams.get('branch') || '-';
             } else {
                 liff.login();
             }
@@ -88,16 +75,16 @@
             const shopee = document.getElementById("shopeeNet").value || 0;
             const lineman = document.getElementById("linemanNet").value || 0;
 
-            if (transfer == 0 && cash == 0 && grab == 0 && shopee == 0 && lineman == 0) {
-                alert("กรุณากรอกยอดขายอย่างน้อย 1 ช่องทางครับ");
-                return;
-            }
-            
             const profile = await liff.getProfile();
+            const urlParams = new URLSearchParams(window.location.search);
+
             const data = {
                 action: "RECORD_SALES_CLOSING",
                 userId: profile.userId,
                 displayName: profile.displayName,
+                role: urlParams.get('role'),
+                shop: urlParams.get('shop'),
+                branch: urlParams.get('branch'),
                 shop_transfer: parseFloat(transfer),
                 shop_cash: parseFloat(cash),
                 grab_net: parseFloat(grab),
@@ -106,17 +93,13 @@
                 total_sales: parseFloat(transfer) + parseFloat(cash) + parseFloat(grab) + parseFloat(shopee) + parseFloat(lineman)
             };
 
-            try {
-                await fetch(MY_N8N_URL, {
-                    method: "POST",
-                    body: JSON.stringify(data),
-                    headers: { "Content-Type": "application/json" }
-                });
-                alert("บันทึกยอดปิดร้านสำเร็จ! ระบบกำลังแจ้งรายงานให้เจ้าของร้านทราบ");
-                liff.closeWindow();
-            } catch (error) {
-                alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
-            }
+            await fetch(MY_N8N_URL, {
+                method: "POST",
+                body: JSON.stringify(data),
+                headers: { "Content-Type": "application/json" }
+            });
+            alert("บันทึกยอดสำเร็จ!");
+            liff.closeWindow();
         }
         main();
     </script>
