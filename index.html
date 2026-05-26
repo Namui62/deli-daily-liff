@@ -1,120 +1,105 @@
-<script>
-    const MY_LIFF_ID = "2010194217-lnwYLoTq";
-    const MY_N8N_URL = "https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B";
-
-    async function main() {
-        await liff.init({ liffId: MY_LIFF_ID });
-
-        if (!liff.isLoggedIn()) {
-            liff.login();
-            return;
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deli Daily - Closing Auditor</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 15px; background-color: #1a1a1a; color: #fff; text-align: center; }
+        .card { background: #2d2d2d; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-width: 400px; margin: auto; }
+        .profile-img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #00b900; }
+        .info-box { background: #3d3d3d; padding: 15px; border-radius: 12px; margin: 15px 0; text-align: left; font-size: 14px; }
+        .info-box p { margin: 5px 0; color: #ccc; }
+        .info-box b { color: #00b900; }
+        .badge { background: #00b900; color: #000; padding: 2px 8px; border-radius: 5px; font-weight: bold; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #444; background: #333; color: #fff; font-size: 18px; box-sizing: border-box; }
+        button { background: linear-gradient(90deg, #00b900, #009900); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 18px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        #formArea { display: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <img id="pictureUrl" class="profile-img" src="" alt="Profile">
+        <h2 id="displayName" style="margin: 10px 0;">Loading...</h2>
+        <div class="info-box">
+            <p>ตำแหน่ง: <span id="displayRole" class="badge">Checking...</span></p>
+            <p>ID สาขา: <b id="displayBranchId">...</b></p>
+            <p style="font-size: 10px; opacity: 0.5;">v.2.1 (Auto-Fix Active)</p>
+        </div>
+        <div id="formArea">
+            <hr style="border:0; border-top:1px solid #444; margin: 20px 0;">
+            <input type="number" id="shopTransfer" placeholder="🏠 หน้าร้าน (เงินโอน)" inputmode="decimal">
+            <input type="number" id="shopCash" placeholder="💵 หน้าร้าน (เงินสด)" inputmode="decimal">
+            <input type="number" id="grabNet" placeholder="🛵 ยอด Grab (สุทธิ)" inputmode="decimal">
+            <input type="number" id="shopeeNet" placeholder="🧡 ยอด Shopee (สุทธิ)" inputmode="decimal">
+            <input type="number" id="linemanNet" placeholder="💚 ยอด LINEMAN (สุทธิ)" inputmode="decimal">
+            <button onclick="sendData()">ยืนยันปิดยอดขาย</button>
+        </div>
+        <div id="errorArea" style="display:none; color:red; margin-top:10px;"></div>
+    </div>
+    <script>
+        const MY_LIFF_ID = "2010194217-lnwYLoTq"; 
+        const MY_N8N_URL = "https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B";
+        async function main() {
+            try {
+                await liff.init({ liffId: MY_LIFF_ID });
+                if (!liff.isLoggedIn()) { liff.login(); return; }
+                const profile = await liff.getProfile();
+                document.getElementById("displayName").innerText = profile.displayName;
+                document.getElementById("pictureUrl").src = profile.pictureUrl;
+                checkPermission(profile.userId);
+            } catch (err) { console.error(err); }
         }
-
-        const profile = await liff.getProfile();
-
-        document.getElementById("displayName").innerText = profile.displayName;
-        document.getElementById("userId").innerText = profile.userId;
-
-        checkPermission(profile.userId);
-    }
-
-    async function checkPermission(uid) {
-
-        const log = document.getElementById("debugLog");
-
-        try {
-
-            log.innerText = "⏳ Checking permission...";
-
-            const response = await fetch(MY_N8N_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    action: "CHECK_PERMISSION",
-                    userId: uid
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error("HTTP " + response.status);
-            }
-
-            const data = await response.json();
-
-            log.innerText =
-                "✅ Raw Response:\n\n" +
-                JSON.stringify(data, null, 2);
-
-            // รองรับทั้ง Array และ Object
-            const raw = Array.isArray(data)
-                ? data[0]
-                : data;
-
-            // กัน undefined
-            if (!raw) {
-                throw new Error("Empty response from n8n");
-            }
-
-            // รองรับทั้งตัวใหญ่/เล็ก
-            const role =
-                raw.Role ||
-                raw.role ||
-                "Unknown";
-
-            const branch =
-                raw.Branch ||
-                raw.branch ||
-                "Unknown";
-
-            // แสดงผลบน UI
-            document.getElementById("displayRole").innerText = role;
-            document.getElementById("displayShopName").innerText = branch;
-
-            // เช็คสิทธิ์
-            if (role.toLowerCase() === "cashier") {
-
-                document.getElementById("formArea").style.display = "block";
-
-                log.innerText +=
-                    "\n\n✅ Permission Granted";
-
-            } else {
-
-                document.getElementById("formArea").style.display = "none";
-
-                log.innerText +=
-                    "\n\n❌ Permission Denied\nRole = " + role;
-            }
-
-        } catch (error) {
-
-            log.innerText =
-                "❌ ERROR\n\n" +
-                error.message;
-
-            console.error(error);
+        async function checkPermission(uid) {
+            try {
+                const response = await fetch(MY_N8N_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "CHECK_PERMISSION", userId: uid })
+                });
+                const data = await response.json();
+                const user = Array.isArray(data) ? data[0] : data;
+                if (user) {
+                    let role = (user.Role || user.role || "").toString().replace(/^=/, '');
+                    let branch = (user.Branch || user.branch || "").toString().replace(/^=/, '');
+                    document.getElementById("displayRole").innerText = role;
+                    document.getElementById("displayBranchId").innerText = branch;
+                    if (role.toLowerCase() === "cashier") {
+                        document.getElementById("formArea").style.display = "block";
+                    }
+                }
+            } catch (err) { console.error(err); }
         }
-    }
-
-    async function sendData() {
-
-        const transfer =
-            document.getElementById("shopTransfer").value;
-
-        const cash =
-            document.getElementById("shopCash").value;
-
-        alert(
-            "ส่งข้อมูลแล้ว\n\n" +
-            "โอน: " + transfer +
-            "\nสด: " + cash
-        );
-
-        // TODO:
-        // ส่งข้อมูลไป n8n
-    }
-
-    main();
-</script>
+        async function sendData() {
+            const btn = event.target;
+            btn.disabled = true; btn.innerText = "กำลังบันทึก...";
+            try {
+                const profile = await liff.getProfile();
+                const payload = {
+                    action: "RECORD_SALES_CLOSING",
+                    userId: profile.userId,
+                    displayName: profile.displayName,
+                    branch: document.getElementById("displayBranchId").innerText,
+                    shop_transfer: parseFloat(document.getElementById("shopTransfer").value) || 0,
+                    shop_cash: parseFloat(document.getElementById("shopCash").value) || 0,
+                    grab_net: parseFloat(document.getElementById("grabNet").value) || 0,
+                    shopee_net: parseFloat(document.getElementById("shopeeNet").value) || 0,
+                    lineman_net: parseFloat(document.getElementById("linemanNet").value) || 0
+                };
+                await fetch(MY_N8N_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                alert("✅ บันทึกยอดสำเร็จ!");
+                liff.closeWindow();
+            } catch (err) {
+                alert("❌ พัง: " + err.message);
+                btn.disabled = false; btn.innerText = "ยืนยันปิดยอดขาย";
+            }
+        }
+        main();
+    </script>
+</body>
+</html>
