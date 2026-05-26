@@ -3,37 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deli Daily Input</title>
+    <title>Deli Daily - Closing Auditor</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; text-align: center; background-color: #f4f7f6; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        img { width: 80px; border-radius: 50%; margin-bottom: 10px; }
-        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 18px; }
-        button { background-color: #00b900; color: white; border: none; padding: 15px; border-radius: 8px; font-size: 16px; width: 100%; font-weight: bold; }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 15px; background-color: #1a1a1a; color: #fff; }
+        .card { background: #2d2d2d; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-width: 400px; margin: auto; }
+        .profile-img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #00b900; margin-bottom: 10px; }
+        .info-box { background: #3d3d3d; padding: 10px; border-radius: 12px; margin-bottom: 20px; font-size: 14px; }
+        .info-box p { margin: 5px 0; color: #ccc; }
+        .info-box b { color: #00b900; }
+        .form-group { text-align: left; margin-bottom: 15px; }
+        label { display: block; font-size: 13px; color: #aaa; margin-bottom: 5px; margin-left: 5px; }
+        input { width: 100%; padding: 12px; border: 1px solid #444; border-radius: 10px; font-size: 18px; background: #333; color: #fff; box-sizing: border-box; outline: none; }
+        input:focus { border-color: #00b900; }
+        button { background: linear-gradient(90deg, #00b900, #009900); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 18px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        button:active { transform: scale(0.98); opacity: 0.9; }
+        hr { border: 0; border-top: 1px solid #444; margin: 20px 0; }
+        .badge { background: #00b900; color: #000; padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: bold; vertical-align: middle; }
     </style>
 </head>
 <body>
     <div class="card">
-        <img id="pictureUrl" src="https://via.placeholder.com/80" alt="Profile">
-        <h2 id="displayName">กำลังโหลด...</h2>
-        <p style="font-size: 12px; color: #888;">ID: <span id="userId">...</span></p>
+        <img id="pictureUrl" class="profile-img" src="https://via.placeholder.com/70" alt="Profile">
+        <h2 id="displayName" style="margin: 10px 0 5px 0; font-size: 22px;">กำลังโหลด...</h2>
+        
+        <div class="info-box">
+            <p>ตำแหน่ง: <span class="badge">Cashier</span></p>
+            <p>ร้าน: <b>Baan Ya Steak House</b></p>
+            <p>ID สาขา: <b>Korat-01</b></p>
+            <p style="font-size: 11px; opacity: 0.6;">UID: <span id="userId">...</span></p>
+        </div>
+
         <hr>
-        <p><b>กรอกยอดขายวันนี้ (บาท)</b></p>
-        <input type="number" id="salesAmount" placeholder="0.00" inputmode="decimal">
-        <button onclick="sendData()">บันทึกยอดขาย</button>
+        <p style="font-size: 16px; font-weight: bold; color: #00b900; margin-bottom: 15px;">สรุปยอดปิดร้านประจำวัน</p>
+        
+        <div class="form-group">
+            <label>🏠 หน้าร้าน (เงินโอน)</label>
+            <input type="number" id="shopTransfer" placeholder="0.00" inputmode="decimal">
+        </div>
+
+        <div class="form-group">
+            <label>💵 หน้าร้าน (เงินสด)</label>
+            <input type="number" id="shopCash" placeholder="0.00" inputmode="decimal">
+        </div>
+
+        <div class="form-group">
+            <label>🛵 ยอด Grab (สุทธิ)</label>
+            <input type="number" id="grabNet" placeholder="0.00" inputmode="decimal">
+        </div>
+
+        <div class="form-group">
+            <label>🧡 ยอด Shopee (สุทธิ)</label>
+            <input type="number" id="shopeeNet" placeholder="0.00" inputmode="decimal">
+        </div>
+
+        <div class="form-group">
+            <label>💚 ยอด LINEMAN (สุทธิ)</label>
+            <input type="number" id="linemanNet" placeholder="0.00" inputmode="decimal">
+        </div>
+
+        <button onclick="sendData()">ยืนยันปิดยอดขาย</button>
     </div>
 
     <script>
-        // ใส่ข้อมูลจริงของพี่ตรงนี้
-        const MY_LIFF_ID = "2010194217-lnwYLoTq"; // <--- เปลี่ยนเป็น LIFF ID ของพี่
-        const MY_N8N_URL = "https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B"; // <--- เปลี่ยนเป็น Production URL
+        const MY_LIFF_ID = "2010194217-lnwYLoTq"; 
+        const MY_N8N_URL = "https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B";
 
         async function main() {
             await liff.init({ liffId: MY_LIFF_ID });
             if (liff.isLoggedIn()) {
                 const profile = await liff.getProfile();
-                document.getElementById("displayName").innerText = "สวัสดีคุณ " + profile.displayName;
+                document.getElementById("displayName").innerText = profile.displayName;
                 document.getElementById("userId").innerText = profile.userId;
                 document.getElementById("pictureUrl").src = profile.pictureUrl;
             } else {
@@ -42,25 +82,41 @@
         }
 
         async function sendData() {
-            const sales = document.getElementById("salesAmount").value;
-            if (!sales) { alert("กรุณากรอกยอดขายก่อนครับ"); return; }
+            const transfer = document.getElementById("shopTransfer").value || 0;
+            const cash = document.getElementById("shopCash").value || 0;
+            const grab = document.getElementById("grabNet").value || 0;
+            const shopee = document.getElementById("shopeeNet").value || 0;
+            const lineman = document.getElementById("linemanNet").value || 0;
+
+            if (transfer == 0 && cash == 0 && grab == 0 && shopee == 0 && lineman == 0) {
+                alert("กรุณากรอกยอดขายอย่างน้อย 1 ช่องทางครับ");
+                return;
+            }
             
             const profile = await liff.getProfile();
             const data = {
-                action: "RECORD_SALES",
+                action: "RECORD_SALES_CLOSING",
                 userId: profile.userId,
                 displayName: profile.displayName,
-                sales: parseFloat(sales)
+                shop_transfer: parseFloat(transfer),
+                shop_cash: parseFloat(cash),
+                grab_net: parseFloat(grab),
+                shopee_net: parseFloat(shopee),
+                lineman_net: parseFloat(lineman),
+                total_sales: parseFloat(transfer) + parseFloat(cash) + parseFloat(grab) + parseFloat(shopee) + parseFloat(lineman)
             };
 
-            await fetch(MY_N8N_URL, {
-                method: "POST",
-                body: JSON.stringify(data),
-                headers: { "Content-Type": "application/json" }
-            });
-
-            alert("บันทึกสำเร็จ! ขอบคุณครับ");
-            liff.closeWindow();
+            try {
+                await fetch(MY_N8N_URL, {
+                    method: "POST",
+                    body: JSON.stringify(data),
+                    headers: { "Content-Type": "application/json" }
+                });
+                alert("บันทึกยอดปิดร้านสำเร็จ! ระบบกำลังแจ้งรายงานให้เจ้าของร้านทราบ");
+                liff.closeWindow();
+            } catch (error) {
+                alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+            }
         }
         main();
     </script>
