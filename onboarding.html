@@ -24,10 +24,14 @@
         .input-focus:focus {
             border-color: #0788e4;
             box-shadow: 0 0 0 4px rgba(7, 136, 228, 0.1);
+            background-color: #ffffff;
         }
-        /* ปรับจังหวะพื้นหลังเล็กน้อย */
         .card-overlap {
             margin-top: -60px;
+        }
+        ::placeholder {
+            color: #9ca3af;
+            opacity: 0.6;
         }
     </style>
 </head>
@@ -51,17 +55,17 @@
                     <div class="space-y-4">
                         <div class="flex items-center space-x-2 mb-4">
                             <div class="w-1.5 h-6 bg-[#0b47af] rounded-full"></div>
-                            <h2 class="text-gray-900 font-semibold text-lg">ลงทะเบียนเจ้าของร้าน</h2>
+                            <h2 class="text-gray-900 font-semibold text-lg text-left">ลงทะเบียนเจ้าของร้าน</h2>
                         </div>
                         
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1.5 ml-1 tracking-wider">ชื่อร้านอาหาร</label>
-                            <input type="text" id="storeName" required value="The Pizza Runner" 
+                            <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1.5 ml-1 tracking-wider text-left">ชื่อร้านอาหาร</label>
+                            <input type="text" id="storeName" required placeholder="ตัวอย่าง: The Pizza Runner" 
                                 class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-gray-700 outline-none input-focus transition-all font-medium">
                         </div>
 
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1.5 ml-1 tracking-wider">ชื่อเจ้าของร้าน</label>
+                            <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1.5 ml-1 tracking-wider text-left">ชื่อเจ้าของร้าน</label>
                             <input type="text" id="ownerName" required placeholder="ระบุชื่อเพื่อใช้เรียกในระบบ" 
                                 class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-gray-700 outline-none input-focus transition-all font-medium">
                         </div>
@@ -70,11 +74,11 @@
                     <div class="space-y-4 pt-6 border-t border-gray-100">
                         <div class="flex items-center space-x-2 mb-4">
                             <div class="w-1.5 h-6 bg-[#12cf35] rounded-full"></div>
-                            <h2 class="text-gray-900 font-semibold text-lg">Platform & GP Settings</h2>
+                            <h2 class="text-gray-900 font-semibold text-lg text-left">Platform & GP Settings</h2>
                         </div>
 
                         <div>
-                            <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1.5 ml-1 tracking-wider">อีเมลรับรายงานเดลิเวอรี</label>
+                            <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1.5 ml-1 tracking-wider text-left">อีเมลรับรายงานเดลิเวอรี</label>
                             <input type="email" id="reportEmail" required placeholder="owner@email.com" 
                                 class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-gray-700 outline-none input-focus transition-all font-medium">
                         </div>
