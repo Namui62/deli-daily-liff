@@ -10,93 +10,106 @@
     <style>
         body { font-family: 'Kanit', sans-serif; }
         .bg-brand-gradient {
-            background: linear-gradient(135deg, #0b47af 0%, #0788e4 100%);
+            background: radial-gradient(circle at top right, #0788e4 0%, #0b47af 100%);
         }
         .btn-green {
             background-color: #12cf35;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .btn-green:hover {
             background-color: #0fad2c;
             transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(18, 207, 53, 0.3);
         }
         .input-focus:focus {
             border-color: #0788e4;
-            box-shadow: 0 0 0 3px rgba(7, 136, 228, 0.1);
+            box-shadow: 0 0 0 4px rgba(7, 136, 228, 0.1);
+        }
+        /* ปรับจังหวะพื้นหลังเล็กน้อย */
+        .card-overlap {
+            margin-top: -60px;
         }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
-    <div class="bg-brand-gradient pt-12 pb-24 px-6 text-center text-white">
-        <div class="mb-4 flex justify-center">
-            <div class="bg-white p-2 rounded-2xl shadow-lg">
-                <img src="https://api.dicebear.com/7.x/initials/svg?seed=DD" alt="Deli Daily Logo" class="h-12 w-12 rounded-lg">
-            </div>
+    <div class="bg-brand-gradient pt-16 pb-32 px-6 text-center text-white relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-20 -mt-20"></div>
+        <div class="absolute bottom-0 left-0 w-40 h-40 bg-white opacity-5 rounded-full -ml-10 -mb-10"></div>
+        
+        <div class="relative z-10">
+            <h1 class="text-3xl font-bold tracking-tight mb-2">Deli Daily</h1>
+            <p class="text-blue-100 text-sm opacity-90 font-light">ระบบอัตโนมัติสำหรับร้านอาหารยุคใหม่</p>
         </div>
-        <h1 class="text-2xl font-bold tracking-tight">Deli Daily Onboarding</h1>
-        <p class="text-blue-100 text-sm mt-1 opacity-90">เริ่มต้นสร้างระบบ Smart Restaurant ของคุณ</p>
     </div>
 
-    <div class="max-w-md mx-auto -mt-16 px-4 pb-12">
-        <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+    <div class="max-w-md mx-auto card-overlap px-4 pb-12 relative z-20">
+        <div class="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-white">
             <div class="p-8">
                 <form id="onboardingForm" class="space-y-6">
                     
                     <div class="space-y-4">
-                        <div class="flex items-center space-x-2 mb-2">
-                            <div class="w-1 h-5 bg-[#0b47af] rounded-full"></div>
-                            <h2 class="text-gray-800 font-semibold">ข้อมูลร้านค้า</h2>
+                        <div class="flex items-center space-x-2 mb-4">
+                            <div class="w-1.5 h-6 bg-[#0b47af] rounded-full"></div>
+                            <h2 class="text-gray-900 font-semibold text-lg">ลงทะเบียนเจ้าของร้าน</h2>
                         </div>
                         
                         <div>
-                            <label class="block text-xs font-medium text-gray-400 uppercase mb-1 ml-1">ชื่อร้านอาหาร</label>
-                            <input type="text" id="storeName" required placeholder="เช่น บ้านย่า สเต็ก เฮ้าส์" 
-                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-700 outline-none input-focus transition-all">
+                            <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1.5 ml-1 tracking-wider">ชื่อร้านอาหาร</label>
+                            <input type="text" id="storeName" required value="The Pizza Runner" 
+                                class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-gray-700 outline-none input-focus transition-all font-medium">
                         </div>
 
                         <div>
-                            <label class="block text-xs font-medium text-gray-400 uppercase mb-1 ml-1">ชื่อเจ้าของร้าน</label>
-                            <input type="text" id="ownerName" required placeholder="ระบุชื่อเพื่อใช้ในระบบ" 
-                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-700 outline-none input-focus transition-all">
+                            <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1.5 ml-1 tracking-wider">ชื่อเจ้าของร้าน</label>
+                            <input type="text" id="ownerName" required placeholder="ระบุชื่อเพื่อใช้เรียกในระบบ" 
+                                class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-gray-700 outline-none input-focus transition-all font-medium">
                         </div>
                     </div>
 
-                    <div class="space-y-4 pt-4 border-t border-gray-50">
-                        <div class="flex items-center space-x-2 mb-2">
-                            <div class="w-1 h-5 bg-[#12cf35] rounded-full"></div>
-                            <h2 class="text-gray-800 font-semibold">ตั้งค่า Platform & GP</h2>
+                    <div class="space-y-4 pt-6 border-t border-gray-100">
+                        <div class="flex items-center space-x-2 mb-4">
+                            <div class="w-1.5 h-6 bg-[#12cf35] rounded-full"></div>
+                            <h2 class="text-gray-900 font-semibold text-lg">Platform & GP Settings</h2>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-medium text-gray-400 uppercase mb-1 ml-1">อีเมลรับรายงานเดลิเวอรี</label>
-                            <input type="email" id="reportEmail" required placeholder="email@example.com" 
-                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-700 outline-none input-focus transition-all">
-                            <p class="text-[10px] text-gray-400 mt-1 ml-1">*ใช้อีเมลเดียวกับที่ลงทะเบียน Grab/LINEMAN</p>
+                            <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1.5 ml-1 tracking-wider">อีเมลรับรายงานเดลิเวอรี</label>
+                            <input type="email" id="reportEmail" required placeholder="owner@email.com" 
+                                class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-gray-700 outline-none input-focus transition-all font-medium">
                         </div>
 
                         <div class="grid grid-cols-3 gap-3">
-                            <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                                <label class="block text-[10px] font-bold text-gray-500 uppercase text-center mb-1">Grab (%)</label>
-                                <input type="number" id="gpGrab" value="30" class="w-full bg-white border border-gray-200 rounded-lg py-2 text-center font-semibold text-[#0b47af]">
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-2">Grab</label>
+                                <div class="flex items-center justify-center">
+                                    <input type="number" id="gpGrab" value="30" class="w-full bg-transparent text-center font-bold text-[#0b47af] text-xl outline-none">
+                                    <span class="text-[10px] text-[#0b47af] font-bold">%</span>
+                                </div>
                             </div>
-                            <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                                <label class="block text-[10px] font-bold text-gray-500 uppercase text-center mb-1">Lineman (%)</label>
-                                <input type="number" id="gpLM" value="30" class="w-full bg-white border border-gray-200 rounded-lg py-2 text-center font-semibold text-[#0b47af]">
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-2">Lineman</label>
+                                <div class="flex items-center justify-center">
+                                    <input type="number" id="gpLM" value="30" class="w-full bg-transparent text-center font-bold text-[#0b47af] text-xl outline-none">
+                                    <span class="text-[10px] text-[#0b47af] font-bold">%</span>
+                                </div>
                             </div>
-                            <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                                <label class="block text-[10px] font-bold text-gray-500 uppercase text-center mb-1">Shopee (%)</label>
-                                <input type="number" id="gpShopee" value="30" class="w-full bg-white border border-gray-200 rounded-lg py-2 text-center font-semibold text-[#0b47af]">
+                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-2">Shopee</label>
+                                <div class="flex items-center justify-center">
+                                    <input type="number" id="gpShopee" value="30" class="w-full bg-transparent text-center font-bold text-[#0b47af] text-xl outline-none">
+                                    <span class="text-[10px] text-[#0b47af] font-bold">%</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="pt-4">
+                    <div class="pt-6">
                         <button type="submit" id="btnSubmit" 
-                            class="btn-green w-full text-white font-bold py-4 rounded-2xl shadow-lg shadow-green-200 flex items-center justify-center space-x-2">
-                            <span>ยืนยันสร้างระบบ Deli Daily</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            class="btn-green w-full text-white font-bold py-5 rounded-[1.25rem] shadow-xl flex items-center justify-center space-x-3 text-lg">
+                            <span>เริ่มสร้างระบบ Deli Daily</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                             </svg>
                         </button>
                     </div>
@@ -104,7 +117,9 @@
             </div>
         </div>
         
-        <p class="text-center text-gray-400 text-xs mt-8">© 2026 Deli Daily Automation Project</p>
+        <div class="text-center mt-10">
+            <p class="text-gray-400 text-[10px] uppercase tracking-[0.2em]">Powered by Deli Daily Automation</p>
+        </div>
     </div>
 
     <script>
@@ -122,13 +137,7 @@
             e.preventDefault();
             const btn = document.getElementById('btnSubmit');
             btn.disabled = true;
-            btn.innerHTML = `
-                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>กำลังเตรียมระบบ...</span>
-            `;
+            btn.innerHTML = `<span>กำลังสร้างระบบ...</span>`;
 
             const profile = await liff.getProfile();
             
@@ -151,15 +160,15 @@
                 });
 
                 if (response.ok) {
-                    alert('สำเร็จ! Deli Daily กำลังโคลนระบบให้คุณ กรุณาตรวจสอบที่ LINE ครับ');
+                    alert('สำเร็จ! ระบบกำลังดำเนินการโคลนไฟล์ให้คุณ');
                     liff.closeWindow();
                 } else {
-                    throw new Error('Server Error');
+                    throw new Error('Error');
                 }
             } catch (error) {
-                alert('เกิดข้อผิดพลาดในการเชื่อมต่อ n8n');
+                alert('การเชื่อมต่อขัดข้อง');
                 btn.disabled = false;
-                btn.innerHTML = '<span>ยืนยันสร้างระบบ Deli Daily</span>';
+                btn.innerText = 'เริ่มสร้างระบบ Deli Daily';
             }
         });
     </script>
