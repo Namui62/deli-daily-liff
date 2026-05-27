@@ -61,10 +61,10 @@
 
     <script>
         // แทนที่ด้วย Webhook URL จาก n8n ของพี่
-        const N8N_WEBHOOK_URL = 'https://n8n.yourdomain.com/webhook/onboarding-owner';
+        const N8N_WEBHOOK_URL = 'https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B';
 
         async function main() {
-            await liff.init({ liffId: "YOUR_LIFF_ID" }); // ใส่ LIFF ID ของพี่
+            await liff.init({ liffId: "2010194217-lnwYLoTq" }); // ใส่ LIFF ID ของพี่
             if (!liff.isLoggedIn()) {
                 liff.login();
             }
