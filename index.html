@@ -1,56 +1,164 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deli Daily - Closing Auditor</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 15px; background-color: #1a1a1a; color: #fff; text-align: center; }
-        .card { background: #2d2d2d; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-width: 400px; margin: auto; }
-        .profile-img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid #00b900; }
-        .info-box { background: #3d3d3d; padding: 15px; border-radius: 12px; margin: 15px 0; text-align: left; font-size: 14px; }
-        .info-box p { margin: 5px 0; color: #ccc; }
-        .info-box b { color: #00b900; }
-        .badge { background: #00b900; color: #000; padding: 2px 8px; border-radius: 5px; font-weight: bold; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #444; background: #333; color: #fff; font-size: 18px; box-sizing: border-box; }
-        button { background: linear-gradient(90deg, #00b900, #009900); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 18px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        #formArea { display: none; }
+        :root {
+            --primary-blue: #0b47af; /* Smart Active Blue */
+            --success-green: #12cf35; /* Success Green */
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --input-bg: #2a2a2a;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--dark-bg); 
+            color: #ffffff; 
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .card { 
+            background: var(--card-bg); 
+            padding: 30px 25px; 
+            border-radius: 24px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5); 
+            width: 100%;
+            max-width: 380px; 
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .profile-img { 
+            width: 85px; height: 85px; 
+            border-radius: 50%; 
+            border: 3px solid var(--primary-blue); 
+            margin-bottom: 15px;
+            box-shadow: 0 0 15px rgba(11, 71, 175, 0.3);
+        }
+
+        h2 { margin: 10px 0; font-weight: 600; letter-spacing: 0.5px; }
+
+        .info-box { 
+            background: var(--input-bg); 
+            padding: 18px; 
+            border-radius: 16px; 
+            margin: 20px 0; 
+            text-align: left; 
+            font-size: 14px; 
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .info-box p { margin: 6px 0; color: #b0b0b0; }
+
+        .badge { 
+            background: var(--success-green); 
+            color: #000; 
+            padding: 3px 10px; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        #displayBranchId { color: var(--primary-blue); font-weight: bold; }
+
+        .input-group { margin-bottom: 12px; text-align: left; }
+        
+        input { 
+            width: 100%; 
+            padding: 14px; 
+            margin: 5px 0; 
+            border-radius: 12px; 
+            border: 1px solid #444; 
+            background: var(--input-bg); 
+            color: #fff; 
+            font-size: 16px; 
+            box-sizing: border-box; 
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            background: #333;
+        }
+
+        button { 
+            background: var(--success-green); 
+            color: #000; 
+            border: none; 
+            padding: 18px; 
+            border-radius: 14px; 
+            font-size: 18px; 
+            width: 100%; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 15px; 
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        button:active { transform: scale(0.98); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        hr { border: 0; border-top: 1px solid #333; margin: 25px 0; }
+        
+        #errorArea { color: #ff5252; font-size: 14px; margin-top: 15px; }
     </style>
 </head>
 <body>
     <div class="card">
-        <img id="pictureUrl" class="profile-img" src="" alt="Profile">
-        <h2 id="displayName" style="margin: 10px 0;">Loading...</h2>
+        <img id="pictureUrl" class="profile-img" src="https://via.placeholder.com/85" alt="Profile">
+        <h2 id="displayName">Loading...</h2>
+        
         <div class="info-box">
-            <p>ตำแหน่ง: <span id="displayRole" class="badge">Checking...</span></p>
-            <p>ID สาขา: <b id="displayBranchId">...</b></p>
-            <p style="font-size: 10px; opacity: 0.5;">v.2.1 (Auto-Fix Active)</p>
+            <p>สถานะพนักงาน: <span id="displayRole" class="badge">Checking...</span></p>
+            <p>สาขาที่ปฏิบัติงาน: <span id="displayBranchId">...</span></p>
+            <p style="font-size: 10px; opacity: 0.4; margin-top: 10px;">Deli Daily System v.2.2 (Ready)</p>
         </div>
-        <div id="formArea">
-            <hr style="border:0; border-top:1px solid #444; margin: 20px 0;">
+
+        <div id="formArea" style="display: none;">
+            <hr>
             <input type="number" id="shopTransfer" placeholder="🏠 หน้าร้าน (เงินโอน)" inputmode="decimal">
             <input type="number" id="shopCash" placeholder="💵 หน้าร้าน (เงินสด)" inputmode="decimal">
             <input type="number" id="grabNet" placeholder="🛵 ยอด Grab (สุทธิ)" inputmode="decimal">
             <input type="number" id="shopeeNet" placeholder="🧡 ยอด Shopee (สุทธิ)" inputmode="decimal">
             <input type="number" id="linemanNet" placeholder="💚 ยอด LINEMAN (สุทธิ)" inputmode="decimal">
-            <button onclick="sendData()">ยืนยันปิดยอดขาย</button>
+            <button id="submitBtn" onclick="sendData()">ยืนยันปิดยอดขาย</button>
         </div>
-        <div id="errorArea" style="display:none; color:red; margin-top:10px;"></div>
+
+        <div id="errorArea"></div>
     </div>
+
     <script>
         const MY_LIFF_ID = "2010194217-lnwYLoTq"; 
         const MY_N8N_URL = "https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B";
+
         async function main() {
             try {
                 await liff.init({ liffId: MY_LIFF_ID });
-                if (!liff.isLoggedIn()) { liff.login(); return; }
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
                 const profile = await liff.getProfile();
                 document.getElementById("displayName").innerText = profile.displayName;
                 document.getElementById("pictureUrl").src = profile.pictureUrl;
                 checkPermission(profile.userId);
-            } catch (err) { console.error(err); }
+            } catch (err) {
+                showError("LIFF Init Error: " + err.message);
+            }
         }
+
         async function checkPermission(uid) {
             try {
                 const response = await fetch(MY_N8N_URL, {
@@ -60,20 +168,32 @@
                 });
                 const data = await response.json();
                 const user = Array.isArray(data) ? data[0] : data;
-                if (user) {
+
+                if (user && (user.Role || user.role)) {
                     let role = (user.Role || user.role || "").toString().replace(/^=/, '');
                     let branch = (user.Branch || user.branch || "").toString().replace(/^=/, '');
+                    
                     document.getElementById("displayRole").innerText = role;
                     document.getElementById("displayBranchId").innerText = branch;
-                    if (role.toLowerCase() === "cashier") {
+
+                    if (role.toLowerCase() === "cashier" || role === "พนักงาน") {
                         document.getElementById("formArea").style.display = "block";
+                    } else {
+                        showError("สิทธิ์ของคุณ (" + role + ") ไม่สามารถส่งยอดได้");
                     }
+                } else {
+                    showError("ไม่พบข้อมูลพนักงานในระบบ");
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) {
+                showError("Permission Check Failed");
+            }
         }
+
         async function sendData() {
-            const btn = event.target;
-            btn.disabled = true; btn.innerText = "กำลังบันทึก...";
+            const btn = document.getElementById("submitBtn");
+            btn.disabled = true; 
+            btn.innerText = "กำลังบันทึก...";
+            
             try {
                 const profile = await liff.getProfile();
                 const payload = {
@@ -87,18 +207,28 @@
                     shopee_net: parseFloat(document.getElementById("shopeeNet").value) || 0,
                     lineman_net: parseFloat(document.getElementById("linemanNet").value) || 0
                 };
+
                 await fetch(MY_N8N_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 });
-                alert("✅ บันทึกยอดสำเร็จ!");
+
+                alert("✅ บันทึกยอดขายสำเร็จ!");
                 liff.closeWindow();
             } catch (err) {
-                alert("❌ พัง: " + err.message);
-                btn.disabled = false; btn.innerText = "ยืนยันปิดยอดขาย";
+                alert("❌ เกิดข้อผิดพลาด: " + err.message);
+                btn.disabled = false; 
+                btn.innerText = "ยืนยันปิดยอดขาย";
             }
         }
+
+        function showError(msg) {
+            const errDiv = document.getElementById("errorArea");
+            errDiv.innerText = msg;
+            errDiv.style.display = "block";
+        }
+
         main();
     </script>
 </body>
