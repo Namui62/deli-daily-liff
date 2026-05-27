@@ -6,65 +6,112 @@
     <title>Deli Daily - Owner Onboarding</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Kanit', sans-serif; }
+        .bg-brand-gradient {
+            background: linear-gradient(135deg, #0b47af 0%, #0788e4 100%);
+        }
+        .btn-green {
+            background-color: #12cf35;
+            transition: all 0.3s ease;
+        }
+        .btn-green:hover {
+            background-color: #0fad2c;
+            transform: translateY(-2px);
+        }
+        .input-focus:focus {
+            border-color: #0788e4;
+            box-shadow: 0 0 0 3px rgba(7, 136, 228, 0.1);
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-50 min-h-screen">
 
-    <div class="max-w-md w-full bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-blue-400">Deli Daily</h1>
-            <p class="text-gray-400 mt-2 text-sm">ลงทะเบียนเจ้าของร้านใหม่ (DDOS)</p>
+    <div class="bg-brand-gradient pt-12 pb-24 px-6 text-center text-white">
+        <div class="mb-4 flex justify-center">
+            <div class="bg-white p-2 rounded-2xl shadow-lg">
+                <img src="https://api.dicebear.com/7.x/initials/svg?seed=DD" alt="Deli Daily Logo" class="h-12 w-12 rounded-lg">
+            </div>
         </div>
+        <h1 class="text-2xl font-bold tracking-tight">Deli Daily Onboarding</h1>
+        <p class="text-blue-100 text-sm mt-1 opacity-90">เริ่มต้นสร้างระบบ Smart Restaurant ของคุณ</p>
+    </div>
 
-        <form id="onboardingForm" class="space-y-6">
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">ชื่อร้าน</label>
-                    <input type="text" id="storeName" required placeholder="เช่น บ้านย่า สเต็ก เฮ้าส์" 
-                        class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">ชื่อเจ้าของร้าน</label>
-                    <input type="text" id="ownerName" required placeholder="ระบุชื่อเรียก" 
-                        class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition">
-                </div>
+    <div class="max-w-md mx-auto -mt-16 px-4 pb-12">
+        <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+            <div class="p-8">
+                <form id="onboardingForm" class="space-y-6">
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <div class="w-1 h-5 bg-[#0b47af] rounded-full"></div>
+                            <h2 class="text-gray-800 font-semibold">ข้อมูลร้านค้า</h2>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 uppercase mb-1 ml-1">ชื่อร้านอาหาร</label>
+                            <input type="text" id="storeName" required placeholder="เช่น บ้านย่า สเต็ก เฮ้าส์" 
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-700 outline-none input-focus transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 uppercase mb-1 ml-1">ชื่อเจ้าของร้าน</label>
+                            <input type="text" id="ownerName" required placeholder="ระบุชื่อเพื่อใช้ในระบบ" 
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-700 outline-none input-focus transition-all">
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 pt-4 border-t border-gray-50">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <div class="w-1 h-5 bg-[#12cf35] rounded-full"></div>
+                            <h2 class="text-gray-800 font-semibold">ตั้งค่า Platform & GP</h2>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 uppercase mb-1 ml-1">อีเมลรับรายงานเดลิเวอรี</label>
+                            <input type="email" id="reportEmail" required placeholder="email@example.com" 
+                                class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-700 outline-none input-focus transition-all">
+                            <p class="text-[10px] text-gray-400 mt-1 ml-1">*ใช้อีเมลเดียวกับที่ลงทะเบียน Grab/LINEMAN</p>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase text-center mb-1">Grab (%)</label>
+                                <input type="number" id="gpGrab" value="30" class="w-full bg-white border border-gray-200 rounded-lg py-2 text-center font-semibold text-[#0b47af]">
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase text-center mb-1">Lineman (%)</label>
+                                <input type="number" id="gpLM" value="30" class="w-full bg-white border border-gray-200 rounded-lg py-2 text-center font-semibold text-[#0b47af]">
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded-2xl border border-gray-100">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase text-center mb-1">Shopee (%)</label>
+                                <input type="number" id="gpShopee" value="30" class="w-full bg-white border border-gray-200 rounded-lg py-2 text-center font-semibold text-[#0b47af]">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" id="btnSubmit" 
+                            class="btn-green w-full text-white font-bold py-4 rounded-2xl shadow-lg shadow-green-200 flex items-center justify-center space-x-2">
+                            <span>ยืนยันสร้างระบบ Deli Daily</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <div class="space-y-4 border-t border-gray-700 pt-6">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Email สำหรับรับรายงาน Platform</label>
-                    <input type="email" id="reportEmail" required placeholder="email@example.com" 
-                        class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition">
-                </div>
-                
-                <div class="grid grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-1">GP Grab (%)</label>
-                        <input type="number" id="gpGrab" value="30" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-3 text-center">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-1">GP LINEMAN (%)</label>
-                        <input type="number" id="gpLM" value="30" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-3 text-center">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-1">GP Shopee (%)</label>
-                        <input type="number" id="gpShopee" value="30" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-3 text-center">
-                    </div>
-                </div>
-            </div>
-
-            <button type="submit" id="btnSubmit" 
-                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition duration-300 transform active:scale-95 shadow-lg shadow-blue-900/20">
-                สร้างระบบ Deli Daily ของฉัน
-            </button>
-        </form>
+        </div>
+        
+        <p class="text-center text-gray-400 text-xs mt-8">© 2026 Deli Daily Automation Project</p>
     </div>
 
     <script>
-        // แทนที่ด้วย Webhook URL จาก n8n ของพี่
-        const N8N_WEBHOOK_URL = 'https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B';
+        const N8N_WEBHOOK_URL = 'https://n8n.yourdomain.com/webhook/onboarding-owner';
 
         async function main() {
-            await liff.init({ liffId: "2010194217-lnwYLoTq" }); // ใส่ LIFF ID ของพี่
+            await liff.init({ liffId: "ใส่_LIFF_ID_ของพี่ตรงนี้" });
             if (!liff.isLoggedIn()) {
                 liff.login();
             }
@@ -75,7 +122,13 @@
             e.preventDefault();
             const btn = document.getElementById('btnSubmit');
             btn.disabled = true;
-            btn.innerText = 'กำลังสร้างระบบ...';
+            btn.innerHTML = `
+                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>กำลังเตรียมระบบ...</span>
+            `;
 
             const profile = await liff.getProfile();
             
@@ -98,15 +151,15 @@
                 });
 
                 if (response.ok) {
-                    alert('สร้างระบบสำเร็จ! กรุณารอรับข้อความยืนยันใน LINE ครับ');
+                    alert('สำเร็จ! Deli Daily กำลังโคลนระบบให้คุณ กรุณาตรวจสอบที่ LINE ครับ');
                     liff.closeWindow();
                 } else {
-                    throw new Error('Network response was not ok');
+                    throw new Error('Server Error');
                 }
             } catch (error) {
-                alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+                alert('เกิดข้อผิดพลาดในการเชื่อมต่อ n8n');
                 btn.disabled = false;
-                btn.innerText = 'สร้างระบบ Deli Daily ของฉัน';
+                btn.innerHTML = '<span>ยืนยันสร้างระบบ Deli Daily</span>';
             }
         });
     </script>
