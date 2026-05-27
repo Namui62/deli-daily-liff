@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deli Daily - Owner Onboarding</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-md w-full bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-blue-400">Deli Daily</h1>
+            <p class="text-gray-400 mt-2 text-sm">ลงทะเบียนเจ้าของร้านใหม่ (DDOS)</p>
+        </div>
+
+        <form id="onboardingForm" class="space-y-6">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">ชื่อร้าน</label>
+                    <input type="text" id="storeName" required placeholder="เช่น บ้านย่า สเต็ก เฮ้าส์" 
+                        class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">ชื่อเจ้าของร้าน</label>
+                    <input type="text" id="ownerName" required placeholder="ระบุชื่อเรียก" 
+                        class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition">
+                </div>
+            </div>
+
+            <div class="space-y-4 border-t border-gray-700 pt-6">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Email สำหรับรับรายงาน Platform</label>
+                    <input type="email" id="reportEmail" required placeholder="email@example.com" 
+                        class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition">
+                </div>
+                
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-1">GP Grab (%)</label>
+                        <input type="number" id="gpGrab" value="30" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-3 text-center">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-1">GP LINEMAN (%)</label>
+                        <input type="number" id="gpLM" value="30" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-3 text-center">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-1">GP Shopee (%)</label>
+                        <input type="number" id="gpShopee" value="30" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-3 text-center">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" id="btnSubmit" 
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition duration-300 transform active:scale-95 shadow-lg shadow-blue-900/20">
+                สร้างระบบ Deli Daily ของฉัน
+            </button>
+        </form>
+    </div>
+
+    <script>
+        // แทนที่ด้วย Webhook URL จาก n8n ของพี่
+        const N8N_WEBHOOK_URL = 'https://n8n.yourdomain.com/webhook/onboarding-owner';
+
+        async function main() {
+            await liff.init({ liffId: "YOUR_LIFF_ID" }); // ใส่ LIFF ID ของพี่
+            if (!liff.isLoggedIn()) {
+                liff.login();
+            }
+        }
+        main();
+
+        document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmit');
+            btn.disabled = true;
+            btn.innerText = 'กำลังสร้างระบบ...';
+
+            const profile = await liff.getProfile();
+            
+            const formData = {
+                ownerLineId: profile.userId,
+                storeName: document.getElementById('storeName').value,
+                ownerName: document.getElementById('ownerName').value,
+                reportEmail: document.getElementById('reportEmail').value,
+                gpGrab: document.getElementById('gpGrab').value,
+                gpLM: document.getElementById('gpLM').value,
+                gpShopee: document.getElementById('gpShopee').value,
+                createdDate: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch(N8N_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    alert('สร้างระบบสำเร็จ! กรุณารอรับข้อความยืนยันใน LINE ครับ');
+                    liff.closeWindow();
+                } else {
+                    throw new Error('Network response was not ok');
+                }
+            } catch (error) {
+                alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+                btn.disabled = false;
+                btn.innerText = 'สร้างระบบ Deli Daily ของฉัน';
+            }
+        });
+    </script>
+</body>
+</html>
