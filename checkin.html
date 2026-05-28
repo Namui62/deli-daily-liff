@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deli Daily - Attendance Scanner</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <!-- ดึงไลบรารีสแกน QR Code ตัวเล็กระดับโลกมาใช้งาน -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        :root {
+            --primary-blue: #0b47af; /* Smart Active Blue */
+            --success-green: #12cf35; /* Success Green */
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+        }
+        body {
+            font-family: sans-serif;
+            background-color: var(--dark-bg);
+            color: #fff;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+        #reader {
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 2px dashed var(--primary-blue);
+        }
+        .status-box {
+            background: #2a2a2a;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #b0b0b0;
+            margin-bottom: 10px;
+        }
+        .btn-blue {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            width: 100%;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>📷 สแกน QR เข้างาน</h2>
+        <p style="color: #aaa; font-size: 14px;">กรุณาส่องกล้องไปที่ QR Code หน้าร้าน</p>
+        
+        <div id="status" class="status-box">⏳ กำลังตรวจสอบสิทธิ์ GPS...</div>
+        <div id="reader" style="display: none;"></div>
+        
+        <button id="startBtn" class="btn-blue" onclick="initLocationAndCamera()">เปิดกล้องสแกนเข้างาน</button>
+    </div>
+
+    <script>
+        const MY_LIFF_ID = "2010194217-lnwYLoTq"; // ใช้ ID เดียวกับระบบของพี่
+        const MY_N8N_URL = "https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B"; // เปลี่ยนเป็น Webhook ย่อยของท่อนี้ตามจริง
+        let userLatitude = null;
+        let userLongitude = null;
+
+        async function main() {
+            try {
+                await liff.init({ liffId: MY_LIFF_ID });
+                if (!liff.isLoggedIn()) { liff.login(); return; }
+            } catch (err) { console.error(err); }
+        }
+
+        // 1. ดึงพิกัด GPS ของพนักงานก่อนเปิดกล้อง
+        function initLocationAndCamera() {
+            document.getElementById("status").innerText = "📍 กำลังดึงพิกัด GPS ปัจจุบัน...";
+            
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        userLatitude = position.coords.latitude;
+                        userLongitude = position.coords.longitude;
+                        document.getElementById("status").innerText = "✅ ดึงพิกัดสำเร็จ สแตนบายพร้อมสแกน";
+                        document.getElementById("startBtn").style.display = "none";
+                        document.getElementById("reader").style.display = "block";
+                        startQRScanner(); // พิกัดพร้อมแล้ว เปิดกล้องได้!
+                    },
+                    (error) => {
+                        document.getElementById("status").innerText = "❌ กรุณาเปิดระบบ GPS บนมือถือและอนุญาตสิทธิ์ก่อนเข้างาน";
+                        alert("ระบบปฏิเสธการเข้างาน: จำเป็นต้องระบุตำแหน่งพิกัด");
+                    },
+                    { enableHighAccuracy: true }
+                );
+            } else {
+                alert("เบราว์เซอร์นี้ไม่รองรับระบบ GPS");
+            }
+        }
+
+        // 2. สั่งเปิดกล้องในหน้าเว็บเพื่อสแกน QR
+        function startQRScanner() {
+            const html5QrcodeScanner = new Html5Qrcode("reader");
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, // บังคับใช้กล้องหลัง
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (qrText) => {
+                    // สแกนเจอข้อความปุ๊บ หยุดกล้องทันทีเพื่อกันยิงซ้ำ
+                    html5QrcodeScanner.stop();
+                    sendAttendanceToN8N(qrText);
+                },
+                (errorMessage) => { // วิ่งวนไปจนกว่าจะสแกนเจอ }
+            );
+        }
+
+        // 3. มิกซ์รหัส QR + พิกัด GPS ยิงตรงหา n8n
+        async function sendAttendanceToN8N(qrCodeData) {
+            document.getElementById("status").innerText = "🚀 กำลังส่งข้อมูลตอกบัตรเข้า n8n...";
+            try {
+                const profile = await liff.getProfile();
+                const payload = {
+                    action: "STAFF_ATTENDANCE",
+                    userId: profile.userId,
+                    displayName: profile.displayName,
+                    qrCodeData: qrCodeData, // รหัสลับบนกระดาษที่ร้าน
+                    userLat: userLatitude,  // พิกัดลองจิจูดละติจูดของเด็ก
+                    userLng: userLongitude
+                };
+
+                const response = await fetch(MY_N8N_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert("🎉 บันทึกเวลาสำเร็จ! ข้อมูลถูกหยอดลงตารางเรียบร้อย");
+                    liff.closeWindow();
+                } else {
+                    alert("❌ n8n ปฏิเสธ: คุณอาจจะอยู่ไกลเกินพิกัดร้าน หรือรหัส QR ไม่ถูกต้อง");
+                }
+            } catch (err) {
+                alert("❌ ระบบขัดข้อง: " + err.message);
+            }
+        }
+
+        main();
+    </script>
+</body>
+</html>
