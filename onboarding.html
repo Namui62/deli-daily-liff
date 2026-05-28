@@ -4,177 +4,137 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deli Daily - Owner Onboarding</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Kanit', sans-serif; }
-        .bg-brand-gradient {
-            background: radial-gradient(circle at top right, #0788e4 0%, #0b47af 100%);
-        }
-        .btn-green {
-            background-color: #12cf35;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .btn-green:hover {
-            background-color: #0fad2c;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(18, 207, 53, 0.3);
-        }
-        .input-focus:focus {
-            border-color: #0788e4;
-            box-shadow: 0 0 0 4px rgba(7, 136, 228, 0.1);
-            background-color: #ffffff;
-        }
-        .card-overlap {
-            margin-top: -60px;
-        }
-        ::placeholder {
-            color: #9ca3af;
-            opacity: 0.6;
-        }
+        body { font-family: 'Kanit', sans-serif; background-color: #f4f7f6; }
+        .step { display: none; }
+        .step.active { display: block; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .bg-smart-blue { background-color: #0b47af; }
+        .text-smart-blue { color: #0b47af; }
+        .success-glow { box-shadow: 0 0 20px #12cf35; border: 2px solid #12cf35; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="p-6">
+    <div class="w-full bg-gray-200 rounded-full h-2 mb-8">
+        <div id="progress" class="bg-smart-blue h-2 rounded-full transition-all duration-300" style="width: 20%"></div>
+    </div>
 
-    <div class="bg-brand-gradient pt-16 pb-32 px-6 text-center text-white relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-20 -mt-20"></div>
-        <div class="absolute bottom-0 left-0 w-40 h-40 bg-white opacity-5 rounded-full -ml-10 -mb-10"></div>
-        
-        <div class="relative z-10">
-            <h1 class="text-3xl font-bold tracking-tight mb-2">Deli Daily</h1>
-            <p class="text-blue-100 text-sm opacity-90 font-light">ระบบอัตโนมัติสำหรับร้านอาหารยุคใหม่</p>
+    <div id="onboardingForm">
+        <div id="step1" class="step active">
+            <h2 class="text-2xl font-bold mb-4 text-smart-blue">1. ชื่อร้านของคุณ</h2>
+            <p class="text-gray-500 mb-6">ตั้งชื่อร้านให้ลูกค้ายานแม่จดจำได้ง่าย</p>
+            <input type="text" id="storeName" class="w-full p-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="ชื่อร้านของคุณ">
+        </div>
+
+        <div id="step2" class="step">
+            <h2 class="text-2xl font-bold mb-4 text-smart-blue">2. Spreadsheet ID</h2>
+            <p class="text-gray-500 mb-6">คัดลอก ID จาก URL ของ Google Sheets รายสาขาของคุณ</p>
+            <input type="text" id="sheetId" class="w-full p-4 border rounded-xl" placeholder="1A2b3C...xyz">
+        </div>
+
+        <div id="step3" class="step">
+            <h2 class="text-2xl font-bold mb-4 text-smart-blue">3. ข้อมูลผู้ส่ง</h2>
+            <p class="text-gray-500 mb-4">เราดึงข้อมูลจากระบบ LINE อัตโนมัติ</p>
+            <div class="bg-blue-50 p-4 rounded-xl text-sm break-all">
+                <p><strong>User ID:</strong> <span id="displayUserId">Loading...</span></p>
+            </div>
+        </div>
+
+        <div id="step4" class="step text-center">
+            <h2 class="text-2xl font-bold mb-4 text-smart-blue">4. พิกัดร้าน</h2>
+            <p class="text-gray-500 mb-6">ปักหมุดเพื่อให้ลูกค้าหาร้านคุณได้แม่นยำ</p>
+            <button onclick="getLocation()" id="btnGps" class="w-full py-4 bg-orange-500 text-white rounded-xl font-bold mb-2">📍 ปักหมุดพิกัดปัจจุบัน</button>
+            <p id="latLngDisplay" class="text-sm text-gray-400 italic">ยังไม่ได้เลือกพิกัด</p>
+        </div>
+
+        <div id="step5" class="step text-center">
+            <h2 class="text-2xl font-bold mb-4 text-smart-blue">5. ตรวจสอบข้อมูล</h2>
+            <p class="text-gray-600 mb-8">ข้อมูลถูกต้องพร้อมออกทะยานสู่ดาวอังคาร!</p>
+            <button onclick="submitData()" id="btnSubmit" class="w-full py-4 bg-smart-blue text-white rounded-xl font-bold text-lg shadow-lg">ยืนยันลงทะเบียนยานแม่</button>
+        </div>
+
+        <div class="mt-10 flex gap-4">
+            <button id="prevBtn" onclick="changeStep(-1)" class="flex-1 py-3 text-gray-400 font-semibold hidden">ย้อนกลับ</button>
+            <button id="nextBtn" onclick="changeStep(1)" class="flex-1 py-3 bg-smart-blue text-white rounded-xl font-semibold">ถัดไป</button>
         </div>
     </div>
 
-    <div class="max-w-md mx-auto card-overlap px-4 pb-12 relative z-20">
-        <div class="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-white">
-            <div class="p-8">
-                <form id="onboardingForm" class="space-y-6">
-                    
-                    <div class="space-y-4">
-                        <div class="flex items-center space-x-2 mb-4">
-                            <div class="w-1.5 h-6 bg-[#0b47af] rounded-full"></div>
-                            <h2 class="text-gray-900 font-semibold text-lg text-left">ลงทะเบียนเจ้าของร้าน</h2>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1.5 ml-1 tracking-wider text-left">ชื่อร้านอาหาร</label>
-                            <input type="text" id="storeName" required placeholder="ตัวอย่าง: The Pizza Runner" 
-                                class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-gray-700 outline-none input-focus transition-all font-medium">
-                        </div>
-
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1.5 ml-1 tracking-wider text-left">ชื่อเจ้าของร้าน</label>
-                            <input type="text" id="ownerName" required placeholder="ระบุชื่อเพื่อใช้เรียกในระบบ" 
-                                class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-gray-700 outline-none input-focus transition-all font-medium">
-                        </div>
-                    </div>
-
-                    <div class="space-y-4 pt-6 border-t border-gray-100">
-                        <div class="flex items-center space-x-2 mb-4">
-                            <div class="w-1.5 h-6 bg-[#12cf35] rounded-full"></div>
-                            <h2 class="text-gray-900 font-semibold text-lg text-left">Platform & GP Settings</h2>
-                        </div>
-
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-400 uppercase mb-1.5 ml-1 tracking-wider text-left">อีเมลรับรายงานเดลิเวอรี</label>
-                            <input type="email" id="reportEmail" required placeholder="owner@email.com" 
-                                class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 text-gray-700 outline-none input-focus transition-all font-medium">
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-3">
-                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
-                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-2">Grab</label>
-                                <div class="flex items-center justify-center">
-                                    <input type="number" id="gpGrab" value="30" class="w-full bg-transparent text-center font-bold text-[#0b47af] text-xl outline-none">
-                                    <span class="text-[10px] text-[#0b47af] font-bold">%</span>
-                                </div>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
-                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-2">Lineman</label>
-                                <div class="flex items-center justify-center">
-                                    <input type="number" id="gpLM" value="30" class="w-full bg-transparent text-center font-bold text-[#0b47af] text-xl outline-none">
-                                    <span class="text-[10px] text-[#0b47af] font-bold">%</span>
-                                </div>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-center">
-                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-2">Shopee</label>
-                                <div class="flex items-center justify-center">
-                                    <input type="number" id="gpShopee" value="30" class="w-full bg-transparent text-center font-bold text-[#0b47af] text-xl outline-none">
-                                    <span class="text-[10px] text-[#0b47af] font-bold">%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="pt-6">
-                        <button type="submit" id="btnSubmit" 
-                            class="btn-green w-full text-white font-bold py-5 rounded-[1.25rem] shadow-xl flex items-center justify-center space-x-3 text-lg">
-                            <span>เริ่มสร้างระบบ Deli Daily</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                            </svg>
-                        </button>
-                    </div>
-                </form>
-            </div>
+    <div id="successOverlay" class="fixed inset-0 bg-white/90 hidden flex flex-col items-center justify-center z-50">
+        <div class="w-24 h-24 bg-[#12cf35] rounded-full flex items-center justify-center success-glow mb-4">
+            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
         </div>
-        
-        <div class="text-center mt-10">
-            <p class="text-gray-400 text-[10px] uppercase tracking-[0.2em]">Powered by Deli Daily Automation</p>
-        </div>
+        <h2 class="text-2xl font-bold text-[#12cf35]">ลงทะเบียนสำเร็จ!</h2>
     </div>
 
     <script>
-        const N8N_WEBHOOK_URL = 'https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B';
+        let currentStep = 1;
+        let userData = { userId: '', lat: '', lng: '' };
+        const WEBHOOK_URL = 'YOUR_N8N_WEBHOOK_URL_HERE'; // *** ใส่ URL Webhook จาก n8n ***
 
-        async function main() {
-            await liff.init({ liffId: "2010194217-lnwYLoTq" });
-            if (!liff.isLoggedIn()) {
-                liff.login();
-            }
+        async function initLiff() {
+            try {
+                await liff.init({ liffId: "YOUR_LIFF_ID_HERE" }); // *** ใส่ LIFF ID ***
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                } else {
+                    const profile = await liff.getProfile();
+                    userData.userId = profile.userId;
+                    document.getElementById('displayUserId').innerText = profile.userId;
+                }
+            } catch (err) { console.error('LIFF Error:', err); }
         }
-        main();
 
-        document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnSubmit');
-            btn.disabled = true;
-            btn.innerHTML = `<span>กำลังสร้างระบบ...</span>`;
-
-            const profile = await liff.getProfile();
+        function changeStep(n) {
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            currentStep += n;
+            document.getElementById(`step${currentStep}`).classList.add('active');
             
-            const formData = {
-                ownerLineId: profile.userId,
+            // UI Updates
+            document.getElementById('progress').style.width = `${currentStep * 20}%`;
+            document.getElementById('prevBtn').classList.toggle('hidden', currentStep === 1);
+            document.getElementById('nextBtn').classList.toggle('hidden', currentStep === 5);
+            document.getElementById('onboardingForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function getLocation() {
+            const btn = document.getElementById('btnGps');
+            btn.innerText = "กำลังหาพิกัด...";
+            navigator.geolocation.getCurrentPosition((pos) => {
+                userData.lat = pos.coords.latitude;
+                userData.lng = pos.coords.longitude;
+                document.getElementById('latLngDisplay').innerText = `พิกัด: ${userData.lat.toFixed(5)}, ${userData.lng.toFixed(5)}`;
+                btn.innerText = "✅ บันทึกพิกัดแล้ว";
+                btn.classList.replace('bg-orange-500', 'bg-green-600');
+            }, (err) => alert('โปรดเปิดสิทธิ์ GPS เพื่อใช้งาน'));
+        }
+
+        async function submitData() {
+            const payload = {
                 storeName: document.getElementById('storeName').value,
-                ownerName: document.getElementById('ownerName').value,
-                reportEmail: document.getElementById('reportEmail').value,
-                gpGrab: document.getElementById('gpGrab').value,
-                gpLM: document.getElementById('gpLM').value,
-                gpShopee: document.getElementById('gpShopee').value,
-                createdDate: new Date().toISOString()
+                sheetId: document.getElementById('sheetId').value,
+                userId: userData.userId,
+                lat: userData.lat,
+                lng: userData.lng
             };
 
             try {
-                const response = await fetch(N8N_WEBHOOK_URL, {
+                const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
+                    body: JSON.stringify(payload)
                 });
 
                 if (response.ok) {
-                    alert('สำเร็จ! ระบบกำลังดำเนินการโคลนไฟล์ให้คุณ');
-                    liff.closeWindow();
-                } else {
-                    throw new Error('Error');
+                    document.getElementById('successOverlay').classList.remove('hidden');
+                    setTimeout(() => { liff.closeWindow(); }, 1500);
                 }
-            } catch (error) {
-                alert('การเชื่อมต่อขัดข้อง');
-                btn.disabled = false;
-                btn.innerText = 'เริ่มสร้างระบบ Deli Daily';
-            }
-        });
+            } catch (err) { alert('เกิดข้อผิดพลาดในการส่งข้อมูล'); }
+        }
+
+        initLiff();
     </script>
 </body>
 </html>
