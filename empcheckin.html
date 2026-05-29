@@ -3,265 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Deli Daily - Staff Check-in</title>
+    <title>STAFF Check-in | Deli Daily</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <style>
-        body {
-            font-family: 'Kanit', sans-serif;
-            background-color: #F9F9F9; /* Light Canvas Background */
-            -webkit-tap-highlight-color: transparent;
-        }
-        .graphite-board {
-            background-color: #2A2A2A; /* Graphite Main Board */
-            border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-        }
-        .profile-ring {
-            box-shadow: 0 0 15px rgba(11, 71, 175, 0.6);
-            border: 2px solid #0B47AF;
-        }
-        .action-btn {
-            background-color: #1E1E1E;
-            border: 2px solid transparent;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .action-btn.active {
-            border-color: #0B47AF;
-            box-shadow: 0 0 15px rgba(11, 71, 175, 0.4);
-            transform: scale(1.02);
-        }
-        .loading-pulse {
-            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: .5; }
-        }
-        /* Success Overlay Animation */
-        #successOverlay {
-            background-color: #12CF35;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-        }
-        #successOverlay.show {
-            display: flex;
-            opacity: 1;
-        }
+        body { font-family: 'Kanit', sans-serif; background-color: #F9F9F9; }
+        .graphite-board { background-color: #2A2A2A; border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12); }
+        .action-btn { background-color: #1E1E1E; border: 2px solid transparent; transition: all 0.2s; }
+        .action-btn.active { border-color: #0B47AF; box-shadow: 0 0 15px rgba(11, 71, 175, 0.4); }
+        #successOverlay { background-color: #12CF35; display: none; }
+        #successOverlay.show { display: flex; z-index: 100; }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-5">
+<body class="min-h-screen flex flex-col p-6">
 
-    <div class="w-full max-w-sm flex flex-col items-center">
-        
-        <div class="mb-6 text-center">
-            <h1 class="text-sm font-medium tracking-[0.2em] text-[#0B47AF] uppercase">Deli Daily Staff</h1>
-        </div>
+    <div class="w-full text-left mb-8 px-2">
+        <p class="text-[10px] tracking-[0.1em] text-gray-400 uppercase leading-none">Deli Daily</p>
+        <h1 class="text-3xl font-bold text-[#0B47AF] leading-none mt-1">STAFF</h1>
+    </div>
 
-        <div class="graphite-board w-full p-8 flex flex-col items-center relative overflow-hidden">
-            
+    <div class="flex-grow flex items-center justify-center">
+        <div class="graphite-board w-full max-w-sm p-8 flex flex-col items-center">
             <div class="relative mb-4">
-                <img id="userImg" src="https://placehold.co/100x100/1e1e1e/2a2a2a?text=..." 
-                     class="w-20 h-20 rounded-full profile-ring object-cover">
-                <div id="gpsStatusIcon" class="absolute -bottom-1 -right-1 bg-gray-500 w-6 h-6 rounded-full border-2 border-[#2A2A2A] flex items-center justify-center">
-                    <span class="text-[10px]">📡</span>
-                </div>
+                <img id="userImg" src="https://placehold.co/100/1e1e1e/white?text=..." class="w-20 h-20 rounded-full border-2 border-[#0B47AF] p-1 object-cover">
+                <div id="gpsStatusIcon" class="absolute -bottom-1 -right-1 bg-gray-500 w-6 h-6 rounded-full border-2 border-[#2A2A2A] flex items-center justify-center text-[10px]">📡</div>
             </div>
 
-            <h2 id="userName" class="text-white text-xl font-medium mb-1 truncate w-full text-center">Loading...</h2>
-            <p id="staffId" class="text-[#B0B0B0] text-xs font-light mb-6">Staff Profile Authorized</p>
+            <h2 id="userName" class="text-white text-xl font-medium mb-1">Loading...</h2>
+            <p class="text-[#B0B0B0] text-xs font-light mb-6 uppercase tracking-widest">Profile Authorized</p>
 
-            <div class="w-full bg-[#1E1E1E] rounded-xl p-3 mb-8 border border-gray-700/50 text-center">
-                <p id="statusMsg" class="text-[#0B47AF] text-[11px] font-medium loading-pulse uppercase tracking-wider">
-                    ระบบกำลังตรวจสอบพิกัดความปลอดภัย...
-                </p>
-                <p id="coordsDisplay" class="text-[10px] text-[#555555] font-mono mt-1"></p>
+            <div class="w-full bg-[#1E1E1E] rounded-xl p-3 mb-8 text-center border border-gray-800">
+                <p id="statusMsg" class="text-[#0B47AF] text-[11px] font-medium animate-pulse">ตรวจสอบพิกัดความปลอดภัย...</p>
             </div>
 
             <div class="grid grid-cols-2 gap-4 w-full mb-8">
                 <button onclick="selectAction('CHECK_IN')" id="btnCheckIn" class="action-btn p-5 rounded-2xl flex flex-col items-center group">
-                    <span class="text-2xl mb-2 group-active:scale-90 transition-transform">🌅</span>
-                    <span class="text-white text-xs font-medium">เข้างาน</span>
+                    <span class="text-2xl mb-1">🌅</span>
+                    <span class="text-white text-[11px]">เข้างาน</span>
                 </button>
                 <button onclick="selectAction('CHECK_OUT')" id="btnCheckOut" class="action-btn p-5 rounded-2xl flex flex-col items-center group">
-                    <span class="text-2xl mb-2 group-active:scale-90 transition-transform">🏠</span>
-                    <span class="text-white text-xs font-medium">ออกงาน</span>
+                    <span class="text-2xl mb-1">🏠</span>
+                    <span class="text-white text-[11px]">ออกงาน</span>
                 </button>
             </div>
 
-            <button id="submitBtn" onclick="dispatchCheckInData()" disabled 
-                    class="w-full py-4 bg-[#0B47AF] text-white rounded-xl font-semibold opacity-30 cursor-not-allowed transition-all active:scale-95 shadow-lg shadow-blue-900/20">
+            <button id="submitBtn" onclick="dispatchData()" disabled class="w-full py-4 bg-[#0B47AF] text-white rounded-xl font-semibold opacity-30 shadow-lg transition-all active:scale-95">
                 ยืนยันการลงเวลา
             </button>
         </div>
-
-        <p class="mt-6 text-[10px] text-gray-400 font-light uppercase tracking-widest">Powered by Deli Daily Operational System</p>
     </div>
 
-    <div id="successOverlay" class="fixed inset-0 z-50 flex-col items-center justify-center text-white">
-        <div class="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(255,255,255,0.4)]">
-            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
-            </svg>
+    <div class="w-full text-center mt-12">
+        <p class="text-[10px] text-gray-300 font-light uppercase tracking-[0.2em]">Powered by Deli Daily Operational System</p>
+    </div>
+
+    <div id="successOverlay" class="fixed inset-0 flex-col items-center justify-center text-white">
+        <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-4">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
         </div>
-        <h2 class="text-2xl font-bold tracking-wide">บันทึกเวลาสำเร็จ</h2>
-        <p class="text-sm font-light mt-2 opacity-80">ขอให้วันนี้เป็นวันที่ดีของคุณ!</p>
+        <h2 class="text-xl font-bold">บันทึกสำเร็จ</h2>
     </div>
 
     <script>
-        // Global State
-        let state = {
-            userId: '',
-            displayName: '',
-            lat: null,
-            lng: null,
-            actionType: null,
-            storeSecret: ''
+        // CONFIGURATION (Embedded)
+        const CONFIG = {
+            LIFF_ID: "2010194217-lnwYLoTq",
+            WEBHOOK: "https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B"
         };
 
-        const WEBHOOK_URL = 'https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B'; // ใส่ URL ของ n8n
+        let state = { lat: null, lng: null, action: null, userId: '', name: '' };
 
-        // 1. Extract URL Parameters
-        function getStoreCode() {
-            const urlParams = new URLSearchParams(window.location.search);
-            state.storeSecret = urlParams.get('code') || 'NOT_FOUND';
-            console.log('Store Code Registered:', state.storeSecret);
-        }
-
-        // 2. Initialize LIFF SDK
         async function initLiff() {
             try {
-                await liff.init({ liffId: "2010194217-lnwYLoTq" }); // ใส่ LIFF ID
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                } else {
-                    const profile = await liff.getProfile();
-                    state.userId = profile.userId;
-                    state.displayName = profile.displayName;
-                    
-                    document.getElementById('userImg').src = profile.pictureUrl;
-                    document.getElementById('userName').innerText = profile.displayName;
-                    
-                    // After Profile, fetch Geolocation
-                    requestLocation();
+                await liff.init({ liffId: CONFIG.LIFF_ID });
+                if (!liff.isLoggedIn()) { liff.login(); } 
+                else {
+                    const p = await liff.getProfile();
+                    state.userId = p.userId;
+                    state.name = p.displayName;
+                    document.getElementById('userImg').src = p.pictureUrl;
+                    document.getElementById('userName').innerText = p.displayName;
+                    getGPS();
                 }
-            } catch (err) {
-                console.error('LIFF Init Scuppered:', err);
-            }
+            } catch (err) { console.error(err); }
         }
 
-        // 3. Geolocation Fetching
-        function requestLocation() {
-            const statusEl = document.getElementById('statusMsg');
-            const iconEl = document.getElementById('gpsStatusIcon');
-
-            if (!navigator.geolocation) {
-                updateStatus('GPS ไม่รองรับในเบราว์เซอร์นี้', 'error');
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    state.lat = pos.coords.latitude;
-                    state.lng = pos.coords.longitude;
-                    
-                    updateStatus('ระบุพิกัดความปลอดภัยสำเร็จ', 'success');
-                    document.getElementById('coordsDisplay').innerText = `${state.lat.toFixed(5)}, ${state.lng.toFixed(5)}`;
-                    iconEl.classList.replace('bg-gray-500', 'bg-[#12CF35]');
-                    checkFormReady();
-                },
-                (err) => {
-                    updateStatus('กรุณาเปิดสิทธิ์ GPS เพื่อเข้างาน', 'error');
-                    console.error('GPS Error:', err);
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
-            );
+        function getGPS() {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                state.lat = pos.coords.latitude;
+                state.lng = pos.coords.longitude;
+                const msg = document.getElementById('statusMsg');
+                msg.innerText = "พิกัดระบุตำแหน่งสำเร็จ";
+                msg.classList.remove('animate-pulse');
+                msg.classList.add('text-[#12CF35]');
+                document.getElementById('gpsStatusIcon').classList.add('bg-[#12CF35]');
+                checkReady();
+            }, (err) => {
+                document.getElementById('statusMsg').innerText = "กรุณาเปิด GPS";
+                document.getElementById('statusMsg').classList.add('text-red-500');
+            });
         }
 
-        function updateStatus(msg, type) {
-            const el = document.getElementById('statusMsg');
-            el.innerText = msg;
-            el.classList.remove('loading-pulse');
-            
-            if (type === 'success') el.className = 'text-[#12CF35] text-[11px] font-medium uppercase tracking-wider';
-            if (type === 'error') el.className = 'text-[#FF5252] text-[11px] font-medium uppercase tracking-wider';
-        }
-
-        // 4. UI Handlers
         function selectAction(type) {
-            state.actionType = type;
-            
-            // UI Toggle
+            state.action = type;
             document.getElementById('btnCheckIn').classList.toggle('active', type === 'CHECK_IN');
             document.getElementById('btnCheckOut').classList.toggle('active', type === 'CHECK_OUT');
-            
-            checkFormReady();
+            checkReady();
         }
 
-        function checkFormReady() {
-            const submitBtn = document.getElementById('submitBtn');
-            if (state.lat && state.actionType) {
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-30', 'cursor-not-allowed');
-                submitBtn.classList.add('opacity-100', 'hover:bg-[#0B47AF]/90');
+        function checkReady() {
+            const btn = document.getElementById('submitBtn');
+            if (state.lat && state.action) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-30');
             }
         }
 
-        // 5. Submit Payload
-        async function dispatchCheckInData() {
+        async function dispatchData() {
             const btn = document.getElementById('submitBtn');
-            btn.innerText = 'กำลังส่งข้อมูล...';
+            btn.innerText = "กำลังส่งข้อมูล...";
             btn.disabled = true;
 
             const payload = {
                 userId: state.userId,
-                displayName: state.displayName,
-                code_secret: state.storeSecret,
-                latitude: state.lat,
-                longitude: state.lng,
-                action_type: state.actionType,
-                timestamp: new Date().toISOString()
+                name: state.name,
+                lat: state.lat,
+                lng: state.lng,
+                type: state.action,
+                code: new URLSearchParams(window.location.search).get('code') || 'no_code'
             };
 
             try {
-                const response = await fetch(WEBHOOK_URL, {
+                // แก้ไขปัญหาการเชื่อมต่อด้วยการใช้ mode: 'cors' และตรวจสอบการส่ง
+                const res = await fetch(CONFIG.WEBHOOK, {
                     method: 'POST',
+                    mode: 'cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                if (response.status === 200) {
-                    showSuccess();
+                if (res.ok || res.status === 200) {
+                    document.getElementById('successOverlay').classList.add('show');
+                    setTimeout(() => liff.closeWindow(), 1500);
                 } else {
-                    alert('เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ กรุณาลองใหม่');
-                    btn.innerText = 'ยืนยันการลงเวลา';
-                    btn.disabled = false;
+                    throw new Error('Server Error');
                 }
             } catch (err) {
-                alert('ไม่สามารถเชื่อมต่ออินเทอร์เน็ตได้');
-                btn.innerText = 'ยืนยันการลงเวลา';
+                // หากเกิด Error ให้แสดง Alert และปลดล็อคปุ่มให้ลองใหม่
+                alert('การเชื่อมต่อขัดข้อง: โปรดตรวจสอบสัญญาณอินเทอร์เน็ตหรือลองใหม่อีกครั้ง');
+                btn.innerText = "ยืนยันการลงเวลา";
                 btn.disabled = false;
             }
         }
 
-        // 6. Success & Close
-        function showSuccess() {
-            const overlay = document.getElementById('successOverlay');
-            overlay.classList.add('show');
-            
-            setTimeout(() => {
-                liff.closeWindow();
-            }, 1500);
-        }
-
-        // Execution
-        window.onload = () => {
-            getStoreCode();
-            initLiff();
-        };
+        window.onload = initLiff;
     </script>
 </body>
 </html>
