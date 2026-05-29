@@ -3,160 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deli Daily - Owner Onboarding</title>
+    <title>Deli Daily OS - Owner Onboarding</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Kanit', sans-serif; background-color: #F8F9FA; } /* Light Canvas */
-        .onyx-board { background-color: #121212; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); }
-        .step-content { display: none; }
-        .step-content.active { display: block; animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .glow-cobalt { box-shadow: 0 0 15px rgba(11, 71, 175, 0.4); }
-        .success-glow { box-shadow: 0 0 20px rgba(18, 207, 53, 0.6); }
-        .input-field { background-color: #1E1E1E; border: 1px solid #2A2A2A; color: white; transition: all 0.3s; }
-        .input-field:focus { border-color: #0B47AF; outline: none; box-shadow: 0 0 8px rgba(11, 71, 175, 0.5); }
+        body { font-family: 'Kanit', sans-serif; background-color: #F4F7F9; color: #1E1E1E; }
+        .enterprise-board { background-color: #1E1E1E; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        .step-panel { display: none; }
+        .step-panel.active { display: block; animation: slideIn 0.4s ease-out; }
+        
+        @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+        
+        /* Pulse Animation for Location Button */
+        .pulse-radar { position: relative; overflow: hidden; }
+        .pulse-radar::after {
+            content: ""; position: absolute; top: 50%; left: 50%; width: 5px; height: 5px;
+            background: rgba(11, 71, 175, 0.4); border-radius: 50%; transform: translate(-50%, -50%);
+            animation: radar 2s infinite;
+        }
+        @keyframes radar {
+            0% { width: 0; height: 0; opacity: 1; }
+            100% { width: 200px; height: 200px; opacity: 0; }
+        }
+
+        .input-dark { background-color: #2A2A2A; border: 1px solid #3A3A3A; color: #FFFFFF; transition: all 0.2s; }
+        .input-dark:focus { border-color: #0B47AF; outline: none; background-color: #333333; }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen flex flex-col justify-center items-center p-6">
 
     <div class="w-full max-w-md">
-        <div class="onyx-board p-8 text-white relative overflow-hidden">
-            
-            <div class="text-center mb-8">
-                <div class="w-16 h-16 bg-[#0B47AF] rounded-2xl mx-auto mb-4 flex items-center justify-center glow-cobalt">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                </div>
-                <h1 class="text-xl font-semibold tracking-tight">DELI DAILY <span class="text-[#0B47AF]">OS</span></h1>
-                <p class="text-xs text-gray-400 mt-1 uppercase tracking-widest">Enterprise Setup</p>
+        <div class="mb-8 text-left w-full pl-2">
+            <h1 class="text-2xl font-bold tracking-tight text-[#1E1E1E]">DELI DAILY <span class="text-[#0B47AF]">OS</span></h1>
+            <p class="text-sm text-gray-500 font-light">ระบบปฏิบัติการจัดการร้านค้าอัจฉริยะ</p>
+        </div>
+
+        <div class="enterprise-board p-8 text-white">
+            <div class="flex gap-1 mb-8">
+                <div id="bar1" class="h-1 flex-1 bg-[#0B47AF] rounded-full transition-all"></div>
+                <div id="bar2" class="h-1 flex-1 bg-gray-700 rounded-full transition-all"></div>
+                <div id="bar3" class="h-1 flex-1 bg-gray-700 rounded-full transition-all"></div>
             </div>
 
-            <div class="mb-10">
-                <div class="flex justify-between text-[10px] text-gray-500 mb-2 uppercase font-medium">
-                    <span id="stepIndicator">Step 1 of 5</span>
-                    <span id="percentIndicator">20%</span>
-                </div>
-                <div class="w-full bg-[#2A2A2A] h-1 rounded-full">
-                    <div id="progressBar" class="bg-[#0B47AF] h-1 rounded-full transition-all duration-500" style="width: 20%"></div>
-                </div>
-            </div>
-
-            <form id="onboardingForm">
-                <div id="step1" class="step-content active">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">ชื่อร้านค้า (Store Name)</label>
-                    <input type="text" id="storeName" class="input-field w-full p-4 rounded-xl" placeholder="เช่น Baan Ya Steak House">
-                </div>
-
-                <div id="step2" class="step-content">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Spreadsheet ID</label>
-                    <input type="text" id="sheetId" class="input-field w-full p-4 rounded-xl text-xs font-mono" placeholder="คัดลอกจาก URL ของ Google Sheets">
-                </div>
-
-                <div id="step3" class="step-content">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">ข้อมูลความปลอดภัย (Auto)</label>
-                    <div class="bg-[#1E1E1E] p-4 rounded-xl border border-graphite text-[11px] font-mono break-all opacity-70">
-                        <p class="text-[#0B47AF]">USER_ID:</p>
-                        <p id="dispUserId" class="mb-2">Loading...</p>
-                        <p class="text-[#0B47AF]">ROOM_ID:</p>
-                        <p id="dispRoomId">Loading...</p>
+            <form id="setupForm">
+                <div id="step1" class="step-panel active">
+                    <h2 class="text-xl font-semibold mb-6">กรอกข้อมูลพื้นฐาน</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1 block">ชื่อร้านค้า (Store Name)</label>
+                            <input type="text" id="storeName" class="input-dark w-full p-3 rounded-lg" placeholder="ชื่อร้านของคุณ">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1 block">ชื่อเจ้าของ (Owner Name)</label>
+                            <input type="text" id="ownerName" class="input-dark w-full p-3 rounded-lg" placeholder="ชื่อ-นามสกุลจริง">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 mb-1 block">Email (สมัคร Grab)</label>
+                            <input type="email" id="email" class="input-dark w-full p-3 rounded-lg font-mono" placeholder="name@email.com">
+                        </div>
                     </div>
                 </div>
 
-                <div id="step4" class="step-content text-center">
-                    <label class="block text-sm font-medium text-gray-300 mb-4 text-left">ตำแหน่งที่ตั้ง Safe Zone</label>
-                    <button type="button" onclick="getLocation()" id="gpsBtn" class="w-full py-4 border-2 border-dashed border-[#0B47AF] text-[#0B47AF] rounded-2xl font-medium transition-all hover:bg-[#0B47AF]/10">
-                        📍 ปักหมุดพิกัดร้านปัจจุบัน
+                <div id="step2" class="step-panel text-left">
+                    <h2 class="text-xl font-semibold mb-2">ระบุพิกัดร้าน</h2>
+                    <p class="text-sm text-gray-400 mb-8">เพื่อความแม่นยำในการ Audit ระบบและพนักงาน</p>
+                    
+                    <button type="button" onclick="handleLocation()" id="locationBtn" class="pulse-radar w-full py-4 bg-[#2A2A2A] border border-[#0B47AF] text-[#0B47AF] rounded-xl font-medium flex items-center justify-center gap-3 active:scale-95 transition-transform">
+                        <span id="locIcon">📍</span>
+                        <span id="locText">ปักหมุดพิกัดปัจจุบัน</span>
                     </button>
-                    <p id="geoStatus" class="mt-3 text-xs text-gray-500 italic">ต้องระบุพิกัดเพื่อความแม่นยำของระบบ Audit</p>
+                    <p id="coordsDisplay" class="text-center text-[10px] mt-4 text-gray-500 font-mono"></p>
                 </div>
 
-                <div id="step5" class="step-content text-center">
-                    <div class="bg-[#1E1E1E] p-6 rounded-2xl border border-graphite mb-6">
-                        <svg class="w-12 h-12 text-[#12CF35] mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <p class="text-sm text-gray-300">ยืนยันการเชื่อมต่อยานแม่</p>
+                <div id="step3" class="step-panel text-center">
+                    <div class="mb-6 flex justify-center">
+                        <div class="w-20 h-20 bg-[#12CF35]/10 rounded-full flex items-center justify-center border-2 border-[#12CF35]">
+                            <svg class="w-10 h-10 text-[#12CF35]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
                     </div>
-                    <button type="button" onclick="submitData()" id="submitBtn" class="w-full py-4 bg-[#0B47AF] text-white rounded-xl font-semibold glow-cobalt">ส่งข้อมูลขึ้นระบบ</button>
+                    <h2 class="text-2xl font-bold mb-2">ยืนยันการเชื่อมต่อยานแม่</h2>
+                    <p class="text-sm text-gray-400 mb-8">หน้าจอนี้จะปิดอัตโนมัติภายใน 3 วินาที</p>
+                    
+                    <button type="button" onclick="submitToMothership()" id="finalBtn" class="w-full py-4 bg-[#0B47AF] text-white rounded-xl font-semibold shadow-lg shadow-blue-900/20">
+                        ส่งข้อมูลขึ้นระบบ
+                    </button>
                 </div>
 
-                <div class="mt-10 flex justify-between gap-4">
-                    <button type="button" id="prevBtn" onclick="changeStep(-1)" class="flex-1 py-3 text-sm text-gray-500 font-medium hidden">ย้อนกลับ</button>
-                    <button type="button" id="nextBtn" onclick="changeStep(1)" class="flex-1 py-3 bg-[#0B47AF] text-white rounded-xl font-medium">ถัดไป</button>
+                <div id="controlPanel" class="mt-10 flex justify-between items-center">
+                    <button type="button" id="prevBtn" onclick="moveStep(-1)" class="text-gray-500 text-sm font-medium invisible">ย้อนกลับ</button>
+                    <button type="button" id="nextBtn" onclick="moveStep(1)" class="bg-[#0B47AF] px-8 py-3 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors">ถัดไป</button>
                 </div>
             </form>
         </div>
-        <p class="text-center text-gray-400 text-[10px] mt-6 tracking-[0.2em] uppercase">Powered by Deli Daily Automation</p>
-    </div>
-
-    <div id="successOverlay" class="fixed inset-0 bg-white z-50 hidden flex flex-col items-center justify-center">
-        <div class="w-24 h-24 bg-[#12CF35] rounded-full flex items-center justify-center success-glow animate-bounce">
-            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>
-        </div>
-        <h2 class="text-[#12CF35] text-2xl font-bold mt-6">SUCCESS</h2>
     </div>
 
     <script>
         let currentStep = 1;
-        let payload = { userId: '', groupId: '', lat: null, lng: null };
-        const WEBHOOK_URL = 'https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B';
+        let geoData = { lat: null, lng: null };
 
         async function initLiff() {
             try {
                 await liff.init({ liffId: "2010194217-lnwYLoTq" });
                 if (!liff.isLoggedIn()) liff.login();
-                const profile = await liff.getProfile();
-                const context = liff.getContext();
-                payload.userId = profile.userId;
-                payload.groupId = context.groupId || 'PRIVATE';
-                document.getElementById('dispUserId').innerText = payload.userId;
-                document.getElementById('dispRoomId').innerText = payload.groupId;
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("LIFF Init Failed"); }
         }
 
-        function changeStep(n) {
+        function validateEmail(email) {
+            return String(email).toLowerCase().match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/);
+        }
+
+        function moveStep(n) {
+            if (n === 1) {
+                if (currentStep === 1) {
+                    const email = document.getElementById('email').value;
+                    if (!validateEmail(email)) { alert("กรุณากรอก Email ให้ถูกต้อง"); return; }
+                }
+                if (currentStep === 2 && !geoData.lat) { alert("กรุณาปักหมุดพิกัดร้าน"); return; }
+            }
+
             document.getElementById(`step${currentStep}`).classList.remove('active');
             currentStep += n;
             document.getElementById(`step${currentStep}`).classList.add('active');
+
+            // UI Updates
+            for(let i=1; i<=3; i++) {
+                document.getElementById(`bar${i}`).style.backgroundColor = i <= currentStep ? '#0B47AF' : '#374151';
+            }
             
-            const progress = (currentStep / 5) * 100;
-            document.getElementById('progressBar').style.width = progress + '%';
-            document.getElementById('stepIndicator').innerText = `Step ${currentStep} of 5`;
-            document.getElementById('percentIndicator').innerText = progress + '%';
-            
-            document.getElementById('prevBtn').classList.toggle('hidden', currentStep === 1);
-            document.getElementById('nextBtn').classList.toggle('hidden', currentStep === 5);
+            document.getElementById('prevBtn').style.visibility = (currentStep > 1 && currentStep < 3) ? 'visible' : 'hidden';
+            document.getElementById('nextBtn').classList.toggle('hidden', currentStep === 3);
         }
 
-        function getLocation() {
-            const btn = document.getElementById('gpsBtn');
+        function handleLocation() {
+            const btn = document.getElementById('locationBtn');
+            btn.classList.add('opacity-50');
+            document.getElementById('locText').innerText = "กำลังคำนวณพิกัด...";
+            
             navigator.geolocation.getCurrentPosition((pos) => {
-                payload.lat = pos.coords.latitude;
-                payload.lng = pos.coords.longitude;
-                btn.innerText = '✅ พิกัดถูกล็อกแล้ว';
-                btn.classList.replace('text-[#0B47AF]', 'text-[#12CF35]');
-                btn.style.borderColor = '#12CF35';
-                document.getElementById('geoStatus').innerText = `Lat: ${payload.lat.toFixed(4)}, Lng: ${payload.lng.toFixed(4)}`;
-            }, (err) => alert('โปรดเปิดสิทธิ์ GPS'));
+                geoData.lat = pos.coords.latitude;
+                geoData.lng = pos.coords.longitude;
+                document.getElementById('coordsDisplay').innerText = `FIXED: ${geoData.lat.toFixed(6)}, ${geoData.lng.toFixed(6)}`;
+                document.getElementById('locText').innerText = "ปักหมุดสำเร็จ";
+                btn.classList.remove('opacity-50', 'text-[#0B47AF]');
+                btn.classList.add('text-[#12CF35]', 'border-[#12CF35]');
+                document.getElementById('locIcon').innerText = "✅";
+            }, (err) => {
+                alert("กรุณาอนุญาตการเข้าถึงพิกัด");
+                btn.classList.remove('opacity-50');
+            });
         }
 
-        async function submitData() {
-            const finalData = {
-                ...payload,
+        async function submitToMothership() {
+            const btn = document.getElementById('finalBtn');
+            btn.disabled = true;
+            btn.innerText = "กำลังสื่อสารกับระบบ...";
+
+            const profile = await liff.getProfile();
+            const payload = {
                 storeName: document.getElementById('storeName').value,
-                sheetId: document.getElementById('sheetId').value
+                ownerName: document.getElementById('ownerName').value,
+                email: document.getElementById('email').value,
+                lat: geoData.lat,
+                lng: geoData.lng,
+                userId: profile.userId
             };
-            
-            try {
-                const res = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(finalData)
-                });
-                if (res.ok) {
-                    document.getElementById('successOverlay').classList.remove('hidden');
-                    setTimeout(() => liff.closeWindow(), 1500);
-                }
-            } catch (e) { alert('Network Error'); }
+
+            const response = await fetch('https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                setTimeout(() => { liff.closeWindow(); }, 3000);
+            }
         }
 
         initLiff();
