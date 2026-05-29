@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deli Daily | Master Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Kanit', sans-serif; background-color: #F9F9F9; }
+        .sidebar { background-color: #1E1E1E; }
+        .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        .text-cobalt { color: #0B47AF; }
+        .bg-cobalt { background-color: #0B47AF; }
+        .bg-lime { background-color: #12CF35; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+
+    <aside class="sidebar w-64 text-gray-400 p-6 flex flex-col hidden md:flex">
+        <div class="mb-10 pl-2">
+            <h1 class="text-white text-xl font-bold tracking-tight">DELI DAILY <span class="text-blue-500">OS</span></h1>
+            <p class="text-[10px] uppercase tracking-widest opacity-50">Admin Console</p>
+        </div>
+        
+        <nav class="space-y-4 flex-grow">
+            <label class="text-[10px] uppercase font-bold text-gray-600 block mb-2">Main Menu</label>
+            <a href="#" class="flex items-center gap-3 text-white bg-[#2A2A2A] p-3 rounded-xl transition-all">
+                <span>📊</span> Overview
+            </a>
+            <a href="#" class="flex items-center gap-3 hover:text-white p-3 transition-all">
+                <span>🏪</span> Branches
+            </a>
+            <a href="#" class="flex items-center gap-3 hover:text-white p-3 transition-all">
+                <span>🏃‍♂️</span> Staff Intel
+            </a>
+        </nav>
+
+        <div class="mt-auto pt-6 border-t border-gray-800">
+            <select id="branchSelect" class="bg-[#2A2A2A] text-white w-full p-3 rounded-xl border-none text-sm focus:ring-2 focus:ring-blue-500">
+                <option value="all">ทุกสาขา</option>
+                <option value="banya-steak">Baan Ya Steak House</option>
+            </select>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-6 md:p-10">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800">Executive Overview</h2>
+                <p class="text-sm text-gray-500">สรุปผลการดำเนินงานแบบเรียลไทม์</p>
+            </div>
+            <div class="flex gap-4">
+                <button class="bg-white border p-2 px-4 rounded-xl text-sm font-medium hover:bg-gray-50">Today</button>
+                <button class="bg-cobalt text-white p-2 px-4 rounded-xl text-sm font-medium shadow-lg shadow-blue-900/20">Download Report</button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="card p-6 border-l-4 border-cobalt">
+                <p class="text-xs text-gray-400 uppercase font-bold mb-1">Gross Sales</p>
+                <h3 id="grossSales" class="text-3xl font-bold text-gray-800">฿0.00</h3>
+                <p class="text-[10px] text-lime-600 mt-2">▲ 12.5% vs Last Period</p>
+            </div>
+            <div class="card p-6 border-l-4 border-red-500">
+                <p class="text-xs text-gray-400 uppercase font-bold mb-1">Total Labor Cost</p>
+                <h3 id="laborCost" class="text-3xl font-bold text-gray-800">฿0.00</h3>
+                <p class="text-[10px] text-gray-400 mt-2">ค่าแรงพนักงานสะสม</p>
+            </div>
+            <div class="card p-6 border-l-4 border-lime">
+                <p class="text-xs text-gray-400 uppercase font-bold mb-1">Team Efficiency</p>
+                <h3 id="avgEfficiency" class="text-3xl font-bold text-lime-600">0%</h3>
+                <p class="text-[10px] text-gray-400 mt-2">Target vs Actual Performance</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="card p-6">
+                <h4 class="font-bold text-gray-700 mb-6 flex justify-between items-center">
+                    Revenue Mix Analysis
+                    <span class="text-[10px] font-normal text-gray-400">Daily Source Split</span>
+                </h4>
+                <canvas id="revenueMixChart" height="250"></canvas>
+            </div>
+            <div class="card p-6">
+                <h4 class="font-bold text-gray-700 mb-6 flex justify-between items-center">
+                    Staff Performance Ranking
+                    <span class="text-[10px] font-normal text-gray-400">Monthly Efficiency</span>
+                </h4>
+                <canvas id="staffPerformanceChart" height="250"></canvas>
+            </div>
+        </div>
+
+        <section class="card overflow-hidden">
+            <div class="p-6 border-b">
+                <h4 class="font-bold text-gray-700">Staff Intelligence & Discipline Audit</h4>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-[10px] uppercase text-gray-400 font-bold">
+                        <tr>
+                            <th class="p-4">พนักงาน</th>
+                            <th class="p-4">ตำแหน่ง</th>
+                            <th class="p-4 text-center">Badges</th>
+                            <th class="p-4 text-center">คะแนนประสิทธิภาพ</th>
+                            <th class="p-4 text-center">สถานะวินัย GPS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staffTableBody" class="text-sm">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const API_ENDPOINT = 'https://primary-production-25a4.up.railway.app/webhook/DDOS-Admin-Data';
+
+        async function fetchData() {
+            try {
+                // ในโปรดักชันจริง จะใช้ fetch(API_ENDPOINT)
+                // จำลองข้อมูล JSON จาก n8n/Google Sheets
+                const data = {
+                    summary: { grossSales: 125400, laborCost: 32000, efficiency: 84 },
+                    revenueMix: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [
+                            { label: 'Walk-in', data: [12000, 15000, 11000, 18000, 22000, 35000, 31000], borderColor: '#0B47AF' },
+                            { label: 'Grab', data: [5000, 6000, 7500, 6000, 9000, 12000, 11000], borderColor: '#12CF35' }
+                        ]
+                    },
+                    staff: [
+                        { name: 'Wisarut (Visa)', role: 'Owner/Developer', badges: 12, efficiency: 98, gps: 'Strong' },
+                        { name: 'Somchai', role: 'Staff', badges: 5, efficiency: 45, gps: 'Weak' },
+                        { name: 'Jane Doe', role: 'Cashier', badges: 8, efficiency: 82, gps: 'Strong' }
+                    ]
+                };
+
+                updateUI(data);
+            } catch (err) { console.error('Dashboard Engine Error:', err); }
+        }
+
+        function updateUI(data) {
+            // Update Summary
+            document.getElementById('grossSales').innerText = `฿${data.summary.grossSales.toLocaleString()}`;
+            document.getElementById('laborCost').innerText = `฿${data.summary.laborCost.toLocaleString()}`;
+            document.getElementById('avgEfficiency').innerText = `${data.summary.efficiency}%`;
+
+            // Revenue Chart
+            new Chart(document.getElementById('revenueMixChart'), {
+                type: 'line',
+                data: data.revenueMix,
+                options: { tension: 0.4, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Staff Performance Chart
+            new Chart(document.getElementById('staffPerformanceChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.staff.map(s => s.name),
+                    datasets: [{
+                        label: 'Efficiency %',
+                        data: data.staff.map(s => s.efficiency),
+                        backgroundColor: data.staff.map(s => s.efficiency < 50 ? '#FF5252' : '#0B47AF'),
+                        borderRadius: 8
+                    }]
+                },
+                options: { plugins: { legend: { display: false } } }
+            });
+
+            // Staff Table
+            const tableBody = document.getElementById('staffTableBody');
+            tableBody.innerHTML = data.staff.map(s => `
+                <tr class="border-t hover:bg-gray-50 transition-colors ${s.efficiency < 50 ? 'bg-red-50' : ''}">
+                    <td class="p-4 font-medium">${s.name}</td>
+                    <td class="p-4 text-gray-500">${s.role}</td>
+                    <td class="p-4 text-center">
+                        <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-[10px] font-bold">🎖 ${s.badges}</span>
+                    </td>
+                    <td class="p-4 text-center font-bold ${s.efficiency < 50 ? 'text-red-500' : 'text-gray-700'}">${s.efficiency}%</td>
+                    <td class="p-4 text-center">
+                        <span class="px-2 py-1 rounded-lg text-[10px] ${s.gps === 'Strong' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                            ${s.gps === 'Strong' ? '● Verified' : '● Warning'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.onload = fetchData;
+    </script>
+</body>
+</html>
