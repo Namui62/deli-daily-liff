@@ -3,138 +3,332 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deli Daily - Owner Onboarding</title>
+    <title>Deli Daily - Mother Ship Onboarding</title>
+    <!-- LIFF SDK v2 -->
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Modern Sans-serif -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Kanit', sans-serif; background-color: #f4f7f6; }
-        .step { display: none; }
-        .step.active { display: block; animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .bg-smart-blue { background-color: #0b47af; }
-        .text-smart-blue { color: #0b47af; }
-        .success-glow { box-shadow: 0 0 20px #12cf35; border: 2px solid #12cf35; }
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #121212; /* Onyx Main Background */
+            color: #FFFFFF;
+        }
+        .card-bg {
+            background-color: #1E1E1E; /* Carbon Black Container */
+        }
+        .border-graphite {
+            border-color: #2A2A2A; /* Graphite Divider/Border */
+        }
+        .step-content {
+            display: none;
+        }
+        .step-content.active {
+            display: block;
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Premium Glow Effects */
+        .glow-cobalt {
+            box-shadow: 0 0 20px rgba(11, 71, 175, 0.4);
+        }
+        .glow-lime {
+            box-shadow: 0 0 25px rgba(18, 207, 53, 0.5);
+        }
+        /* Custom Input Styling */
+        .premium-input {
+            background-color: #121212;
+            border: 1px solid #2A2A2A;
+            color: #FFFFFF;
+            transition: all 0.2s ease;
+        }
+        .premium-input:focus {
+            border-color: #0B47AF;
+            box-shadow: 0 0 10px rgba(11, 71, 175, 0.3);
+            outline: none;
+        }
     </style>
 </head>
-<body class="p-6">
-    <div class="w-full bg-gray-200 rounded-full h-2 mb-8">
-        <div id="progress" class="bg-smart-blue h-2 rounded-full transition-all duration-300" style="width: 20%"></div>
+<body class="min-h-screen flex flex-col justify-between p-6">
+
+    <!-- Top Branding / Profile Section (The Symmetrical Rule) -->
+    <div class="w-full flex flex-col items-center mt-4">
+        <div class="relative w-20 h-20 rounded-full bg-[#1E1E1E] border-2 border-[#0B47AF] flex items-center justify-center glow-cobalt overflow-hidden mb-3">
+            <img id="avatarImg" src="https://placehold.co/150x150/1e1e1e/0b47af?text=DD" alt="Profile" class="w-full h-full object-cover hidden">
+            <!-- Default Rocket Icon until profile loads -->
+            <svg id="rocketIcon" class="w-8 h-8 text-[#0B47AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            </svg>
+        </div>
+        <h1 class="text-xl font-semibold text-white tracking-wide">ตั้งค่ายานแม่ DELI DAILY</h1>
+        <p class="text-xs text-[#AAAAAA] mt-1" id="storeNamePreview">ระบบลงทะเบียนร้านค้ารายสาขา</p>
     </div>
 
-    <div id="onboardingForm">
-        <div id="step1" class="step active">
-            <h2 class="text-2xl font-bold mb-4 text-smart-blue">1. ชื่อร้านของคุณ</h2>
-            <p class="text-gray-500 mb-6">ตั้งชื่อร้านให้ลูกค้ายานแม่จดจำได้ง่าย</p>
-            <input type="text" id="storeName" class="w-full p-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="ชื่อร้านของคุณ">
-        </div>
-
-        <div id="step2" class="step">
-            <h2 class="text-2xl font-bold mb-4 text-smart-blue">2. Spreadsheet ID</h2>
-            <p class="text-gray-500 mb-6">คัดลอก ID จาก URL ของ Google Sheets รายสาขาของคุณ</p>
-            <input type="text" id="sheetId" class="w-full p-4 border rounded-xl" placeholder="1A2b3C...xyz">
-        </div>
-
-        <div id="step3" class="step">
-            <h2 class="text-2xl font-bold mb-4 text-smart-blue">3. ข้อมูลผู้ส่ง</h2>
-            <p class="text-gray-500 mb-4">เราดึงข้อมูลจากระบบ LINE อัตโนมัติ</p>
-            <div class="bg-blue-50 p-4 rounded-xl text-sm break-all">
-                <p><strong>User ID:</strong> <span id="displayUserId">Loading...</span></p>
+    <!-- Main Stepper Form Layer -->
+    <div class="card-bg w-full max-w-md mx-auto rounded-2xl p-6 border border-graphite my-6 flex-grow flex flex-col justify-between">
+        
+        <!-- Status Progress Line -->
+        <div class="w-full mb-6">
+            <div class="flex justify-between text-xs text-[#AAAAAA] mb-2 px-1">
+                <span id="stepBadge">ขั้นตอนที่ 1 จาก 5</span>
+                <span id="stepPercent">20%</span>
+            </div>
+            <div class="w-full bg-[#2A2A2A] rounded-full h-1.5">
+                <div id="progressBar" class="bg-[#0B47AF] h-1.5 rounded-full transition-all duration-300" style="width: 20%"></div>
             </div>
         </div>
 
-        <div id="step4" class="step text-center">
-            <h2 class="text-2xl font-bold mb-4 text-smart-blue">4. พิกัดร้าน</h2>
-            <p class="text-gray-500 mb-6">ปักหมุดเพื่อให้ลูกค้าหาร้านคุณได้แม่นยำ</p>
-            <button onclick="getLocation()" id="btnGps" class="w-full py-4 bg-orange-500 text-white rounded-xl font-bold mb-2">📍 ปักหมุดพิกัดปัจจุบัน</button>
-            <p id="latLngDisplay" class="text-sm text-gray-400 italic">ยังไม่ได้เลือกพิกัด</p>
+        <!-- Dynamic Step Contents -->
+        <div class="flex-grow flex flex-col justify-center">
+            
+            <!-- Step 1: Store Name -->
+            <div id="step1" class="step-content active">
+                <h3 class="text-lg font-medium text-white mb-1">ระบุชื่อร้านค้าของคุณ</h3>
+                <p class="text-sm text-[#B0B0B0] mb-4">ชื่อนี้จะใช้แสดงผลบนหน้าระบบสั่งซื้อหลัก</p>
+                <input type="text" id="storeName" class="premium-input w-full p-4 rounded-xl text-base" placeholder="ตัวอย่าง: Deli Daily สาขาอารีย์" oninput="updatePreview(this.value)">
+                <p id="errStep1" class="text-xs text-[#FF5252] mt-2 hidden">⚠️ กรุณาระบุชื่อร้านค้าก่อนไปขั้นตอนถัดไป</p>
+            </div>
+
+            <!-- Step 2: Spreadsheet ID -->
+            <div id="step2" class="step-content">
+                <h3 class="text-lg font-medium text-white mb-1">ฐานข้อมูล Spreadsheet ID</h3>
+                <p class="text-sm text-[#B0B0B0] mb-4">ระบุคีย์ไฟล์ Google Sheets แยกสาขาเพื่อเก็บ Log</p>
+                <input type="text" id="spreadsheetId" class="premium-input w-full p-4 rounded-xl text-sm font-mono" placeholder="1A2b3C4d... (คัดลอกจาก URL ของ Sheets)">
+                <p id="errStep2" class="text-xs text-[#FF5252] mt-2 hidden">⚠️ กรุณาระบุ Spreadsheet ID ที่ถูกต้อง</p>
+            </div>
+
+            <!-- Step 3: Automated LINE Metadata Fetch -->
+            <div id="step3" class="step-content">
+                <h3 class="text-lg font-medium text-white mb-1">ระบบตรวจสอบความปลอดภัย</h3>
+                <p class="text-sm text-[#B0B0B0] mb-4">ข้อมูลยืนยันตัวตนเจ้าของสิทธิ์ที่ดึงจากระบบ LINE SDK</p>
+                <div class="space-y-3">
+                    <div class="bg-[#121212] p-4 rounded-xl border border-graphite">
+                        <label class="text-[11px] text-[#AAAAAA] uppercase tracking-wider block mb-1">Owner Line User ID</label>
+                        <span id="lineUserId" class="text-sm font-mono text-white block break-all">กำลังเรียกข้อมูลจาก SDK...</span>
+                    </div>
+                    <div class="bg-[#121212] p-4 rounded-xl border border-graphite">
+                        <label class="text-[11px] text-[#AAAAAA] uppercase tracking-wider block mb-1">Authorized Room Group ID</label>
+                        <span id="lineGroupId" class="text-sm font-mono text-[#0B47AF] block break-all">ดึงข้อมูลกลุ่มเรียบร้อย</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: GPS Geo-location Mapping -->
+            <div id="step4" class="step-content text-center">
+                <h3 class="text-lg font-medium text-white text-left mb-1">พิกัดภูมิศาสตร์สาขา</h3>
+                <p class="text-sm text-[#B0B0B0] text-left mb-5">กดปุ่มด้านล่างเพื่อแชร์พิกัดที่ตั้งปัจจุบันของหน้าร้าน</p>
+                
+                <button type="button" onclick="triggerGeoLocation()" id="gpsBtn" class="w-full py-4 rounded-xl border border-[#0B47AF] text-[#0B47AF] font-medium text-sm transition-all flex items-center justify-center gap-2 hover:bg-[#0B47AF]/10">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span id="gpsBtnText">ปักหมุดพิกัดร้านปัจจุบัน</span>
+                </button>
+                
+                <div class="flex gap-2 mt-4">
+                    <div class="flex-1 bg-[#121212] p-3 rounded-xl border border-graphite text-left">
+                        <span class="text-[10px] text-[#AAAAAA] block">LATITUDE</span>
+                        <span id="latVal" class="text-xs font-mono font-bold text-white">-</span>
+                    </div>
+                    <div class="flex-1 bg-[#121212] p-3 rounded-xl border border-graphite text-left">
+                        <span class="text-[10px] text-[#AAAAAA] block">LONGITUDE</span>
+                        <span id="lngVal" class="text-xs font-mono font-bold text-white">-</span>
+                    </div>
+                </div>
+                <p id="errStep4" class="text-xs text-[#FF5252] mt-2 hidden text-left">⚠️ จำเป็นต้องดึงพิกัด GPS ก่อนไปขั้นตอนสุดท้าย</p>
+            </div>
+
+            <!-- Step 5: High-Fidelity Submission Confirmation -->
+            <div id="step5" class="step-content">
+                <h3 class="text-lg font-medium text-white mb-1">ตรวจสอบโครงสร้างรอบสุดท้าย</h3>
+                <p class="text-sm text-[#B0B0B0] mb-5">ข้อมูลทั้งหมดจะถูกส่งเข้าศูนย์บัญชาการยานแม่หลักทันที</p>
+                
+                <div class="bg-[#121212] rounded-xl border border-graphite p-4 space-y-2 text-sm mb-4">
+                    <div class="flex justify-between"><span class="text-[#AAAAAA]">ชื่อร้าน:</span> <span id="summaryName" class="text-white font-medium">-</span></div>
+                    <div class="flex justify-between"><span class="text-[#AAAAAA]">Sheet ID:</span> <span id="summarySheet" class="text-white font-mono text-xs truncate max-w-[180px]">-</span></div>
+                    <div class="flex justify-between"><span class="text-[#AAAAAA]">พิกัดร้าน:</span> <span id="summaryGPS" class="text-[#12CF35] font-mono text-xs">-</span></div>
+                </div>
+
+                <button type="button" onclick="dispatchPayloadToN8n()" id="submitBtn" class="w-full py-4 bg-[#12CF35] text-black font-semibold rounded-xl text-base transition-all transform active:scale-95 glow-lime">
+                    ยืนยันข้อมูลและเริ่มระบบการทำงาน
+                </button>
+            </div>
+
         </div>
 
-        <div id="step5" class="step text-center">
-            <h2 class="text-2xl font-bold mb-4 text-smart-blue">5. ตรวจสอบข้อมูล</h2>
-            <p class="text-gray-600 mb-8">ข้อมูลถูกต้องพร้อมออกทะยานสู่ดาวอังคาร!</p>
-            <button onclick="submitData()" id="btnSubmit" class="w-full py-4 bg-smart-blue text-white rounded-xl font-bold text-lg shadow-lg">ยืนยันลงทะเบียนยานแม่</button>
-        </div>
-
-        <div class="mt-10 flex gap-4">
-            <button id="prevBtn" onclick="changeStep(-1)" class="flex-1 py-3 text-gray-400 font-semibold hidden">ย้อนกลับ</button>
-            <button id="nextBtn" onclick="changeStep(1)" class="flex-1 py-3 bg-smart-blue text-white rounded-xl font-semibold">ถัดไป</button>
+        <!-- Stepper Navigation Trigger Unit -->
+        <div class="mt-6 pt-4 border-t border-graphite flex items-center justify-between gap-4">
+            <button id="backBtn" onclick="navigateStep(-1)" class="px-4 py-2 text-sm text-[#B0B0B0] font-medium hidden">ย้อนกลับ</button>
+            <div id="spacer" class="flex-grow"></div>
+            <button id="nextBtn" onclick="navigateStep(1)" class="px-6 py-3 bg-[#0B47AF] text-white text-sm font-medium rounded-xl transition-all hover:bg-[#0B47AF]/90">ถัดไป</button>
         </div>
     </div>
 
-    <div id="successOverlay" class="fixed inset-0 bg-white/90 hidden flex flex-col items-center justify-center z-50">
-        <div class="w-24 h-24 bg-[#12cf35] rounded-full flex items-center justify-center success-glow mb-4">
-            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+    <!-- Meta-Footer Area -->
+    <div class="w-full text-center text-[11px] text-[#2A2A2A] uppercase tracking-widest pb-2">
+        Deli Daily Operational System v2.0
+    </div>
+
+    <!-- Success Checkmark Animation Overlay -->
+    <div id="successOverlay" class="fixed inset-0 bg-[#121212]/95 hidden flex-col items-center justify-center z-50 animate-fade">
+        <div class="w-20 h-20 bg-transparent rounded-full border-4 border-[#12CF35] flex items-center justify-center glow-lime mb-4">
+            <svg class="w-10 h-10 text-[#12CF35]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+            </svg>
         </div>
-        <h2 class="text-2xl font-bold text-[#12cf35]">ลงทะเบียนสำเร็จ!</h2>
+        <h2 class="text-xl font-medium text-white tracking-wide">โครงสร้างบันทึกเรียบร้อย</h2>
+        <p class="text-xs text-[#12CF35] mt-1">ยานแม่ทำการออกตัวใน 1.5 วินาที...</p>
     </div>
 
     <script>
-        let currentStep = 1;
-        let userData = { userId: '', lat: '', lng: '' };
-        const WEBHOOK_URL = 'YOUR_N8N_WEBHOOK_URL_HERE'; // *** ใส่ URL Webhook จาก n8n ***
+        let stepState = 1;
+        const totalSteps = 5;
+        let collectedPayload = { storeName: '', spreadsheetId: '', lineUserId: '', lineGroupId: '', lat: null, lng: null };
+        
+        // คอนฟิกค่า Webhook URL และ LIFF ID
+        const N8N_INBOUND_ENDPOINT = 'https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B'; 
+        const LINE_LIFF_APP_ID = '2010194217-lnwYLoTq';
 
-        async function initLiff() {
+        function updatePreview(val) {
+            document.getElementById('storeNamePreview').innerText = val ? val : 'ระบบลงทะเบียนร้านค้ารายสาขา';
+        }
+
+        async function initializeLiffEngine() {
             try {
-                await liff.init({ liffId: "YOUR_LIFF_ID_HERE" }); // *** ใส่ LIFF ID ***
+                await liff.init({ liffId: LINE_LIFF_APP_ID });
                 if (!liff.isLoggedIn()) {
                     liff.login();
                 } else {
                     const profile = await liff.getProfile();
-                    userData.userId = profile.userId;
-                    document.getElementById('displayUserId').innerText = profile.userId;
+                    collectedPayload.lineUserId = profile.userId;
+                    document.getElementById('lineUserId').innerText = profile.userId;
+                    
+                    if (profile.pictureUrl) {
+                        const avatar = document.getElementById('avatarImg');
+                        avatar.src = profile.pictureUrl;
+                        avatar.classList.remove('hidden');
+                        document.getElementById('rocketIcon').classList.add('hidden');
+                    }
+                    
+                    // อ่านค่า Group ID จาก Context ของ LINE (กรณีเปิดในห้องแชทกลุ่ม)
+                    const context = liff.getContext();
+                    if (context && context.groupId) {
+                        collectedPayload.lineGroupId = context.groupId;
+                        document.getElementById('lineGroupId').innerText = context.groupId;
+                    } else {
+                        collectedPayload.lineGroupId = "DIRECT_CHAT_INTERFACE";
+                        document.getElementById('lineGroupId').innerText = "DIRECT_CHAT_INTERFACE";
+                    }
                 }
-            } catch (err) { console.error('LIFF Error:', err); }
+            } catch (err) {
+                console.error('LIFF Core Engine Initialization Scuppered:', err);
+            }
         }
 
-        function changeStep(n) {
-            document.getElementById(`step${currentStep}`).classList.remove('active');
-            currentStep += n;
-            document.getElementById(`step${currentStep}`).classList.add('active');
+        function triggerGeoLocation() {
+            const gpsBtn = document.getElementById('gpsBtn');
+            const txt = document.getElementById('gpsBtnText');
+            txt.innerText = 'กำลังคำนวณหาดาวเทียม...';
             
-            // UI Updates
-            document.getElementById('progress').style.width = `${currentStep * 20}%`;
-            document.getElementById('prevBtn').classList.toggle('hidden', currentStep === 1);
-            document.getElementById('nextBtn').classList.toggle('hidden', currentStep === 5);
-            document.getElementById('onboardingForm').scrollIntoView({ behavior: 'smooth' });
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    collectedPayload.lat = position.coords.latitude;
+                    collectedPayload.lng = position.coords.longitude;
+                    
+                    document.getElementById('latVal').innerText = collectedPayload.lat.toFixed(6);
+                    document.getElementById('lngVal').innerText = collectedPayload.lng.toFixed(6);
+                    document.getElementById('errStep4').classList.add('hidden');
+                    
+                    gpsBtn.classList.remove('border-[#0B47AF]', 'text-[#0B47AF]');
+                    gpsBtn.classList.add('bg-[#12CF35]/10', 'border-[#12CF35]', 'text-[#12CF35]');
+                    txt.innerText = 'บันทึกพิกัดร้านสำเร็จ';
+                },
+                (error) => {
+                    txt.innerText = 'การค้นหาล้มเหลว';
+                    alert('กรุณาอนุญาตให้ระบบเข้าถึงสิทธิ์ตำแหน่งที่ตั้ง (GPS)');
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
         }
 
-        function getLocation() {
-            const btn = document.getElementById('btnGps');
-            btn.innerText = "กำลังหาพิกัด...";
-            navigator.geolocation.getCurrentPosition((pos) => {
-                userData.lat = pos.coords.latitude;
-                userData.lng = pos.coords.longitude;
-                document.getElementById('latLngDisplay').innerText = `พิกัด: ${userData.lat.toFixed(5)}, ${userData.lng.toFixed(5)}`;
-                btn.innerText = "✅ บันทึกพิกัดแล้ว";
-                btn.classList.replace('bg-orange-500', 'bg-green-600');
-            }, (err) => alert('โปรดเปิดสิทธิ์ GPS เพื่อใช้งาน'));
+        function validateStepRule() {
+            if (stepState === 1) {
+                const val = document.getElementById('storeName').value.trim();
+                if(!val) { document.getElementById('errStep1').classList.remove('hidden'); return false; }
+                document.getElementById('errStep1').classList.add('hidden');
+                collectedPayload.storeName = val;
+            }
+            if (stepState === 2) {
+                const val = document.getElementById('spreadsheetId').value.trim();
+                if(!val) { document.getElementById('errStep2').classList.remove('hidden'); return false; }
+                document.getElementById('errStep2').classList.add('hidden');
+                collectedPayload.spreadsheetId = val;
+            }
+            if (stepState === 4) {
+                if(!collectedPayload.lat || !collectedPayload.lng) { document.getElementById('errStep4').classList.remove('hidden'); return false; }
+                document.getElementById('errStep4').classList.add('hidden');
+            }
+            return true;
         }
 
-        async function submitData() {
-            const payload = {
-                storeName: document.getElementById('storeName').value,
-                sheetId: document.getElementById('sheetId').value,
-                userId: userData.userId,
-                lat: userData.lat,
-                lng: userData.lng
-            };
+        function navigateStep(direction) {
+            if (direction === 1 && !validateStepRule()) return;
+
+            document.getElementById(`step${stepState}`).classList.remove('active');
+            stepState += direction;
+            document.getElementById(`step${stepState}`).classList.add('active');
+
+            // Render Summary UI when hitting step 5
+            if (stepState === 5) {
+                document.getElementById('summaryName').innerText = collectedPayload.storeName;
+                document.getElementById('summarySheet').innerText = collectedPayload.spreadsheetId;
+                document.getElementById('summaryGPS').innerText = `${collectedPayload.lat.toFixed(4)}, ${collectedPayload.lng.toFixed(4)}`;
+            }
+
+            // UI Refresh Pipeline
+            const pct = (stepState / totalSteps) * 100;
+            document.getElementById('progressBar').style.width = `${pct}%`;
+            document.getElementById('stepPercent').innerText = `${pct}%`;
+            document.getElementById('stepBadge').innerText = `ขั้นตอนที่ ${stepState} จาก ${totalSteps}`;
+            
+            document.getElementById('backBtn').classList.toggle('hidden', stepState === 1);
+            document.getElementById('nextBtn').classList.toggle('hidden', stepState === totalSteps);
+        }
+
+        async function dispatchPayloadToN8n() {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'กำลังส่งข้อมูลไปยังระบบศูนย์กลาง...';
 
             try {
-                const response = await fetch(WEBHOOK_URL, {
+                const response = await fetch(N8N_INBOUND_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(collectedPayload)
                 });
 
-                if (response.ok) {
+                if (response.status === 200) {
                     document.getElementById('successOverlay').classList.remove('hidden');
-                    setTimeout(() => { liff.closeWindow(); }, 1500);
+                    setTimeout(() => {
+                        liff.closeWindow();
+                    }, 1500);
+                } else {
+                    throw new Error('Endpoint Rejected Server Core');
                 }
-            } catch (err) { alert('เกิดข้อผิดพลาดในการส่งข้อมูล'); }
+            } catch (err) {
+                alert('เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่ายกรุณาลองใหม่อีกครั้ง');
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'ยืนยันข้อมูลและเริ่มระบบการทำงาน';
+            }
         }
 
-        initLiff();
+        window.onload = function() {
+            initializeLiffEngine();
+        };
     </script>
 </body>
 </html>
