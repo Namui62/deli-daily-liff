@@ -7,118 +7,126 @@
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
-    
     <style>
-        body { font-family: 'Kanit', sans-serif; background-color: #F4F6F8; }
-        .graphite-card { background-color: #2A2A2A; border-radius: 32px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
-        .cobalt-ring { border: 3px solid #0B47AF; box-shadow: 0 0 15px rgba(11, 71, 175, 0.5); }
-        .input-dark { background-color: #1E1E1E; border: 1px solid #3A3A3A; color: white; }
-        .input-dark:focus { border-color: #0B47AF; outline: none; }
+        body { font-family: 'Kanit', sans-serif; background-color: #F9F9F9; color: #2A2A2A; }
+        .graphite-board { background-color: #2A2A2A; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        .onyx-input { background-color: #1E1E1E; border: 1px solid #3A3A3A; color: white; }
+        .onyx-input:focus { border-color: #0B47AF; outline: none; box-shadow: 0 0 10px rgba(11, 71, 175, 0.3); }
         .state-panel { display: none; }
-        .state-panel.active { display: block; animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        #successOverlay { background-color: #12CF35; display: none; z-index: 100; }
+        .state-panel.active { display: block; animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .success-overlay { background-color: #12CF35; display: none; z-index: 100; }
+        .efficiency-bar { height: 8px; border-radius: 4px; background: #3A3A3A; overflow: hidden; position: relative; }
+        .efficiency-fill { height: 100%; transition: width 1s ease-in-out; }
+        .badge-glow { filter: drop-shadow(0 0 5px rgba(11, 71, 175, 0.6)); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col p-6">
+<body class="min-h-screen flex flex-col p-6 overflow-x-hidden">
 
-    <div class="w-full text-left mb-6 px-2">
-        <p class="text-[10px] tracking-[0.1em] text-gray-400 uppercase leading-none">Deli Daily</p>
-        <h1 id="headerTitle" class="text-3xl font-bold text-[#0B47AF] leading-none mt-1 uppercase">STAFF CARD</h1>
+    <div class="w-full text-left mb-8 px-2">
+        <p class="text-[10px] tracking-[0.2em] text-gray-400 uppercase leading-none">Deli Daily</p>
+        <h1 class="text-3xl font-bold text-[#0B47AF] leading-none mt-1">STAFF CARD</h1>
     </div>
 
     <div class="flex-grow flex items-center justify-center">
-        <div class="graphite-card w-full max-w-md p-8 flex flex-col items-center relative overflow-hidden">
+        <div class="graphite-board w-full max-w-sm p-8 flex flex-col items-center relative">
             
-            <div id="profileSection" class="flex flex-col items-center mb-6 hidden">
-                <div class="relative mb-3">
-                    <img id="userImg" src="" class="w-24 h-24 rounded-full cobalt-ring object-cover p-1">
-                    <div id="gpsStatus" class="absolute -bottom-1 -right-1 bg-gray-500 w-6 h-6 rounded-full border-4 border-[#2A2A2A]"></div>
+            <div class="flex flex-col items-center mb-8">
+                <div class="relative mb-4">
+                    <img id="userImg" src="https://placehold.co/150/2a2a2a/white?text=..." class="w-24 h-24 rounded-full border-2 border-[#0B47AF] p-1 object-cover">
+                    <div id="gpsIndicator" class="absolute -bottom-1 -right-1 bg-gray-500 w-6 h-6 rounded-full border-4 border-[#2A2A2A] transition-colors"></div>
                 </div>
-                <h2 id="userName" class="text-white text-xl font-medium mb-0.5">-</h2>
-                <p id="userRole" class="text-[#B0B0B0] text-[9px] font-light uppercase tracking-[0.2em]">Authenticating...</p>
+                <h2 id="userName" class="text-white text-xl font-medium mb-0.5">Authenticating...</h2>
+                <p id="userRole" class="text-[#B0B0B0] text-[10px] font-light uppercase tracking-[0.2em]">Active Employee</p>
             </div>
 
-            <div id="panel-unregistered" class="state-panel w-full">
-                <h3 class="text-white text-center mb-6 font-light">ลงทะเบียนพนักงานใหม่</h3>
-                <div class="space-y-4">
-                    <input type="text" id="regName" class="input-dark w-full p-4 rounded-xl text-sm" placeholder="ชื่อ-นามสกุลจริง">
-                    <input type="text" id="regPhone" class="input-dark w-full p-4 rounded-xl text-sm" placeholder="เบอร์โทรศัพท์">
-                    <button onclick="requestGPS()" id="gpsBtn" class="w-full py-3 border border-[#0B47AF] text-[#0B47AF] rounded-xl text-xs font-medium">📍 แตะเพื่อยืนยันพิกัดสมัครงาน</button>
-                    <button onclick="submitRegistration()" class="w-full py-4 bg-[#0B47AF] text-white rounded-xl font-bold mt-4 shadow-lg">ยืนยันการสมัคร</button>
+            <div id="panel-loading" class="state-panel active text-center py-10">
+                <p class="text-[#0B47AF] text-sm animate-pulse italic">กำลังสื่อสารกับยานแม่...</p>
+            </div>
+
+            <div id="panel-main" class="state-panel w-full">
+                <button id="actionBtn" onclick="handleTimeRecord()" class="w-full py-5 rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3">
+                    <span id="actionIcon">🌅</span>
+                    <span id="actionText">เข้างาน (Check-in)</span>
+                </button>
+                <p id="gpsLabel" class="text-[9px] text-gray-500 text-center mt-3 font-mono">GPS: Seeking Satellite...</p>
+            </div>
+
+            <div id="empowerment-section" class="w-full mt-10 pt-8 border-t border-gray-700 hidden">
+                <div class="mb-6">
+                    <div class="flex justify-between text-[10px] text-gray-400 mb-2">
+                        <span>ทีมเวิร์กวันนี้ (Efficiency)</span>
+                        <span id="effValue" class="text-white font-bold">84%</span>
+                    </div>
+                    <div class="efficiency-bar">
+                        <div id="effFill" class="efficiency-fill bg-[#12CF35]" style="width: 0%"></div>
+                    </div>
+                    <p class="text-[9px] text-gray-500 mt-2 italic text-center">*มาตรฐานร้าน 80%</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-[#1E1E1E] p-3 rounded-xl border border-gray-800 flex flex-col items-center">
+                        <span class="text-xl mb-1 badge-glow">🛡️</span>
+                        <span class="text-[9px] text-gray-500 uppercase">Current Badge</span>
+                        <span id="badgeName" class="text-white text-[10px] font-medium">Base Keeper</span>
+                    </div>
+                    <div class="bg-[#1E1E1E] p-3 rounded-xl border border-gray-800 flex flex-col items-center">
+                        <span class="text-xl mb-1 text-[#12CF35]">💰</span>
+                        <span class="text-[9px] text-gray-500 uppercase">Tip Projection</span>
+                        <span id="tipValue" class="text-white text-[10px] font-medium">฿1,250</span>
+                    </div>
                 </div>
             </div>
 
-            <div id="panel-staff" class="state-panel w-full">
-                <div class="grid grid-cols-1 gap-4">
-                    <button onclick="handleCheckInOut()" id="checkBtn" class="w-full py-5 bg-[#12CF35] text-[#121212] rounded-2xl font-bold text-lg flex items-center justify-center gap-3 active:scale-95 transition-transform">
-                        <span id="checkIcon">🌅</span>
-                        <span id="checkText">เข้างาน (Check In)</span>
-                    </button>
-                </div>
-            </div>
-
-            <div id="panel-cashier" class="state-panel w-full">
-                <div class="space-y-4">
-                    <button onclick="handleCheckInOut()" id="cashierCheckBtn" class="w-full py-4 bg-[#12CF35] text-[#121212] rounded-xl font-bold flex items-center justify-center gap-2">
-                        <span>🌅</span> <span id="cashierCheckText">Check In/Out</span>
-                    </button>
-                    <div class="h-[1px] bg-gray-700 w-full my-2"></div>
-                    <button onclick="openCashierModal()" class="w-full py-4 bg-transparent border-2 border-[#0B47AF] text-[#0B47AF] rounded-xl font-bold text-sm tracking-wide">
-                        🛍️ คีย์ยอดปิดร้านประจำวัน
-                    </button>
-                </div>
+            <div id="cashier-access" class="w-full mt-6 hidden">
+                <button onclick="toggleSalesForm()" class="w-full py-3 bg-transparent border border-[#0B47AF] text-[#0B47AF] rounded-xl text-xs font-medium hover:bg-[#0B47AF]/10 transition-colors">
+                    🛍️ คีย์ยอดปิดร้านประจำวัน
+                </button>
             </div>
 
         </div>
     </div>
 
-    <div class="w-full text-center mt-12 mb-4">
-        <p class="text-[10px] text-gray-400 font-light uppercase tracking-[0.2em]">Deli Daily Operational System</p>
-    </div>
-
-    <div id="cashierModal" class="fixed inset-0 bg-black/90 z-40 hidden flex items-center justify-center p-6">
-        <div class="onyx-board bg-[#1E1E1E] w-full max-w-sm rounded-3xl p-8 border border-gray-800">
-            <h3 class="text-white text-lg font-bold mb-6 flex items-center gap-2">
-                <span class="text-2xl">📊</span> รายงานยอดขายประจำวัน
+    <div id="salesModal" class="fixed inset-0 bg-black/90 z-40 hidden flex items-center justify-center p-6">
+        <div class="w-full max-w-sm bg-[#1E1E1E] rounded-3xl p-8 border border-gray-800">
+            <h3 class="text-white text-lg font-bold mb-6 flex items-center gap-2 text-left uppercase">
+                <span class="text-xl">📊</span> DAILY SALES REPORT
             </h3>
-            <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-3">
-                    <input type="number" id="sale-grab" class="input-dark p-4 rounded-xl text-center" placeholder="Grab">
-                    <input type="number" id="sale-lineman" class="input-dark p-4 rounded-xl text-center" placeholder="LINE MAN">
-                    <input type="number" id="sale-shopee" class="input-dark p-4 rounded-xl text-center" placeholder="Shopee">
-                    <input type="number" id="sale-walkin" class="input-dark p-4 rounded-xl text-center" placeholder="หน้าร้าน">
-                </div>
-                <input type="number" id="sale-customer" class="input-dark w-full p-4 rounded-xl text-center" placeholder="จำนวนหัวลูกค้า (Pax)">
-                <div class="flex gap-3 mt-6">
-                    <button onclick="closeCashierModal()" class="flex-1 py-4 text-gray-500 font-medium">ยกเลิก</button>
-                    <button onclick="submitCashierSales()" class="flex-[2] py-4 bg-[#12CF35] text-black font-bold rounded-xl shadow-lg shadow-green-900/20">ส่งยอดปิดร้าน</button>
-                </div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <input type="number" id="sale-transfer" class="onyx-input p-4 rounded-xl text-center" placeholder="โอน">
+                <input type="number" id="sale-cash" class="onyx-input p-4 rounded-xl text-center" placeholder="เงินสด">
+                <input type="number" id="sale-grab" class="onyx-input p-4 rounded-xl text-center" placeholder="Grab">
+                <input type="number" id="sale-lineman" class="onyx-input p-4 rounded-xl text-center" placeholder="LINE MAN">
+                <input type="number" id="sale-shopee" class="onyx-input p-4 rounded-xl text-center" placeholder="Shopee">
+                <input type="number" id="sale-pax" class="onyx-input p-4 rounded-xl text-center col-span-2" placeholder="จำนวนหัวลูกค้า (Pax)">
+            </div>
+            <div class="flex gap-4">
+                <button onclick="toggleSalesForm()" class="flex-1 py-4 text-gray-500 font-medium text-sm">ยกเลิก</button>
+                <button onclick="submitSales()" class="flex-[2] py-4 bg-[#12CF35] text-black font-bold rounded-xl shadow-lg shadow-green-900/20 active:scale-95 transition-transform">ส่งข้อมูลปิดร้าน</button>
             </div>
         </div>
     </div>
 
-    <div id="successOverlay" class="fixed inset-0 flex flex-col items-center justify-center text-white">
-        <div class="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(255,255,255,0.3)] animate-bounce">
+    <div id="successOverlay" class="success-overlay fixed inset-0 flex flex-col items-center justify-center text-white">
+        <div class="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mb-6 shadow-xl animate-bounce">
             <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
             </svg>
         </div>
-        <h2 class="text-2xl font-bold uppercase tracking-widest">Completed</h2>
+        <h2 class="text-2xl font-bold tracking-widest">SUCCESS</h2>
+    </div>
+
+    <div class="w-full text-center mt-10">
+        <p class="text-[10px] text-gray-300 font-light uppercase tracking-[0.2em]">Powered by Deli Daily Operational System</p>
     </div>
 
     <script>
         const CONFIG = {
-            LIFF_ID: "2010194217-UacuyfmZ",
-            API_URL: "https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B"
+            LIFF_ID: "YOUR_LIFF_ID", // ใส่ LIFF ID ของคุณ
+            WEBHOOK: "https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B"
         };
 
-        let userState = {
-            role: 'unregistered', // unregistered, staff, cashier
-            isCheckIn: false,
-            lat: null, lng: null,
-            userId: '', name: ''
-        };
+        let userData = { userId: '', name: '', role: '', isCheckIn: false, lat: null, lng: null };
 
         async function initLiff() {
             try {
@@ -126,84 +134,115 @@
                 if (!liff.isLoggedIn()) { liff.login(); } 
                 else {
                     const p = await liff.getProfile();
-                    userState.userId = p.userId;
-                    userState.name = p.displayName;
+                    userData.userId = p.userId;
+                    userData.name = p.displayName;
                     document.getElementById('userImg').src = p.pictureUrl;
                     document.getElementById('userName').innerText = p.displayName;
-                    document.getElementById('profileSection').classList.remove('hidden');
-                    
-                    // Fetch User Role from n8n
-                    checkUserStatus();
+                    getGPS();
+                    fetchUserStatus();
                 }
             } catch (err) { console.error(err); }
         }
 
-        async function checkUserStatus() {
-            // จำลองการเรียก API เพื่อเช็คสถานะพนักงาน
-            // ในงานจริง: fetch(CONFIG.API_URL + '?action=checkStatus&userId=' + userState.userId)
-            // ตัวอย่าง: ถ้าเป็นพนักงานลงทะเบียนแล้ว
-            const mockRole = 'cashier'; // เปลี่ยนเป็น 'unregistered' หรือ 'staff' เพื่อทดสอบ UI
-            userState.role = mockRole;
-            renderUI();
-        }
-
-        function renderUI() {
-            document.querySelectorAll('.state-panel').forEach(p => p.classList.remove('active'));
-            document.getElementById(`panel-${userState.role}`).classList.add('active');
-            
-            const roleTexts = { unregistered: 'New Applicant', staff: 'Active Staff', cashier: 'Head Cashier' };
-            document.getElementById('userRole').innerText = roleTexts[userState.role];
-
-            // Update Check In/Out Text
-            const text = userState.isCheckIn ? 'ออกงาน (Check Out)' : 'เข้างาน (Check In)';
-            const icon = userState.isCheckIn ? '🏠' : '🌅';
-            if(document.getElementById('checkText')) document.getElementById('checkText').innerText = text;
-            if(document.getElementById('checkIcon')) document.getElementById('checkIcon').innerText = icon;
-        }
-
-        function requestGPS() {
+        function getGPS() {
             navigator.geolocation.getCurrentPosition((pos) => {
-                userState.lat = pos.coords.latitude;
-                userState.lng = pos.coords.longitude;
-                const btn = document.getElementById('gpsBtn');
-                btn.innerText = "✅ พิกัดระบุตำแหน่งสำเร็จ";
-                btn.classList.replace('text-[#0B47AF]', 'text-[#12CF35]');
-                document.getElementById('gpsStatus').classList.replace('bg-gray-500', 'bg-[#12CF35]');
-            }, (err) => alert('กรุณาเปิด GPS'));
+                userData.lat = pos.coords.latitude;
+                userData.lng = pos.coords.longitude;
+                document.getElementById('gpsIndicator').classList.replace('bg-gray-500', 'bg-[#12CF35]');
+                document.getElementById('gpsLabel').innerText = `FIXED: ${userData.lat.toFixed(5)}, ${userData.lng.toFixed(5)}`;
+            }, (err) => {
+                document.getElementById('gpsLabel').innerText = "ERROR: GPS DENIED";
+                document.getElementById('gpsIndicator').classList.replace('bg-gray-500', 'bg-red-500');
+            }, { enableHighAccuracy: true });
         }
 
-        async function submitAction(payload) {
+        async function fetchUserStatus() {
             try {
-                const res = await fetch(CONFIG.API_URL, {
+                const res = await fetch(CONFIG.WEBHOOK, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ...payload, userId: userState.userId, name: userState.name })
+                    body: JSON.stringify({ type: 'STATUS_CHECK', userId: userData.userId })
                 });
-                if (res.ok) {
-                    document.getElementById('successOverlay').style.display = 'flex';
-                    setTimeout(() => liff.closeWindow(), 1500);
-                }
-            } catch (err) { alert('การเชื่อมต่อขัดข้อง'); }
+                const data = await res.json();
+                
+                userData.role = data.role; // 'staff' หรือ 'cashier'
+                userData.isCheckIn = data.isCheckIn;
+                
+                renderState(data);
+            } catch (err) { console.error("Fetch Status Error:", err); }
         }
 
-        function handleCheckInOut() {
-            const action = userState.isCheckIn ? 'CHECK_OUT' : 'CHECK_IN';
-            submitAction({ type: action, lat: userState.lat, lng: userState.lng });
+        function renderState(data) {
+            document.getElementById('panel-loading').classList.remove('active');
+            document.getElementById('panel-main').classList.add('active');
+            
+            // Render Action Button
+            const btn = document.getElementById('actionBtn');
+            const icon = document.getElementById('actionIcon');
+            const text = document.getElementById('actionText');
+
+            if (userData.isCheckIn) {
+                btn.className = "w-full py-5 rounded-2xl font-bold text-lg bg-[#0B47AF] text-white";
+                icon.innerText = "🏠";
+                text.innerText = "ออกงาน (Check-out)";
+            } else {
+                btn.className = "w-full py-5 rounded-2xl font-bold text-lg bg-[#12CF35] text-black shadow-[#12CF35]/20";
+                icon.innerText = "🌅";
+                text.innerText = "เข้างาน (Check-in)";
+            }
+
+            // Role specific UI
+            if (userData.role === 'cashier') {
+                document.getElementById('cashier-access').classList.remove('hidden');
+            }
+
+            // Empowerment Dashboard
+            if (data.empowerment) {
+                document.getElementById('empowerment-section').classList.remove('hidden');
+                document.getElementById('effValue').innerText = data.empowerment.efficiency + '%';
+                document.getElementById('effFill').style.width = data.empowerment.efficiency + '%';
+                document.getElementById('badgeName').innerText = data.empowerment.badge;
+                document.getElementById('tipValue').innerText = '฿' + data.empowerment.tip;
+            }
         }
 
-        function openCashierModal() { document.getElementById('cashierModal').classList.remove('hidden'); }
-        function closeCashierModal() { document.getElementById('cashierModal').classList.add('hidden'); }
+        async function handleTimeRecord() {
+            if (!userData.lat) { alert("กรุณารอสัญญาณพิกัด GPS..."); return; }
+            const type = userData.isCheckIn ? 'CHECK_OUT' : 'CHECK_IN';
+            dispatch({ type, lat: userData.lat, lng: userData.lng });
+        }
 
-        function submitCashierSales() {
+        function toggleSalesForm() {
+            const modal = document.getElementById('salesModal');
+            modal.classList.toggle('hidden');
+        }
+
+        async function submitSales() {
             const sales = {
+                type: 'SALES_REPORT',
+                transfer: document.getElementById('sale-transfer').value,
+                cash: document.getElementById('sale-cash').value,
                 grab: document.getElementById('sale-grab').value,
                 lineman: document.getElementById('sale-lineman').value,
                 shopee: document.getElementById('sale-shopee').value,
-                walkin: document.getElementById('sale-walkin').value,
-                pax: document.getElementById('sale-customer').value,
-                type: 'CLOSE_SHIFT'
+                pax: document.getElementById('sale-pax').value
             };
-            submitAction(sales);
+            dispatch(sales);
+        }
+
+        async function dispatch(payload) {
+            try {
+                const res = await fetch(CONFIG.WEBHOOK, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...payload, userId: userData.userId, name: userData.name })
+                });
+
+                if (res.ok) {
+                    document.getElementById('successOverlay').style.display = 'flex';
+                    setTimeout(() => { liff.closeWindow(); }, 1500);
+                }
+            } catch (err) { alert('การส่งข้อมูลขัดข้อง'); }
         }
 
         window.onload = initLiff;
