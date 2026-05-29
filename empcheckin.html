@@ -26,16 +26,18 @@
 
     <div class="flex-grow flex items-center justify-center">
         <div class="graphite-board w-full max-w-sm p-8 flex flex-col items-center">
+            
             <div class="relative mb-4">
                 <img id="userImg" src="https://placehold.co/100/1e1e1e/white?text=..." class="w-20 h-20 rounded-full border-2 border-[#0B47AF] p-1 object-cover">
                 <div id="gpsStatusIcon" class="absolute -bottom-1 -right-1 bg-gray-500 w-6 h-6 rounded-full border-2 border-[#2A2A2A] flex items-center justify-center text-[10px]">📡</div>
             </div>
 
-            <h2 id="userName" class="text-white text-xl font-medium mb-1">Loading...</h2>
-            <p class="text-[#B0B0B0] text-xs font-light mb-6 uppercase tracking-widest">Profile Authorized</p>
+            <h2 id="userName" class="text-white text-xl font-medium mb-0.5">Loading...</h2>
+            <p class="text-[#B0B0B0] text-[9px] font-light uppercase tracking-[0.2em] mb-6">Active Staff</p>
 
-            <div class="w-full bg-[#1E1E1E] rounded-xl p-3 mb-8 text-center border border-gray-800">
-                <p id="statusMsg" class="text-[#0B47AF] text-[11px] font-medium animate-pulse">ตรวจสอบพิกัดความปลอดภัย...</p>
+            <div class="w-full bg-[#1E1E1E] rounded-xl p-4 mb-8 text-center border border-gray-800">
+                <p id="statusMsg" class="text-[#0B47AF] text-[11px] font-medium animate-pulse mb-1">ตรวจสอบพิกัดความปลอดภัย...</p>
+                <p id="coordsDisplay" class="text-[9px] text-gray-600 font-mono tracking-tighter"></p>
             </div>
 
             <div class="grid grid-cols-2 gap-4 w-full mb-8">
@@ -67,7 +69,6 @@
     </div>
 
     <script>
-        // CONFIGURATION (Embedded)
         const CONFIG = {
             LIFF_ID: "2010194217-lnwYLoTq",
             WEBHOOK: "https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B"
@@ -94,16 +95,20 @@
             navigator.geolocation.getCurrentPosition((pos) => {
                 state.lat = pos.coords.latitude;
                 state.lng = pos.coords.longitude;
+                
                 const msg = document.getElementById('statusMsg');
                 msg.innerText = "พิกัดระบุตำแหน่งสำเร็จ";
                 msg.classList.remove('animate-pulse');
                 msg.classList.add('text-[#12CF35]');
+                
+                // Display Lat/Lng
+                document.getElementById('coordsDisplay').innerText = `${state.lat.toFixed(6)}, ${state.lng.toFixed(6)}`;
                 document.getElementById('gpsStatusIcon').classList.add('bg-[#12CF35]');
                 checkReady();
             }, (err) => {
                 document.getElementById('statusMsg').innerText = "กรุณาเปิด GPS";
                 document.getElementById('statusMsg').classList.add('text-red-500');
-            });
+            }, { enableHighAccuracy: true });
         }
 
         function selectAction(type) {
@@ -136,7 +141,6 @@
             };
 
             try {
-                // แก้ไขปัญหาการเชื่อมต่อด้วยการใช้ mode: 'cors' และตรวจสอบการส่ง
                 const res = await fetch(CONFIG.WEBHOOK, {
                     method: 'POST',
                     mode: 'cors',
@@ -147,12 +151,9 @@
                 if (res.ok || res.status === 200) {
                     document.getElementById('successOverlay').classList.add('show');
                     setTimeout(() => liff.closeWindow(), 1500);
-                } else {
-                    throw new Error('Server Error');
-                }
+                } else { throw new Error(); }
             } catch (err) {
-                // หากเกิด Error ให้แสดง Alert และปลดล็อคปุ่มให้ลองใหม่
-                alert('การเชื่อมต่อขัดข้อง: โปรดตรวจสอบสัญญาณอินเทอร์เน็ตหรือลองใหม่อีกครั้ง');
+                alert('การเชื่อมต่อขัดข้อง: โปรดลองใหม่อีกครั้ง');
                 btn.innerText = "ยืนยันการลงเวลา";
                 btn.disabled = false;
             }
