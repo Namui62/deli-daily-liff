@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deli Daily LIFF - ห้อง X-Ray ร้านอาหาร</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #020617;
+        }
+        .neon-glow-green { text-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+        .neon-glow-yellow { text-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
+        .neon-glow-red { text-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen antialiased bg-[#020617] p-4 sm:p-6">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="border-b border-slate-800 pb-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div>
+                <h1 class="text-2xl font-bold text-emerald-400 tracking-wide flex items-center gap-2">
+                    <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+                    DELI DAILY LIFF
+                </h1>
+                <p class="text-xs text-slate-400 uppercase tracking-widest mt-0.5">ห้อง X-Ray วิเคราะห์ชีพจรร้านอาหารระดับสากล</p>
+            </div>
+            <div class="text-xs bg-slate-900 border border-slate-800 px-3 py-1.5 rounded text-slate-400 font-mono">
+                STATUS: ONLINE CLINIC
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <section class="bg-[#0f172a] border border-slate-800 rounded-xl p-5 shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-2 mb-4 border-b border-slate-800 pb-2">
+                        <span class="text-lg">🧬</span>
+                        <h2 class="text-lg font-semibold text-slate-200">Phase 1: โครงสร้างร่างกายร้าน</h2>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">* ตั้งค่ามาตรฐานระบบ (กรอกครั้งเดียวตอนเริ่มต้นแอป)</p>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Fix Cost (ค่าใช้จ่ายคงที่รายเดือนรวมทั้งหมด / บาท)</label>
+                            <input type="number" id="fixCost" value="45000" class="w-full bg-[#020617] border border-slate-700 rounded p-2.5 text-slate-200 focus:outline-none focus:border-emerald-500 font-mono text-base font-bold">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">เวลาเปิด - ปิดร้าน</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="flex items-center bg-[#020617] border border-slate-700 rounded px-2">
+                                    <span class="text-xs text-slate-500 mr-1">เปิด</span>
+                                    <input type="time" id="openTime" value="10:00" class="w-full bg-transparent border-0 p-2 text-slate-200 focus:outline-none font-mono text-sm">
+                                </div>
+                                <div class="flex items-center bg-[#020617] border border-slate-700 rounded px-2">
+                                    <span class="text-xs text-slate-500 mr-1">ปิด</span>
+                                    <input type="time" id="closeTime" value="22:00" class="w-full bg-transparent border-0 p-2 text-slate-200 focus:outline-none font-mono text-sm">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Platform GP (%)</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="bg-[#020617] border border-slate-700 rounded p-1.5 text-center">
+                                    <span class="block text-[10px] text-slate-500 font-semibold mb-0.5">Grab</span>
+                                    <input type="number" id="gpGrab" value="30" class="w-full bg-transparent border-0 text-center text-slate-200 focus:outline-none font-mono font-bold text-sm">
+                                </div>
+                                <div class="bg-[#020617] border border-slate-700 rounded p-1.5 text-center">
+                                    <span class="block text-[10px] text-slate-500 font-semibold mb-0.5">LINE MAN</span>
+                                    <input type="number" id="gpLine" value="30" class="w-full bg-transparent border-0 text-center text-slate-200 focus:outline-none font-mono font-bold text-sm">
+                                </div>
+                                <div class="bg-[#020617] border border-slate-700 rounded p-1.5 text-center">
+                                    <span class="block text-[10px] text-slate-500 font-semibold mb-0.5">Shopee</span>
+                                    <input type="number" id="gpShopee" value="30" class="w-full bg-transparent border-0 text-center text-slate-200 focus:outline-none font-mono font-bold text-sm">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">ยอดขายเฉลี่ยต่อวันปกติ</label>
+                                <input type="number" id="avgSales" value="15000" class="w-full bg-[#020617] border border-slate-700 rounded p-2 text-emerald-400 focus:outline-none focus:border-emerald-500 font-mono text-sm font-bold">
+                                <p class="text-[10px] text-slate-500 mt-0.5">* ใช้ตั้งเกณฑ์ 80% Baseline</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">ยอดสูงสุดที่เคยทำได้ (Max)</label>
+                                <input type="number" id="maxSales" value="30000" class="w-full bg-[#020617] border border-slate-700 rounded p-2 text-slate-200 focus:outline-none focus:border-emerald-500 font-mono text-sm font-bold">
+                                <p class="text-[10px] text-slate-500 mt-0.5">* เกณฑ์ 100% Capacity</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-800 text-[11px] text-slate-500 italic text-center">
+                    "โครงสร้างดี มีชัยไปกว่าครึ่ง"
+                </div>
+            </section>
+
+            <section class="bg-[#0f172a] border border-slate-800 rounded-xl p-5 shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-2 mb-4 border-b border-slate-800 pb-2">
+                        <span class="text-lg">🩺</span>
+                        <h2 class="text-lg font-semibold text-slate-200">Phase 2: ชีพจรรายวัน (Daily Pulse)</h2>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">* กรอกข้อมูลดิบทุกคืนตอนปิดเก๊ะ (ใช้เวลาไม่เกิน 1 นาที)</p>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">1. ยอดขายดิบรวมหน้าแอปเดลิเวอรีวันนี้ (Gross Sales / บาท)</label>
+                            <input type="number" id="grossSales" placeholder="เช่น 18500" class="w-full bg-[#020617] border border-slate-700 rounded p-2.5 text-slate-200 focus:outline-none focus:border-amber-500 font-mono text-base font-bold">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">2. ยอดเงินสดที่โอนเข้าบัญชีจริงวันนี้ (Net Cash Receipts / บาท)</label>
+                            <input type="number" id="netCash" placeholder="เช่น 12300" class="w-full bg-[#020617] border border-slate-700 rounded p-2.5 text-slate-200 focus:outline-none focus:border-amber-500 font-mono text-base font-bold">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">3. ควักจ่ายค่าแรงรวมวันนี้</label>
+                                <input type="number" id="laborCost" placeholder="บาท" class="w-full bg-[#020617] border border-slate-700 rounded p-2 text-slate-200 focus:outline-none focus:border-amber-500 font-mono text-sm font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">4. พนักงานมาทำงานจริง</label>
+                                <div class="flex items-center bg-[#020617] border border-slate-700 rounded pr-2">
+                                    <input type="number" id="staffCount" placeholder="คน" class="w-full bg-transparent border-0 p-2 text-slate-200 focus:outline-none font-mono text-sm font-bold">
+                                    <span class="text-xs text-slate-500">คน</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">5. ยอดเงินสดที่ควักจ่ายซื้อวัตถุดิบเข้าครัววันนี้ (บาท)</label>
+                            <input type="number" id="materialCost" placeholder="เช่น 4500" class="w-full bg-[#020617] border border-slate-700 rounded p-2.5 text-slate-200 focus:outline-none focus:border-amber-500 font-mono text-base font-bold">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <button onclick="calculateXRay()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-900 font-bold py-3 px-4 rounded-lg shadow-lg transform active:scale-[0.99] transition text-base tracking-wide cursor-pointer">
+                        ⚡ สแกนห้อง X-Ray ตรวจสุขภาพร้าน
+                    </button>
+                </div>
+            </section>
+
+        </div>
+
+        <hr class="border-slate-800 my-8">
+
+        <main id="diagnosticResult" class="hidden space-y-6">
+            <h2 class="text-xl font-bold text-slate-300 flex items-center gap-2">
+                📋 ใบสั่งยาและผลการวินิจฉัยแล็บวิทยาศาสตร์
+            </h2>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-[#0f172a] border border-slate-800 rounded-lg p-4 text-center">
+                    <span class="text-xs text-slate-400 block mb-1">ชั่วโมงแรงงานรวม</span>
+                    <div id="outLaborHours" class="text-2xl font-black text-slate-100 font-mono">-</div>
+                    <span class="text-[10px] text-slate-500 font-mono">Total Hours</span>
+                </div>
+                <div class="bg-[#0f172a] border border-slate-800 rounded-lg p-4 text-center">
+                    <span class="text-xs text-slate-400 block mb-1">ค่า SPLH (ยอดขาย/ชม.)</span>
+                    <div id="outSPLH" class="text-2xl font-black text-slate-100 font-mono">-</div>
+                    <span class="text-[10px] text-slate-500 font-mono">บาท / ชม. แรงงาน</span>
+                </div>
+                <div class="bg-[#0f172a] border border-slate-800 rounded-lg p-4 text-center border-l-4" id="borderPrime">
+                    <span class="text-xs text-slate-400 block mb-1">Prime Cost %</span>
+                    <div id="outPrimeCost" class="text-2xl font-black font-mono">-</div>
+                    <span class="text-[10px] text-slate-500 font-mono">ค่าแรง + วัตถุดิบ</span>
+                </div>
+                <div class="bg-[#0f172a] border border-slate-800 rounded-lg p-4 text-center border-l-4" id="borderSPI">
+                    <span class="text-xs text-slate-400 block mb-1">ขีดจำกัดพลังงาน SPI %</span>
+                    <div id="outSPI" class="text-2xl font-black font-mono">-</div>
+                    <span class="text-[10px] text-slate-500 font-mono">Store Power Index</span>
+                </div>
+            </div>
+
+            <div class="bg-[#0f172a] border border-slate-800 rounded-xl p-5">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">เกจวัดพลังงานร้านอาหาร (SPI Gauge)</span>
+                    <span id="spiStatusBadge" class="text-xs px-2 py-0.5 rounded font-bold font-mono"></span>
+                </div>
+                <div class="w-full bg-slate-950 rounded-full h-5 overflow-hidden p-0.5 border border-slate-800">
+                    <div id="spiProgressBar" class="h-full rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+                    <span>0% Critical</span>
+                    <span>80% รอดตาย (Baseline)</span>
+                    <span>100% Max Power</span>
+                </div>
+            </div>
+
+            <div id="diagnosticAlert" class="border rounded-xl p-5 flex items-start gap-4 transition-all duration-300">
+                <div class="text-3xl" id="alertIcon">🩺</div>
+                <div>
+                    <h4 class="text-sm font-bold uppercase tracking-wide text-slate-300 mb-1">บทวิเคราะห์จากบอทหมอ Deli Daily</h4>
+                    <p id="alertMessage" class="text-base font-semibold leading-relaxed"></p>
+                </div>
+            </div>
+
+            <div id="conversionBox" class="hidden bg-gradient-to-br from-red-950/40 to-slate-900 border border-red-500/30 rounded-xl p-6 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-3 text-xs font-mono font-bold text-red-500/20 uppercase tracking-widest pointer-events-none text-6xl select-none">
+                    CRITICAL
+                </div>
+                <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="space-y-1">
+                        <span class="bg-red-500/20 text-red-400 text-[10px] px-2 py-0.5 rounded font-bold tracking-wider uppercase">🚨 EMERGENCY OFFER</span>
+                        <h3 class="text-xl font-bold text-slate-100 mt-1">พี่แก้ตัวเลขสีแดงนี้ได้ใน 1 นาที!</h3>
+                        <p class="text-sm text-slate-400">อุดรูรั่วแฝงหลังครัวด่วนเพื่อดึงกระแสเงินสดกลับมาด้วยเซ็ตคู่มือรบ</p>
+                        <p class="text-sm text-amber-400 font-bold">🛒 [Deli Daily คลังแสงกู้ชีพ Bundle 199.-]</p>
+                    </div>
+                    <a href="https://shop.line.me" target="_blank" class="w-full md:w-auto bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-slate-950 font-black py-3 px-6 rounded-lg text-center shadow-lg transition transform active:scale-95 whitespace-nowrap text-sm cursor-pointer">
+                        👉 ช้อนซื้อสูตรกู้ชีพบน LINE Shopping ด่วน
+                    </a>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        function calculateXRay() {
+            // 1. Get Inputs from Phase 1
+            const fixCost = parseFloat(document.getElementById('fixCost').value) || 0;
+            const openTime = document.getElementById('openTime').value;
+            const closeTime = document.getElementById('closeTime').value;
+            const avgSales = parseFloat(document.getElementById('avgSales').value) || 0;
+
+            // 2. Get Inputs from Phase 2
+            const grossSales = parseFloat(document.getElementById('grossSales').value) || 0;
+            const netCash = parseFloat(document.getElementById('netCash').value) || 0;
+            const laborCost = parseFloat(document.getElementById('laborCost').value) || 0;
+            const staffCount = parseFloat(document.getElementById('staffCount').value) || 0;
+            const materialCost = parseFloat(document.getElementById('materialCost').value) || 0;
+
+            // Validate Vital Daily Fields
+            if (grossSales <= 0 || netCash <= 0 || staffCount <= 0) {
+                alert("⚠️ กรุณากรอกข้อมูลใน Phase 2 (ยอดขายดิบ, ยอดเงินสด, จำนวนพนักงาน) ให้ครบถ้วนเพื่อทำการตรวจชีพจร!");
+                return;
+            }
+
+            // --- MATH LOGIC ENGINE ---
+
+            // Logic 1: คำนวณชั่วโมงแรงงานรวม (Total Labor Hours)
+            let [openH, openM] = openTime.split(':').map(Number);
+            let [closeH, closeM] = closeTime.split(':').map(Number);
+            
+            let totalOpenHours = (closeH + closeM/60) - (openH + openM/60);
+            if (totalOpenHours <= 0) totalOpenHours += 24; // ป้องกันเคสร้านเปิดข้ามคืนคร่อมวัน
+            
+            const totalLaborHours = totalOpenHours * staffCount;
+
+            // Logic 2: คำนวณค่า SPLH (Sales Per Labor Hour)
+            const splh = netCash / totalLaborHours;
+
+            // Logic 3: คำนวณค่า Prime Cost %
+            const primeCostPercent = ((laborCost + materialCost) / grossSales) * 100;
+
+            // Logic 4: คำนวณค่า SPI (Store Power Index) เปอร์เซ็นต์ขีดจำกัดพลังงาน
+            // สูตรตามโจทย์: (Net Cash Receipts วันนี้ / ยอดขายเฉลี่ยรายวันปกติในหน้า Setup) * 80
+            const spi = avgSales > 0 ? (netCash / avgSales) * 80 : 0;
+
+
+            // --- UI RENDERING & CONDITIONAL FORMATTING (Grandma Test Pass) ---
+            
+            document.getElementById('diagnosticResult').classList.remove('hidden');
+
+            // Render 1: ข้อมูลหลักตัวเลขหนา เด่นชัด
+            document.getElementById('outLaborHours').innerText = totalLaborHours.toFixed(1);
+            document.getElementById('outSPLH').innerText = Math.round(splh).toLocaleString() + " ฿";
+            document.getElementById('outPrimeCost').innerText = primeCostPercent.toFixed(1) + "%";
+            document.getElementById('outSPI').innerText = spi.toFixed(1) + "%";
+
+            // Render 2: ระบบสาดไฟเตือนและวิเคราะห์ Prime Cost
+            const borderPrime = document.getElementById('borderPrime');
+            const outPrimeCost = document.getElementById('outPrimeCost');
+            const diagnosticAlert = document.getElementById('diagnosticAlert');
+            const alertIcon = document.getElementById('alertIcon');
+            const alertMessage = document.getElementById('alertMessage');
+            const conversionBox = document.getElementById('conversionBox');
+
+            // ล้างคลาสสีเก่าออกให้หมดก่อน
+            borderPrime.className = "bg-[#0f172a] border border-slate-800 rounded-lg p-4 text-center border-l-4 ";
+            outPrimeCost.className = "text-2xl font-black font-mono ";
+            diagnosticAlert.className = "border rounded-xl p-5 flex items-start gap-4 transition-all duration-300 ";
+
+            if (primeCostPercent > 70) {
+                // วิกฤต: ไฟแดง
+                borderPrime.classList.add('border-l-red-500');
+                outPrimeCost.classList.add('text-red-500', 'neon-glow-red');
+                diagnosticAlert.classList.add('bg-red-950/20', 'border-red-500/50', 'text-red-200');
+                alertIcon.innerText = "🚨";
+                alertMessage.innerText = "วิกฤต: ต้นทุนบวมน้ำเฉียบพลัน! มีภาวะขาดทุนเข้าเนื้อ ตรวจสอบขยะหลังครัวด่วน";
+                conversionBox.classList.remove('hidden'); // โชว์กล่องปิดการขาย
+            } else if (primeCostPercent >= 61 && primeCostPercent <= 69) {
+                // เตือนภัย: ไฟเหลืองมัสตาร์ด
+                borderPrime.classList.add('border-l-amber-500');
+                outPrimeCost.classList.add('text-amber-500', 'neon-glow-yellow');
+                diagnosticAlert.classList.add('bg-amber-950/20', 'border-amber-500/50', 'text-amber-200');
+                alertIcon.innerText = "⚠️";
+                alertMessage.innerText = "เตือนภัย: มีอาการอ่อนเพลีย ร้านรันฟรี ได้แค่ค่าแรงพาร์ทไทม์ ปรับอีกนิดจะเข้าล็อกปลอดภัย";
+                conversionBox.classList.remove('hidden'); // โชว์กล่องปิดการขาย
+            } else {
+                // ชีพจรปกติ: ไฟเขียวนีออน
+                borderPrime.classList.add('border-l-emerald-500');
+                outPrimeCost.classList.add('text-emerald-400', 'neon-glow-green');
+                diagnosticAlert.classList.add('bg-emerald-950/20', 'border-emerald-500/50', 'text-emerald-200');
+                alertIcon.innerText = "❇️";
+                alertMessage.innerText = "ชีพจรปกติ: สัดส่วนต้นทุนอยู่ในเกณฑ์ปลอดภัย มาตรฐานสากล";
+                conversionBox.classList.add('hidden'); // ซ่อนกล่องปิดการขายเนื่องจากปลอดภัยดี
+            }
+
+            // Render 3: ระบบจัดการเกจวัดพลังงาน SPI
+            const borderSPI = document.getElementById('borderSPI');
+            const outSPI = document.getElementById('outSPI');
+            const spiProgressBar = document.getElementById('spiProgressBar');
+            const spiStatusBadge = document.getElementById('spiStatusBadge');
+
+            borderSPI.className = "bg-[#0f172a] border border-slate-800 rounded-lg p-4 text-center border-l-4 ";
+            outSPI.className = "text-2xl font-black font-mono ";
+            spiProgressBar.className = "h-full rounded-full transition-all duration-500 ease-out ";
+            spiStatusBadge.className = "text-xs px-2 py-0.5 rounded font-bold font-mono ";
+
+            // ควบคุมการแสดงผลไม่ให้เกินความกว้างแถว (Max 100%) ในทาง Visual
+            const visualProgress = Math.min(spi, 100);
+            spiProgressBar.style.width = visualProgress + "%";
+
+            if (spi >= 80) {
+                // แตะ 80% ขึ้นไป เรืองแสงเขียวลีนสมบูรณ์
+                borderSPI.classList.add('border-l-emerald-500');
+                outSPI.classList.add('text-emerald-400', 'neon-glow-green');
+                spiProgressBar.classList.add('bg-gradient-to-r', 'from-emerald-500', 'to-teal-400', 'shadow-[0_0_10px_rgba(16,185,129,0.5)]');
+                spiStatusBadge.classList.add('bg-emerald-500/20', 'text-emerald-400');
+                spiStatusBadge.innerText = "💪 POWER LEAN SAFE";
+            } else {
+                // พลังงานต่ำกว่าเป้าหมาย
+                borderSPI.classList.add('border-l-amber-500');
+                outSPI.classList.add('text-amber-500');
+                spiProgressBar.classList.add('bg-gradient-to-r', 'from-amber-500', 'to-orange-500');
+                spiStatusBadge.classList.add('bg-amber-500/20', 'text-amber-400');
+                spiStatusBadge.innerText = "⚠️ LOW ENERGY";
+            }
+
+            // เลื่อนหน้าจอลงไปดูผลลัพธ์
+            document.getElementById('diagnosticResult').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
