@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deli Daily LIFF v1.4 - ห้อง X-Ray ร้านอาหาร</title>
+    <title>Deli Daily LIFF v1.4 - ห้อง X-Ray ร้านอาหาร (Fixed ID)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -64,8 +64,8 @@
                 if (totalHours <= 0) totalHours += 24; 
                 const totalLaborHours = totalHours * staffCount;
 
-                // --- 3. DIAGNOSTIC COMPUTATION V1.4 (เงินบาท & เปอร์เซ็นต์) ---
-                const taxLeak = totalGross - netCashReceipts; // รูรั่วค่าตงเดลิเวอรี
+                // --- 3. DIAGNOSTIC COMPUTATION V1.4 ---
+                const taxLeak = totalGross - netCashReceipts; 
                 
                 const primeCostBaht = laborCost + materialCost;
                 const primeCostPct = (primeCostBaht / totalGross) * 100;
@@ -75,16 +75,16 @@
                 const splh = totalLaborHours > 0 ? (netCashReceipts / totalLaborHours) : 0;
                 const spi = avgSales > 0 ? (netCashReceipts / avgSales) * 80 : 0;
                 
-                const spiDiffBaht = netCashReceipts - avgSales; // ส่วนต่างเนื้อเงินสดจริงเทียบเป้าเฉลี่ย
+                const spiDiffBaht = netCashReceipts - avgSales; 
 
                 // --- 4. RENDER UI V1.4 ---
                 document.getElementById('diagnosticResult').classList.remove('hidden');
 
-                // 1. กล่องรูรั่วเม็ดเงิน (The Platform Tax Leak)
+                // 1. กล่องรูรั่วเม็ดเงิน
                 document.getElementById('outTaxLeak').innerText = Math.round(taxLeak).toLocaleString();
                 document.getElementById('outTaxLeakSub').innerText = `(วันนี้คุณจ่ายค่าตงให้แอปไป ${Math.round(taxLeak).toLocaleString()} บาท ซึ่งสูงกว่าค่าแรงพนักงานทุกคนรวมกันในวันนี้ที่จ่ายไป ${Math.round(laborCost).toLocaleString()} บาท!)`;
 
-                // 2. อัปเดตคาร์ดผลแล็บสากล (แปลง % เป็นเงินบาทกำกับ)
+                // 2. คาร์ดผลแล็บสากล
                 document.getElementById('outPrimeCost').innerText = `${Math.round(primeCostBaht).toLocaleString()} ฿ (${primeCostPct.toFixed(1)}%)`;
                 
                 document.getElementById('outLaborCost').innerText = `${Math.round(laborCost).toLocaleString()} ฿ (${laborCostPct.toFixed(1)}%)`;
@@ -93,7 +93,7 @@
                 document.getElementById('outMaterialCost').innerText = `${Math.round(materialCost).toLocaleString()} ฿ (${materialCostPct.toFixed(1)}%)`;
                 document.getElementById('outMaterialStandard').innerText = `[เกณฑ์สากลร้านคุณควรอยู่ที่: ${Math.round(totalGross * 0.28).toLocaleString()} - ${Math.round(totalGross * 0.35).toLocaleString()} บาท]`;
 
-                // 3. ปรับคำอธิบายดัชนีหากิน (SPI & SPLH)
+                // 3. ดัชนี SPI & SPLH
                 document.getElementById('outSPI').innerText = spi.toFixed(1) + "%";
                 const spiDiffBox = document.getElementById('outSpiDiffBox');
                 if (spiDiffBaht >= 0) {
@@ -111,7 +111,7 @@
                 document.getElementById('refTotalGross').innerText = Math.round(totalGross).toLocaleString() + " บาท";
                 document.getElementById('refNetCash').innerText = Math.round(netCashReceipts).toLocaleString() + " บาท";
 
-                // ส่วนวิเคราะห์สายส่งท่อส่งอาหาร (Platform Traffic Share)
+                // ส่วนวิเคราะห์สัดส่วนท่อส่งอาหาร
                 const platformTotal = sGrab + sLine + sShopee;
                 const pctPlatform = totalGross > 0 ? ((platformTotal / totalGross) * 100) : 0;
                 const pctOffline = totalGross > 0 ? ((sOffline / totalGross) * 100) : 0;
@@ -131,7 +131,7 @@
                 document.getElementById('barLine').style.width = shareLine + "%";
                 document.getElementById('barShopee').style.width = shareShopee + "%";
 
-                // การสาดสีเงื่อนไขแจ้งเตือน (Conditional Formatting & SPI Progress Bar)
+                // Conditional Formatting & SPI Progress Bar
                 const cardPrime = document.getElementById('cardPrime');
                 const outPrimeText = document.getElementById('outPrimeCost');
                 const cardSPI = document.getElementById('cardSPI');
@@ -142,7 +142,6 @@
                 const alertIcon = document.getElementById('alertIcon');
                 const alertMessage = document.getElementById('alertMessage');
 
-                // ล้างสถานะคลาสเดิมออก
                 cardPrime.className = "bg-[#020617] border p-4 rounded-lg border-slate-800 lg:col-span-2";
                 outPrimeText.className = "text-2xl font-black font-mono mt-1 text-slate-100";
                 cardSPI.className = "bg-[#020617] border p-4 rounded-lg border-slate-800 lg:col-span-2";
@@ -154,7 +153,6 @@
                 const visualProgress = Math.min(spi, 100);
                 spiProgressBar.style.width = visualProgress + "%";
 
-                // ตรวจเกจวัดความแรง SPI ก่อน
                 if (spi >= 80) {
                     cardSPI.classList.add('border-emerald-500/50', 'bg-emerald-950/10');
                     outSPIText.classList.add('text-emerald-400', 'neon-green');
@@ -169,7 +167,6 @@
                     spiStatusBadge.innerText = "⚠️ LOW ENERGY";
                 }
 
-                // สาดสีตามเกณฑ์ต้นทุน Prime Cost
                 if (primeCostPct > 70) {
                     cardPrime.classList.add('border-red-500/50', 'bg-red-950/10');
                     outPrimeText.className = "text-2xl font-black font-mono mt-1 text-red-500 neon-red";
@@ -439,3 +436,46 @@
                                 <div class="w-full bg-slate-900 h-2 rounded"><div id="barLine" class="bg-green-500 h-full rounded" style="width: 0%"></div></div>
                             </div>
                             <div>
+                                <div class="flex justify-between text-xs font-mono font-bold text-slate-300 mb-1"><span>Shopee Share</span><span id="shareShopee">-</span></div>
+                                <div class="w-full bg-slate-900 h-2 rounded"><div id="barShopee" class="bg-orange-500 h-full rounded" style="width: 0%"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="diagnosticAlert" class="border rounded-xl p-5 flex items-start gap-4 transition-all duration-300">
+                <div class="text-3xl" id="alertIcon">🩺</div>
+                <div>
+                    <h4 class="text-sm font-black uppercase tracking-wide text-slate-200 mb-1">บทวินิจฉัยและสาดไฟเตือนภัยจากบอทหมอ</h4>
+                    <p id="alertMessage" class="text-base font-semibold leading-relaxed"></p>
+                </div>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-400 flex flex-col sm:flex-row justify-between gap-2">
+                <span>[AUTO ENGINE] ยอดขายดิบรวมวันนี้ (Total Gross): <strong id="refTotalGross" class="text-slate-200">-</strong></span>
+                <span>ยอดเงินสุทธิหลังหัก GP ออโต้ (Net Cash Receipts): <strong id="refNetCash" class="text-emerald-400">-</strong></span>
+            </div>
+
+            <div id="conversionBox" class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-700/60 rounded-xl p-6 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-3 text-slate-500/10 uppercase font-black text-6xl tracking-tighter select-none pointer-events-none">
+                    PRO OPTION
+                </div>
+                <div class="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                    <div class="space-y-1.5 max-w-2xl">
+                        <span class="bg-amber-500/20 text-amber-400 text-[10px] px-2 py-0.5 rounded font-black tracking-wider uppercase">⚙️ SYSTEM 2 STIMULUS</span>
+                        <h3 class="text-xl font-black text-slate-100">พี่แก้ตัวเลขสีแดง/สีเหลืองนี้ได้ใน 1 นาที!</h3>
+                        <p class="text-sm text-slate-400">
+                            และหากพี่ขี้เกียจมานั่งแยกกรอกยอด 3 แพลตฟอร์มนี้ทุกคืน... สับสวิตช์ยกระดับโครงสร้างร้านไปใช้ <strong class="text-emerald-400">[Deli Daily Pro - ระบบ Webhook ออโต้ผูก LINE OA]</strong> ดึงยอดหลังบ้านส่งตรงถึงเก๊ะแม่นยำ 100%
+                        </p>
+                    </div>
+                    <a href="https://shop.line.me" target="_blank" class="w-full lg:w-auto bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black py-3.5 px-6 rounded-lg text-center shadow-lg transition transform active:scale-95 whitespace-nowrap text-sm">
+                        🚀 อัปเกรดเป็นเวอร์ชัน PRO ออโต้ทันที
+                    </a>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</body>
+</html>
