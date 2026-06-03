@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deli Daily LIFF v1.3 - ห้อง X-Ray ร้านอาหาร (Fixed SPI)</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Deli Daily LIFF v1.3 - ห้อง X-Ray ร้านอาหาร</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700;900&display=swap" rel="stylesheet">
@@ -25,7 +25,7 @@
             <div>
                 <h1 class="text-2xl font-black text-emerald-400 tracking-wide flex items-center gap-2">
                     <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
-                    DELI DAILY LIFF <span class="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono">v1.3 FIX</span>
+                    DELI DAILY LIFF <span class="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono">v1.3 PRODUCTION</span>
                 </h1>
                 <p class="text-xs text-slate-400 uppercase tracking-widest mt-0.5">เครื่องเอกซเรย์ส่องพยาธิสภาพร้านอาหารคำนวณย้อนกลับอัตโนมัติ</p>
             </div>
@@ -149,7 +149,7 @@
                 </div>
 
                 <div class="mt-5">
-                    <button onclick="runReverseEngine()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-slate-950 font-black py-3 px-4 rounded-lg shadow-lg transform active:scale-[0.99] transition text-base tracking-wide cursor-pointer">
+                    <button type="button" onclick="runReverseEngine();" class="w-full bg-gradient-to-r from-emerald-600 to-teal-500 text-slate-950 font-black py-3 px-4 rounded-lg shadow-lg active:scale-95 transition-all text-base tracking-wide block relative z-30">
                         ⚡ รันระบบ Reverse Engine เจาะลึกผลแล็บ
                     </button>
                 </div>
@@ -206,51 +206,3 @@
                 <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
                     <span>0% Critical</span>
                     <span>80% รอดตาย (Baseline)</span>
-                    <span>100% Max Capacity</span>
-                </div>
-            </div>
-
-            <div class="bg-[#0f172a] border border-slate-800 rounded-xl p-5">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-800 pb-2">B. ส่วนวิเคราะห์สัดส่วนท่อส่งอาหาร (Platform & Traffic Analysis)</h3>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                    <div class="bg-[#020617] p-4 rounded-lg border border-slate-800 flex flex-col justify-between">
-                        <div>
-                            <span class="text-xs text-slate-400 block mb-2 font-medium">สัดส่วนแพลตฟอร์มรวม VS หน้าร้าน</span>
-                            <div class="flex items-center justify-between text-base font-mono font-black border-b border-slate-800 pb-2 mb-2">
-                                <span class="text-amber-400">Delivery 3 ค่าย: <span id="pctPlatform">-</span></span>
-                                <span class="text-teal-400">หน้าร้าน: <span id="pctOffline">-</span></span>
-                            </div>
-                        </div>
-                        <p class="text-xs text-slate-400 italic bg-slate-900 p-2 rounded border border-slate-800 mt-2">
-                            💡 "หากสัดส่วนแพลตฟอร์มสูง ยิ่งจำเป็นต้องใช้ระบบควบคุมท่อเงินเพื่อเซฟกำไรกลับคืนมา!"
-                        </p>
-                    </div>
-
-                    <div class="bg-[#020617] p-4 rounded-lg border border-slate-800">
-                        <span class="text-xs text-slate-400 block mb-3 font-medium">สัดส่วนแยกค่ายเดลิเวอรี (เทียบจาก Total Gross ยอดดิบรวม)</span>
-                        <div class="space-y-2">
-                            <div>
-                                <div class="flex justify-between text-xs font-mono font-bold text-slate-300 mb-1"><span>Grab Share</span><span id="shareGrab">-</span></div>
-                                <div class="w-full bg-slate-900 h-2 rounded"><div id="barGrab" class="bg-emerald-500 h-full rounded" style="width: 0%"></div></div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between text-xs font-mono font-bold text-slate-300 mb-1"><span>LINE MAN Share</span><span id="shareLine">-</span></div>
-                                <div class="w-full bg-slate-900 h-2 rounded"><div id="barLine" class="bg-green-500 h-full rounded" style="width: 0%"></div></div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between text-xs font-mono font-bold text-slate-300 mb-1"><span>Shopee Share</span><span id="shareShopee">-</span></div>
-                                <div class="w-full bg-slate-900 h-2 rounded"><div id="barShopee" class="bg-orange-500 h-full rounded" style="width: 0%"></div></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="diagnosticAlert" class="border rounded-xl p-5 flex items-start gap-4 transition-all duration-300">
-                <div class="text-3xl" id="alertIcon">🩺</div>
-                <div>
-                    <h4 class="text-sm font-black uppercase tracking-wide text-slate-200 mb-1">บทวินิจฉัยและสาดไฟเตือนภัยจากบอทหมอ</h4>
-                    <p id="alertMessage" class="text-base font-semibold leading-relaxed"></p>
-                </div>
-            </div>
