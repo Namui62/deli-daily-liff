@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deli Daily LIFF v1.3 - ห้อง X-Ray ร้านอาหาร</title>
+    <title>Deli Daily LIFF v1.4 - ห้อง X-Ray ร้านอาหาร</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -64,28 +64,54 @@
                 if (totalHours <= 0) totalHours += 24; 
                 const totalLaborHours = totalHours * staffCount;
 
-                // --- 3. DIAGNOSTIC COMPUTATION ---
-                const primeCostPct = ((laborCost + materialCost) / totalGross) * 100;
+                // --- 3. DIAGNOSTIC COMPUTATION V1.4 (เงินบาท & เปอร์เซ็นต์) ---
+                const taxLeak = totalGross - netCashReceipts; // รูรั่วค่าตงเดลิเวอรี
+                
+                const primeCostBaht = laborCost + materialCost;
+                const primeCostPct = (primeCostBaht / totalGross) * 100;
+                
                 const laborCostPct = (laborCost / totalGross) * 100;
                 const materialCostPct = (materialCost / totalGross) * 100;
                 const splh = totalLaborHours > 0 ? (netCashReceipts / totalLaborHours) : 0;
-                
-                // คำนวณค่า SPI (ขีดจำกัดพลังงานหลักที่สำคัญที่สุด)
                 const spi = avgSales > 0 ? (netCashReceipts / avgSales) * 80 : 0;
+                
+                const spiDiffBaht = netCashReceipts - avgSales; // ส่วนต่างเนื้อเงินสดจริงเทียบเป้าเฉลี่ย
 
-                // --- 4. RENDER UI ---
+                // --- 4. RENDER UI V1.4 ---
                 document.getElementById('diagnosticResult').classList.remove('hidden');
 
-                document.getElementById('outPrimeCost').innerText = primeCostPct.toFixed(1) + "%";
-                document.getElementById('outLaborCost').innerText = laborCostPct.toFixed(1) + "%";
-                document.getElementById('outMaterialCost').innerText = materialCostPct.toFixed(1) + "%";
-                document.getElementById('outSPLH').innerText = Math.round(splh).toLocaleString() + " ฿";
-                document.getElementById('outSPI').innerText = spi.toFixed(1) + "%";
+                // 1. กล่องรูรั่วเม็ดเงิน (The Platform Tax Leak)
+                document.getElementById('outTaxLeak').innerText = Math.round(taxLeak).toLocaleString();
+                document.getElementById('outTaxLeakSub').innerText = `(วันนี้คุณจ่ายค่าตงให้แอปไป ${Math.round(taxLeak).toLocaleString()} บาท ซึ่งสูงกว่าค่าแรงพนักงานทุกคนรวมกันในวันนี้ที่จ่ายไป ${Math.round(laborCost).toLocaleString()} บาท!)`;
 
+                // 2. อัปเดตคาร์ดผลแล็บสากล (แปลง % เป็นเงินบาทกำกับ)
+                document.getElementById('outPrimeCost').innerText = `${Math.round(primeCostBaht).toLocaleString()} ฿ (${primeCostPct.toFixed(1)}%)`;
+                
+                document.getElementById('outLaborCost').innerText = `${Math.round(laborCost).toLocaleString()} ฿ (${laborCostPct.toFixed(1)}%)`;
+                document.getElementById('outLaborStandard').innerText = `[เกณฑ์สากลร้านคุณควรอยู่ที่: ${Math.round(totalGross * 0.25).toLocaleString()} - ${Math.round(totalGross * 0.35).toLocaleString()} บาท]`;
+                
+                document.getElementById('outMaterialCost').innerText = `${Math.round(materialCost).toLocaleString()} ฿ (${materialCostPct.toFixed(1)}%)`;
+                document.getElementById('outMaterialStandard').innerText = `[เกณฑ์สากลร้านคุณควรอยู่ที่: ${Math.round(totalGross * 0.28).toLocaleString()} - ${Math.round(totalGross * 0.35).toLocaleString()} บาท]`;
+
+                // 3. ปรับคำอธิบายดัชนีหากิน (SPI & SPLH)
+                document.getElementById('outSPI').innerText = spi.toFixed(1) + "%";
+                const spiDiffBox = document.getElementById('outSpiDiffBox');
+                if (spiDiffBaht >= 0) {
+                    spiDiffBox.className = "text-xs mt-1 text-emerald-400 font-semibold";
+                    spiDiffBox.innerText = `วันนี้ร้านรีดเงินสดกลับบ้านได้เกินเป้าฐานรอดตายมา +${Math.round(spiDiffBaht).toLocaleString()} บาท!`;
+                } else {
+                    spiDiffBox.className = "text-xs mt-1 text-red-400 font-semibold";
+                    spiDiffBox.innerText = `วันนี้เงินสดขาดมือต่ำกว่าเป้าฐานรอดตายอยู่ ${Math.round(spiDiffBaht).toLocaleString()} บาท`;
+                }
+
+                document.getElementById('outSPLH').innerText = Math.round(splh).toLocaleString() + " ฿ / ชม.";
+                document.getElementById('outSPLHSub').innerText = `(เฉลี่ยพนักงาน 1 คน ช่วยรีดเงินสดเข้าบ้านให้คุณได้ชั่วโมงละ ${Math.round(splh).toLocaleString()} บาท)`;
+
+                // ข้อมูลอ้างอิงท้ายแดชบอร์ด
                 document.getElementById('refTotalGross').innerText = Math.round(totalGross).toLocaleString() + " บาท";
                 document.getElementById('refNetCash').innerText = Math.round(netCashReceipts).toLocaleString() + " บาท";
 
-                // Traffic Breakdown Calculation
+                // ส่วนวิเคราะห์สายส่งท่อส่งอาหาร (Platform Traffic Share)
                 const platformTotal = sGrab + sLine + sShopee;
                 const pctPlatform = totalGross > 0 ? ((platformTotal / totalGross) * 100) : 0;
                 const pctOffline = totalGross > 0 ? ((sOffline / totalGross) * 100) : 0;
@@ -105,66 +131,65 @@
                 document.getElementById('barLine').style.width = shareLine + "%";
                 document.getElementById('barShopee').style.width = shareShopee + "%";
 
-                // Render Dynamic SPI Gauge
+                // การสาดสีเงื่อนไขแจ้งเตือน (Conditional Formatting & SPI Progress Bar)
+                const cardPrime = document.getElementById('cardPrime');
+                const outPrimeText = document.getElementById('outPrimeCost');
                 const cardSPI = document.getElementById('cardSPI');
-                const outSPI = document.getElementById('outSPI');
+                const outSPIText = document.getElementById('outSPI');
                 const spiProgressBar = document.getElementById('spiProgressBar');
                 const spiStatusBadge = document.getElementById('spiStatusBadge');
+                const diagnosticAlert = document.getElementById('diagnosticAlert');
+                const alertIcon = document.getElementById('alertIcon');
+                const alertMessage = document.getElementById('alertMessage');
 
-                cardSPI.className = "bg-[#020617] border p-4 rounded-lg border-slate-800";
-                outSPI.className = "text-2xl font-black font-mono";
+                // ล้างสถานะคลาสเดิมออก
+                cardPrime.className = "bg-[#020617] border p-4 rounded-lg border-slate-800 lg:col-span-2";
+                outPrimeText.className = "text-2xl font-black font-mono mt-1 text-slate-100";
+                cardSPI.className = "bg-[#020617] border p-4 rounded-lg border-slate-800 lg:col-span-2";
+                outSPIText.className = "text-2xl font-black font-mono";
                 spiProgressBar.className = "h-full rounded-full transition-all duration-500 ease-out";
                 spiStatusBadge.className = "text-xs px-2 py-0.5 rounded font-black font-mono";
+                diagnosticAlert.className = "border rounded-xl p-5 flex items-start gap-4 transition-all duration-300";
 
                 const visualProgress = Math.min(spi, 100);
                 spiProgressBar.style.width = visualProgress + "%";
 
+                // ตรวจเกจวัดความแรง SPI ก่อน
                 if (spi >= 80) {
                     cardSPI.classList.add('border-emerald-500/50', 'bg-emerald-950/10');
-                    outSPI.classList.add('text-emerald-400', 'neon-green');
+                    outSPIText.classList.add('text-emerald-400', 'neon-green');
                     spiProgressBar.classList.add('bg-gradient-to-r', 'from-emerald-500', 'to-teal-400', 'shadow-[0_0_12px_rgba(16,185,129,0.5)]');
                     spiStatusBadge.classList.add('bg-emerald-500/20', 'text-emerald-400');
                     spiStatusBadge.innerText = "💪 POWER LEAN SAFE";
                 } else {
                     cardSPI.classList.add('border-amber-500/50', 'bg-amber-950/10');
-                    outSPI.classList.add('text-amber-500', 'neon-yellow');
+                    outSPIText.classList.add('text-amber-500', 'neon-yellow');
                     spiProgressBar.classList.add('bg-gradient-to-r', 'from-amber-500', 'to-orange-500');
                     spiStatusBadge.classList.add('bg-amber-500/20', 'text-amber-400');
                     spiStatusBadge.innerText = "⚠️ LOW ENERGY";
                 }
 
-                // C. Conditional Logic Display (Prime Cost Check)
-                const cardPrime = document.getElementById('cardPrime');
-                const outPrimeCost = document.getElementById('outPrimeCost');
-                const diagnosticAlert = document.getElementById('diagnosticAlert');
-                const alertIcon = document.getElementById('alertIcon');
-                const alertMessage = document.getElementById('alertMessage');
-
-                cardPrime.className = "bg-[#020617] border p-4 rounded-lg border-slate-800";
-                outPrimeCost.className = "text-2xl font-black font-mono";
-                diagnosticAlert.className = "border rounded-xl p-5 flex items-start gap-4 transition-all duration-300";
-
+                // สาดสีตามเกณฑ์ต้นทุน Prime Cost
                 if (primeCostPct > 70) {
                     cardPrime.classList.add('border-red-500/50', 'bg-red-950/10');
-                    outPrimeCost.classList.add('text-red-500', 'neon-red');
+                    outPrimeText.className = "text-2xl font-black font-mono mt-1 text-red-500 neon-red";
                     diagnosticAlert.classList.add('bg-red-950/20', 'border-red-500/40', 'text-red-200');
                     alertIcon.innerText = "🚨";
                     alertMessage.innerText = "วิกฤต: ต้นทุนบวมน้ำเฉียบพลัน! ขาดทุนเข้าเนื้อ ตรวจขยะหลังครัวด่วน";
                 } else if (primeCostPct >= 61 && primeCostPct <= 69) {
                     cardPrime.classList.add('border-amber-500/50', 'bg-amber-950/10');
-                    outPrimeCost.classList.add('text-amber-500', 'neon-yellow');
+                    outPrimeText.className = "text-2xl font-black font-mono mt-1 text-amber-500 neon-yellow";
                     diagnosticAlert.classList.add('bg-amber-950/20', 'border-amber-500/40', 'text-amber-200');
                     alertIcon.innerText = "⚠️";
                     alertMessage.innerText = "เตือนภัย: มีอาการอ่อนเพลีย ร้านรันฟรี ได้แค่ค่าแรงพาร์ทไทม์ ปรับอีกนิดจะเข้าล็อกปลอดภัย";
                 } else if (spi >= 80) {
                     cardPrime.classList.add('border-emerald-500/50', 'bg-emerald-950/10');
-                    outPrimeCost.classList.add('text-emerald-400', 'neon-green');
+                    outPrimeText.className = "text-2xl font-black font-mono mt-1 text-emerald-400 neon-green";
                     diagnosticAlert.classList.add('bg-emerald-950/20', 'border-emerald-500/40', 'text-emerald-200');
                     alertIcon.innerText = "❇️";
                     alertMessage.innerText = "ชีพจรปกติ: ระบบลีนสมบูรณ์ ป้อมปราการรอดตายทำงานแล้ว!";
                 } else {
                     cardPrime.classList.add('border-slate-700');
-                    outPrimeCost.classList.add('text-slate-200');
                     diagnosticAlert.classList.add('bg-slate-900', 'border-slate-700', 'text-slate-300');
                     alertIcon.innerText = "⚖️";
                     alertMessage.innerText = "สถานะทรงตัว: สัดส่วนต้นทุนหลักอยู่ในเกณฑ์ปลอดภัย แต่ความแรงในการสร้างเม็ดเงินสด (SPI) ยังต่ำกว่าเป้าหมายเร่งด่วน";
@@ -185,7 +210,7 @@
             <div>
                 <h1 class="text-2xl font-black text-emerald-400 tracking-wide flex items-center gap-2">
                     <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
-                    DELI DAILY LIFF <span class="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono">v1.3 PRODUCTION</span>
+                    DELI DAILY LIFF <span class="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono">v1.4 PRODUCTION</span>
                 </h1>
                 <p class="text-xs text-slate-400 uppercase tracking-widest mt-0.5">เครื่องเอกซเรย์ส่องพยาธิสภาพร้านอาหารคำนวณย้อนกลับอัตโนมัติ</p>
             </div>
@@ -273,7 +298,7 @@
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
                                     <label class="block text-[10px] text-slate-400 mb-0.5">ยอด Grab (บาท)</label>
-                                    <input type="number" id="salesGrab" placeholder="0" value="4500" class="w-full bg-[#0f172a] border border-slate-700 rounded p-1.5 font-mono text-sm text-slate-200 font-bold">
+                                    <input type="number" id="salesGrab" placeholder="0" value="9500" class="w-full bg-[#0f172a] border border-slate-700 rounded p-1.5 font-mono text-sm text-slate-200 font-bold">
                                 </div>
                                 <div>
                                     <label class="block text-[10px] text-slate-400 mb-0.5">ยอด LINE MAN (บาท)</label>
@@ -293,7 +318,7 @@
                         <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <label class="block text-xs font-medium text-slate-400 mb-1">2. ควักจ่ายค่าแรงวันนี้ (บาท)</label>
-                                <input type="number" id="laborCost" placeholder="0" value="1500" class="w-full bg-[#020617] border border-slate-700 rounded p-2 text-slate-200 font-mono font-bold text-sm">
+                                <input type="number" id="laborCost" placeholder="0" value="4500" class="w-full bg-[#020617] border border-slate-700 rounded p-2 text-slate-200 font-mono font-bold text-sm">
                             </div>
                             <div>
                                 <label class="block text-xs font-medium text-slate-400 mb-1">3. พนักงานที่มาจริง (คน)</label>
@@ -323,34 +348,49 @@
                 📋 ใบวิเคราะห์แล็บปฏิบัติการและพยาธิสภาพร้าน
             </h2>
 
+            <div class="bg-gradient-to-r from-red-950/40 via-[#0f172a] to-red-950/40 border-2 border-red-500/40 rounded-xl p-5 shadow-2xl">
+                <div class="flex items-center gap-2 text-red-400 font-bold text-sm uppercase tracking-wide">
+                    <span>⚠️</span> THE PLATFORM TAX LEAK (รูรั่วเม็ดเงินแฝง)
+                </div>
+                <div class="text-2xl sm:text-3xl font-black font-mono text-slate-100 mt-2">
+                    ค่าตงเดลิเวอรีที่จ่ายทิ้งวันนี้: <span id="outTaxLeak" class="text-red-500 neon-red">0</span> บาท
+                </div>
+                <div id="outTaxLeakSub" class="text-xs text-slate-400 mt-1.5 font-medium leading-relaxed">
+                    -
+                </div>
+            </div>
+
             <div class="bg-[#0f172a] border border-slate-800 rounded-xl p-5">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-800 pb-2">A. สถิติเปรียบเทียบมาตรฐานสากล (Global Benchmarks)</h3>
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <div class="bg-[#020617] border border-slate-800 p-4 rounded-lg" id="cardPrime">
+                <div class="grid grid-cols-1 lg:grid-cols-6 gap-4">
+                    <div class="bg-[#020617] border border-slate-800 p-4 rounded-lg lg:col-span-2" id="cardPrime">
                         <span class="text-xs text-slate-400 block mb-1">Prime Cost % วันนี้</span>
-                        <div id="outPrimeCost" class="text-2xl font-black font-mono">-</div>
-                        <div class="text-[10px] text-slate-500 mt-1">เกณฑ์: <span class="text-emerald-400 font-semibold">ไม่เกิน 55-60%</span></div>
+                        <div id="outPrimeCost" class="text-2xl font-black font-mono mt-1 text-slate-100">-</div>
+                        <div class="text-[10px] text-slate-500 mt-1.5">[เกณฑ์สากลคุมอยู่ที่: 55-60% ของยอดขาย]</div>
                     </div>
-                    <div class="bg-[#020617] border border-slate-800 p-4 rounded-lg">
+                    <div class="bg-[#020617] border border-slate-800 p-4 rounded-lg lg:col-span-2">
                         <span class="text-xs text-slate-400 block mb-1">Labor Cost % วันนี้</span>
-                        <div id="outLaborCost" class="text-2xl font-black text-slate-100 font-mono">-</div>
-                        <div class="text-[10px] text-slate-500 mt-1">เกณฑ์สากล: 25-35%</div>
+                        <div id="outLaborCost" class="text-xl font-black font-mono mt-1 text-slate-100">-</div>
+                        <div id="outLaborStandard" class="text-[10px] text-slate-500 mt-1.5">-</div>
                     </div>
-                    <div class="bg-[#020617] border border-slate-800 p-4 rounded-lg">
+                    <div class="bg-[#020617] border border-slate-800 p-4 rounded-lg lg:col-span-2">
                         <span class="text-xs text-slate-400 block mb-1">Material Cost % วันนี้</span>
-                        <div id="outMaterialCost" class="text-2xl font-black text-slate-100 font-mono">-</div>
-                        <div class="text-[10px] text-slate-500 mt-1">เกณฑ์สากล: 28-35%</div>
+                        <div id="outMaterialCost" class="text-xl font-black font-mono mt-1 text-slate-100">-</div>
+                        <div id="outMaterialStandard" class="text-[10px] text-slate-500 mt-1.5">-</div>
                     </div>
-                    <div class="bg-[#020617] border border-slate-800 p-4 rounded-lg">
-                        <span class="text-xs text-slate-400 block mb-1">SPLH (ยอดขาย/ชม.)</span>
-                        <div id="outSPLH" class="text-2xl font-black text-slate-100 font-mono">-</div>
-                        <div class="text-[10px] text-slate-500 mt-1">แอป: 500+ | ร้าน: 350+</div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mt-4">
+                    <div class="bg-[#020617] border border-slate-800 p-4 rounded-lg lg:col-span-2" id="cardSPI">
+                        <span class="text-xs text-slate-400 block mb-1">ดัชนีพลังทำกำไรสุทธิ (SPI)</span>
+                        <div id="outSPI" class="text-3xl font-black font-mono">-</div>
+                        <div id="outSpiDiffBox" class="text-xs mt-1">-</div>
                     </div>
-                    <div class="bg-[#020617] border border-slate-800 p-4 rounded-lg" id="cardSPI">
-                        <span class="text-xs text-slate-400 block mb-1">ขีดจำกัดพลังงาน (SPI)</span>
-                        <div id="outSPI" class="text-2xl font-black font-mono">-</div>
-                        <div class="text-[10px] text-slate-500 mt-1">เป้าหมายรอดตาย: <span class="text-emerald-400 font-bold">80%+</span></div>
+                    <div class="bg-[#020617] border border-slate-800 p-4 rounded-lg lg:col-span-2">
+                        <span class="text-xs text-slate-400 block mb-1">ประสิทธิภาพชั่วโมงแรงงาน (SPLH)</span>
+                        <div id="outSPLH" class="text-2xl font-black font-mono text-slate-100">-</div>
+                        <div id="outSPLHSub" class="text-[10px] text-slate-500 mt-1 leading-normal">-</div>
                     </div>
                 </div>
             </div>
@@ -399,46 +439,3 @@
                                 <div class="w-full bg-slate-900 h-2 rounded"><div id="barLine" class="bg-green-500 h-full rounded" style="width: 0%"></div></div>
                             </div>
                             <div>
-                                <div class="flex justify-between text-xs font-mono font-bold text-slate-300 mb-1"><span>Shopee Share</span><span id="shareShopee">-</span></div>
-                                <div class="w-full bg-slate-900 h-2 rounded"><div id="barShopee" class="bg-orange-500 h-full rounded" style="width: 0%"></div></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="diagnosticAlert" class="border rounded-xl p-5 flex items-start gap-4 transition-all duration-300">
-                <div class="text-3xl" id="alertIcon">🩺</div>
-                <div>
-                    <h4 class="text-sm font-black uppercase tracking-wide text-slate-200 mb-1">บทวินิจฉัยและสาดไฟเตือนภัยจากบอทหมอ</h4>
-                    <p id="alertMessage" class="text-base font-semibold leading-relaxed"></p>
-                </div>
-            </div>
-
-            <div class="bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-400 flex flex-col sm:flex-row justify-between gap-2">
-                <span>[AUTO ENGINE] ยอดขายดิบรวมวันนี้ (Total Gross): <strong id="refTotalGross" class="text-slate-200">-</strong></span>
-                <span>ยอดเงินสุทธิหลังหัก GP ออโต้ (Net Cash Receipts): <strong id="refNetCash" class="text-emerald-400">-</strong></span>
-            </div>
-
-            <div id="conversionBox" class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-700/60 rounded-xl p-6 shadow-2xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-3 text-slate-500/10 uppercase font-black text-6xl tracking-tighter select-none pointer-events-none">
-                    PRO OPTION
-                </div>
-                <div class="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                    <div class="space-y-1.5 max-w-2xl">
-                        <span class="bg-amber-500/20 text-amber-400 text-[10px] px-2 py-0.5 rounded font-black tracking-wider uppercase">⚙️ SYSTEM 2 STIMULUS</span>
-                        <h3 class="text-xl font-black text-slate-100">พี่แก้ตัวเลขสีแดง/สีเหลืองนี้ได้ใน 1 นาที!</h3>
-                        <p class="text-sm text-slate-400">
-                            และหากพี่ขี้เกียจมานั่งแยกกรอกยอด 3 แพลตฟอร์มนี้ทุกคืน... สับสวิตช์ยกระดับโครงสร้างร้านไปใช้ <strong class="text-emerald-400">[Deli Daily Pro - ระบบ Webhook ออโต้ผูก LINE OA]</strong> ดึงยอดหลังบ้านส่งตรงถึงเก๊ะแม่นยำ 100%
-                        </p>
-                    </div>
-                    <a href="https://shop.line.me" target="_blank" class="w-full lg:w-auto bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black py-3.5 px-6 rounded-lg text-center shadow-lg transition transform active:scale-95 whitespace-nowrap text-sm">
-                        🚀 อัปเกรดเป็นเวอร์ชัน PRO ออโต้ทันที
-                    </a>
-                </div>
-            </div>
-
-        </main>
-    </div>
-</body>
-</html>
