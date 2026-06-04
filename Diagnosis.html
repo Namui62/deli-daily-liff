@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deli Daily LIFF v1.6 - Multi-Stage Diagnostic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #F8F9FA;
+            color: #172B4D;
+        }
+        .circle-bg { fill: none; stroke: #EAECEF; stroke-width: 3.8; }
+        .circle-progress { fill: none; stroke: #36B37E; stroke-width: 3.8; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dasharray 0.5s ease-out; }
+    </style>
+
+    <script>
+        // ประกาศตัวแปรเก็บสถานะการคำนวณชั่วคราวเพื่อนำไปใช้ในหน้าสถานีย่อย
+        let currentReportData = {
+            primeCostPct: 0,
+            laborCostPct: 0,
+            materialCostPct: 0,
+            spi: 0,
+            splh: 0,
+            pRatio: 0
+        };
+
+        window.onload = function() {
+            const scanBtn = document.getElementById('btnScanReverse');
+            if(scanBtn) {
+                scanBtn.addEventListener('click', runReverseEngine);
+            }
+        };
+
+        // ฟังก์ชันช่วยสับเปลี่ยนหน้าจอ (SPA View Switcher)
+        function switchView(targetViewId) {
+            const mainDashboard = document.getElementById('mainResultDashboard');
+            const stationView = document.getElementById('stationDetailView');
+            
+            if (targetViewId === 'main') {
+                stationView.classList.add('hidden');
+                mainDashboard.classList.remove('hidden');
+                mainDashboard.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                mainDashboard.classList.add('hidden');
+                stationView.classList.remove('hidden');
+                renderStationData(targetViewId);
+                stationView.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function runReverseEngine() {
+            try {
+                // Setup & Input Variables
+                const avgSales = parseFloat(document.getElementById('avgSales').value) || 0;
+                const gpGrab = (parseFloat(document.getElementById('gpGrab').value) || 0) / 100;
+                const gpLine = (parseFloat(document.getElementById('gpLine').value) || 0) / 100;
+                const gpShopee = (parseFloat(document.getElementById('gpShopee').value) || 0) / 100;
+
+                const sGrab = parseFloat(document.getElementById('salesGrab').value) || 0;
+                const bGrab = parseFloat(document.getElementById('billGrab').value) || 0;
+                const sLine = parseFloat(document.getElementById('salesLine').value) || 0;
+                const bLine = parseFloat(document.getElementById('billLine').value) || 0;
+                const sShopee = parseFloat(document.getElementById('salesShopee').value) || 0;
+                const bShopee = parseFloat(document.getElementById('billShopee').value) || 0;
+                const sOffline = parseFloat(document.getElementById('salesOffline').value) || 0;
+                const bOffline = parseFloat(document.getElementById('billOffline').value) || 0;
+                
+                const laborCost = parseFloat(document.getElementById('laborCost').value) || 0;
+                const staffCount = parseFloat(document.getElementById('staffCount').value) || 0;
+                const materialCost = parseFloat(document.getElementById('materialCost').value) || 0;
+                const openTime = document.getElementById('openTime').value;
+                const closeTime = document.getElementById('closeTime').value;
+
+                if ((sGrab + sLine + sShopee + sOffline) <= 0 || staffCount <= 0) {
+                    alert("⚠️ [Soft Guard] กรุณากรอกยอดรับเงิน และจำนวนพนักงานปฏิบัติงานหน้างานจริงเพื่อประมวลผล!");
+                    return;
+                }
+
+                // Core Calculations
+                const totalGross = sGrab + sLine + sShopee + sOffline;
+                const deliveryGross = sGrab + sLine + sShopee;
+                const deliveryNet = (sGrab * (1 - gpGrab)) + (sLine * (1 - gpLine)) + (sShopee * (1 - gpShopee));
+                const netCashReceipts = deliveryNet + sOffline;
+                const totalExpenses = laborCost + materialCost;
+
+                let [openH, openM] = openTime.split(':').map(Number);
+                let [closeH, closeM] = closeTime.split(':').map(Number);
+                let totalHours = (closeH + closeM/60) - (openH + openM/60);
+                if (totalHours <= 0) totalHours += 24; 
+                const totalLaborHours = totalHours * staffCount;
+
+                // Set Global State Data
+                currentReportData.primeCostPct = (totalExpenses / totalGross) * 100;
+                currentReportData.laborCostPct = (laborCost / totalGross) * 100;
+                currentReportData.materialCostPct = (materialCost / totalGross) * 100;
+                currentReportData.splh = totalLaborHours > 0 ? (netCashReceipts / totalLaborHours) : 0;
+                currentReportData.spi = avgSales > 0 ? (netCashReceipts / avgSales) * 80 : 0;
+                currentReportData.pRatio = totalGross > 0 ? ((deliveryGross / totalGross) * 100) : 0;
+
+                const totalTickets = bGrab + bLine + bShopee + bOffline;
+                const tGrab = bGrab > 0 ? (sGrab / bGrab) : 0;
+                const tLine = bLine > 0 ? (sLine / bLine) : 0;
+                const tShopee = bShopee > 0 ? (sShopee / bShopee) : 0;
+                const tOffline = bOffline > 0 ? (sOffline / bOffline) : 0;
+
+                // Render Dashboard ข้อมูลหลักหน้าแรก
+                document.getElementById('diagnosticResult').classList.remove('hidden');
+                document.getElementById('mainResultDashboard').classList.remove('hidden');
+                document.getElementById('stationDetailView').classList.add('hidden');
+
+                document.getElementById('tblGross').innerText = Math.round(totalGross).toLocaleString() + " ฿";
+                document.getElementById('tblDeliveryGross').innerText = Math.round(deliveryGross).toLocaleString() + " ฿";
+                document.getElementById('tblDeliveryNet').innerText = Math.round(deliveryNet).toLocaleString() + " ฿";
+                document.getElementById('tblOffline').innerText = Math.round(sOffline).toLocaleString() + " ฿";
+                document.getElementById('tblTrafficRatio').innerText = `Delivery ${currentReportData.pRatio.toFixed(0)}% : Walk-in ${(100 - currentReportData.pRatio).toFixed(0)}%`;
+                document.getElementById('tblExpenses').innerText = Math.round(totalExpenses).toLocaleString() + " ฿";
+                document.getElementById('tblNetCash').innerText = Math.round(netCashReceipts).toLocaleString() + " ฿";
+
+                document.getElementById('outSPI').innerText = currentReportData.spi.toFixed(1) + "%";
+                const circularOffset = 282.7 - (282.7 * Math.min(currentReportData.spi, 100)) / 100;
+                document.getElementById('spiCircularProgress').style.strokeDashoffset = circularOffset;
+
+                const spiDiffBox = document.getElementById('outSpiDiffBox');
+                const spiBaselineDiff = currentReportData.spi - 80;
+                if (spiBaselineDiff >= 0) {
+                    spiDiffBox.className = "text-xs font-bold px-3 py-1 rounded-full mt-1 bg-[#E3FCEF] text-[#006644]";
+                    spiDiffBox.innerText = `+${spiBaselineDiff.toFixed(1)}% vs Baseline (80%)`;
+                } else {
+                    spiDiffBox.className = "text-xs font-bold px-3 py-1 rounded-full mt-1 bg-[#FFEBE6] text-[#BF2600]";
+                    spiDiffBox.innerText = `${spiBaselineDiff.toFixed(1)}% vs Baseline (80%)`;
+                }
+
+                document.getElementById('outPrimeCost').innerText = `${Math.round(totalExpenses).toLocaleString()} ฿ (${currentReportData.primeCostPct.toFixed(1)}%)`;
+                document.getElementById('outLaborCost').innerText = `${Math.round(laborCost).toLocaleString()} ฿ (${currentReportData.laborCostPct.toFixed(1)}%)`;
+                document.getElementById('outMaterialCost').innerText = `${Math.round(materialCost).toLocaleString()} ฿ (${currentReportData.materialCostPct.toFixed(1)}%)`;
+
+                // เปลี่ยนสีกรอบใบประเมินหน้าหลักย่อยเพื่อความสากล
+                document.getElementById('boxPrime').className = `p-4 rounded-lg border cursor-pointer transition-all hover:bg-slate-50 ${currentReportData.primeCostPct <= 60 ? 'border-[#36B37E]' : 'border-[#FF5630]'}`;
+                document.getElementById('boxLabor').className = `p-4 rounded-lg border cursor-pointer transition-all hover:bg-slate-50 ${(currentReportData.laborCostPct >= 25 && currentReportData.laborCostPct <= 35) ? 'border-[#36B37E]' : 'border-[#FF5630]'}`;
+                document.getElementById('boxMaterial').className = `p-4 rounded-lg border cursor-pointer transition-all hover:bg-slate-50 ${currentReportData.materialCostPct <= 35 ? 'border-[#36B37E]' : 'border-[#FF5630]'}`;
+
+                document.getElementById('diagnosticResult').scrollIntoView({ behavior: 'smooth' });
+            } catch (err) {
+                console.error("v1.6 Calculation Error: ", err);
+                alert("พบข้อผิดพลาดในระบบประมวลผล: " + err.message);
+            }
+        }
+
+        // ฟังก์ชันเจาะลึกพยาธิสภาพรายสถานี (Next-Page Data Dispatcher)
+        function renderStationData(stationType) {
+            const container = document.getElementById('stationDynamicContainer');
+            let htmlContent = "";
+
+            if (stationType === 'spi') {
+                const isGreen = currentReportData.spi >= 80;
+                htmlContent = `
+                    <div class="text-center p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="w-24 h-24 mx-auto bg-slate-200 rounded-full mb-3 flex items-center justify-center font-bold text-3xl">🤖</div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200 text-xs font-semibold leading-relaxed">
+                            ${isGreen ? '“วันนี้เม็ดเงินรวมไหลเข้าเก๊ะได้แรงดีพี่! ทีมงานหน้าร้านสปีดออเดอร์ไว ดัชนี SPI พุ่งทะลักดันร้านพ้นขีดอันตรายแล้ว รักษาสปีดนี้ไว้เลยพี่!”' : '“พี่ครับ... ยอดรวมกระแสเงินสดสุทธิวันนี้หักลบกลบหนี้แล้วตกลงมาต่ำกว่าฐานรอดตาย ท่อส่งเงินสดอ่อนกำลังลงอย่างเห็นได้ชัดเลยครับพี่”'}
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-4">
+                        <span class="text-xs font-bold text-[#6B778C] block mb-2">🔥 PLATFORM GP LEAK ANALYSIS</span>
+                        <div class="space-y-2 text-xs font-medium">
+                            <div class="flex justify-between py-1 border-b border-slate-100"><span>สัดส่วนยอดพึ่งพาเดลิเวอรี่</span><span class="font-bold text-[#0052CC]">${currentReportData.pRatio.toFixed(1)}%</span></div>
+                            <div class="flex justify-between py-1"><span>สัดส่วนยอดหน้าร้าน (Walk-in)</span><span class="font-bold text-[#36B37E]">${(100 - currentReportData.pRatio).toFixed(1)}%</span></div>
+                        </div>
+                    </div>
+                    <div class="bg-[#F4F5F7] border-l-4 border-[#0052CC] p-4 rounded-r-lg">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-[#172B4D]">Clinical Diagnosis (SPI Status)</h4>
+                        <p class="text-xs text-[#6B778C] mt-1 font-medium">สภาวะความแรงในการเก็บเงินสดสุทธิเคลื่อนไหวสัมพันธ์กับช่องทางการขาย ความหนาแน่นของเดลิเวอรี่มีผลทำให้โครงสร้างกำไรสุทธิผันผวนโดยตรงตามอัตราค่าธรรมเนียมแพลตฟอร์ม</p>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+                        <h4 class="text-xs font-bold text-[#FF5630]">📋 ACTIONABLE PRESCRIPTION CHECK-LIST</h4>
+                        <div class="space-y-2 text-xs font-semibold text-[#172B4D]">
+                            <div class="flex items-center gap-2 bg-slate-50 p-2 rounded"><input type="checkbox" class="w-4 h-4 text-[#0052CC]"> 1. เพิ่มโปรโมชันดันยอดขายฝั่ง Walk-in หรือหน้าร้านโดยตรงเพื่อดึงเนื้อเงินสด 100%</div>
+                            <div class="flex items-center gap-2 bg-slate-50 p-2 rounded"><input type="checkbox" class="w-4 h-4 text-[#0052CC]"> 2. ตรวจสอบท่อ Webhook รายงานยอดเดลิเวอรี่เพื่อป้องกันการตกหล่นของบิลเงินโอน</div>
+                        </div>
+                    </div>
+                `;
+            } else if (stationType === 'prime') {
+                const isGreen = currentReportData.primeCostPct <= 60;
+                htmlContent = `
+                    <div class="text-center p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="w-24 h-24 mx-auto bg-slate-200 rounded-full mb-3 flex items-center justify-center font-bold text-3xl">🥩</div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200 text-xs font-semibold leading-relaxed">
+                            ${isGreen ? '“กริบมากพี่! ยอดวัตถุดิบกับค่าแรงวันนี้เฉลี่ยแล้วไม่บวมน้ำ สัดส่วน Prime Cost อยู่ในเซฟโซนตามกรอบมาตรฐานสากลเลยครับ!”' : '“ใจคอไม่ดีเลยพี่! รวมยอดควักจ่ายวันนี้เทเทียบยอดขายดิบแล้วบวมฉลองเฉียดเพดานบน เด็กหลังครัวอาจจะทำวัตถุดิบหล่นหายหรือตักเศษทิ้งเยอะแน่ ๆ เลยพี่”'}
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-4">
+                        <span class="text-xs font-bold text-[#6B778C] block mb-2">📊 PRIME EXPENSE STRUCTURAL REF</span>
+                        <div class="space-y-2 text-xs font-medium">
+                            <div class="flex justify-between py-1 border-b border-slate-100"><span>สัดส่วนค่าใช้จ่ายหลักรวมประจำวัน</span><span class="font-bold text-[#172B4D]">${currentReportData.primeCostPct.toFixed(1)}%</span></div>
+                            <div class="text-[10px] text-[#6B778C]">ค่าแรงพนักงานผูกรวมกับยอดจัดซื้อวัตถุดิบแปรผันตรงตามสเกลความลีนหลังบ้าน</div>
+                        </div>
+                    </div>
+                    <div class="bg-[#F4F5F7] border-l-4 border-[#FF5630] p-4 rounded-r-lg">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-[#172B4D]">Clinical Diagnosis (Prime Cost Compliance)</h4>
+                        <p class="text-xs text-[#6B778C] mt-1 font-medium">สัดส่วนต้นทุนรวมสะท้อนพยาธิสภาพของความสิ้นเปลืองหน้างานเชิงโครงสร้าง จำเป็นต้องควบคุมความคุ้มค่าของทรัพยากรหลักทั้งค่าแรงและวัตถุดิบควบคู่กัน</p>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+                        <h4 class="text-xs font-bold text-[#FF5630]">📋 ACTIONABLE PRESCRIPTION CHECK-LIST</h4>
+                        <div class="space-y-2 text-xs font-semibold text-[#172B4D]">
+                            <div class="flex items-center gap-2 bg-slate-50 p-2 rounded"><input type="checkbox" class="w-4 h-4 text-[#0052CC]"> 1. บังคับใช้เกณฑ์มาตรฐานการจัดตารางพนักงาน (Labor Matrix) เพื่อคุมสัดส่วนกะการทำงาน</div>
+                            <div class="flex items-center gap-2 bg-slate-50 p-2 rounded"><input type="checkbox" class="w-4 h-4 text-[#0052CC]"> 2. เช็กรายงานปริมาณขยะทิ้ง (Food Waste Log) ประจำสัปดาห์ในคืนนี้ด่วน</div>
+                        </div>
+                    </div>
+                `;
+            } else if (stationType === 'labor') {
+                const isGreen = currentReportData.laborCostPct >= 25 && currentReportData.laborCostPct <= 35;
+                htmlContent = `
+                    <div class="text-center p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="w-24 h-24 mx-auto bg-slate-200 rounded-full mb-3 flex items-center justify-center font-bold text-3xl">👥</div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200 text-xs font-semibold leading-relaxed">
+                            ${isGreen ? '“รอบนี้พนักงานรันงานได้ล็อกเวลาเป๊ะครับพี่ สัดส่วนค่าแรงกับยอดขายสัมพันธ์ตามสเกลประสิทธิภาพสากล ไม่หนาไม่บางเกินไปครับ”' : '“พี่ครับ! ช่วงบ่ายออเดอร์เงียบสนิทแต่หัวพนักงานยังยืนเต็มหน้าเตาไม่ได้สลับกะออก ค่าแรงบวมกินสัดส่วนเนื้อยอดขายไปเรียบร้อยแล้วพี่”'}
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-4">
+                        <span class="text-xs font-bold text-[#6B778C] block mb-2">⏱️ SPLH METRIC PER OPERATION HOUR</span>
+                        <div class="space-y-2 text-xs font-medium">
+                            <div class="flex justify-between py-1 border-b border-slate-100"><span>ประสิทธิภาพชั่วโมงแรงงานปัจจุบัน</span><span class="font-bold text-[#0052CC]">${Math.round(currentReportData.splh)} ฿ / ชม.</span></div>
+                            <div class="text-[10px] text-[#6B778C]">ค่าบ่งชี้อัตราการสร้างเนื้อเงินฝากเข้าเกลี่ยรายคนต่อชั่วโมงการเปิดระบบปฏิบัติการ</div>
+                        </div>
+                    </div>
+                    <div class="bg-[#F4F5F7] border-l-4 border-[#0052CC] p-4 rounded-r-lg">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-[#172B4D]">Clinical Diagnosis (Labor Allocation)</h4>
+                        <p class="text-xs text-[#6B778C] mt-1 font-medium">พยาธิสภาพเกิดจากการจัดตารางเวลากะพนักงานไม่สอดคล้องกับสภาพทราฟฟิกขึ้นลงของออเดอร์ในแต่ละช่วงเวลา ส่งผลให้เกิดค่าแรงส่วนเกินสูญเปล่า</p>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+                        <h4 class="text-xs font-bold text-[#FF5630]">📋 ACTIONABLE PRESCRIPTION CHECK-LIST</h4>
+                        <div class="space-y-2 text-xs font-semibold text-[#172B4D]">
+                            <div class="flex items-center gap-2 bg-slate-50 p-2 rounded"><input type="checkbox" class="w-4 h-4 text-[#0052CC]"> 1. พิจารณาปรับลดชั่วโมงการทำงานที่ไม่จำเป็น (Overtime) ในช่วงเวลาที่ปริมาณออเดอร์ลดต่ำลง</div>
+                            <div class="flex items-center gap-2 bg-slate-50 p-2 rounded"><input type="checkbox" class="w-4 h-4 text-[#0052CC]"> 2. ปรับแผนการจัดตารางพนักงานพาร์ทไทม์ให้เข้าเฉพาะช่วงเวลา Peak Hour เท่านั้น</div>
+                        </div>
+                    </div>
+                `;
+            } else if (stationType === 'material') {
+                const isGreen = currentReportData.materialCostPct <= 35;
+                htmlContent = `
+                    <div class="text-center p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="w-24 h-24 mx-auto bg-slate-200 rounded-full mb-3 flex items-center justify-center font-bold text-3xl">🍲</div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200 text-xs font-semibold leading-relaxed">
+                            ${isGreen ? '“ของในครัวคุมสัดส่วนตักชั่งได้แม่นยำดีพี่! ต้นทุนวัตถุดิบไม่บานปลาย บอทหมอเช็กแล้วผ่านเกณฑ์สากลฉลุยครับ”' : '“เด็กหน้าเตาตักของแถมหรือทำของเสียบ่อยแน่ ๆ พี่ ยอดซื้อวัตถุดิบวันนี้พุ่งกระฉูดสวนทางสัดส่วนบิลออเดอร์ที่ปิดเก๊ะมาเลยครับ”'}
+                        </div>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-4">
+                        <span class="text-xs font-bold text-[#6B778C] block mb-2">🥩 INVENTORY COGS DISSECTION</span>
+                        <div class="space-y-2 text-xs font-medium">
+                            <div class="flex justify-between py-1 border-b border-slate-100"><span>สัดส่วนต้นทุนวัตถุดิบ (COGS)</span><span class="font-bold text-[#172B4D]">${currentReportData.materialCostPct.toFixed(1)}%</span></div>
+                            <div class="text-[10px] text-[#6B778C]">กรอบตัวเลขคำนวณจากยอดมูลค่าวัตถุดิบดิบที่ใช้แปรผันตรงต่อยอดรวม Gross Revenue</div>
+                        </div>
+                    </div>
+                    <div class="bg-[#F4F5F7] border-l-4 border-[#FF5630] p-4 rounded-r-lg">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-[#172B4D]">Clinical Diagnosis (Material Control)</h4>
+                        <p class="text-xs text-[#6B778C] mt-1 font-medium">พบความเสี่ยงของการรั่วไหลในขั้นตอนการสัดส่วนจัดเตรียมวัตถุดิบ (Yield Management) หรือโครงสร้างราคาขายบนช่องทางแอปพลิเคชันไม่ครอบคลุมต้นทุนแฝง</p>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+                        <h4 class="text-xs font-bold text-[#FF5630]">📋 ACTIONABLE PRESCRIPTION CHECK-LIST</h4>
+                        <div class="space-y-2 text-xs font-semibold text-[#172B4D]">
+                            <div class="flex items-center gap-2 bg-slate-50 p-2 rounded"><input type="checkbox" class="w-4 h-4 text-[#0052CC]"> 1. ตรวจสอบมาตรฐานสัดส่วนการชั่งตวงวัตถุดิบหน้าครัว เพื่อคุมให้อยู่ในกรอบมาตรฐานสากล</div>
+                            <div class="flex items-center gap-2 bg-slate-50 p-2 rounded"><input type="checkbox" class="w-4 h-4 text-[#0052CC]"> 2. ปรับโครงสร้างราคาอาหารในช่องทางเดลิเวอรีเพื่อชดเชยค่าธรรมเนียมแพลตฟอร์ม (GP)</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = htmlContent;
+        }
+    </script>
+</head>
+<body class="bg-[#F8F9FA] text-[#172B4D] min-h-screen antialiased p-4 sm:p-6">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="border-b border-[#EAECEF] pb-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div>
+                <h1 class="text-xl font-black text-[#0052CC] tracking-wide flex items-center gap-2">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#0052CC]"></span>
+                    DELI DAILY LIFF <span class="text-xs bg-[#0052CC]/10 text-[#0052CC] px-2 py-0.5 rounded font-mono">v1.6 SPA</span>
+                </h1>
+                <p class="text-xs text-[#6B778C] font-medium tracking-wide mt-0.5">ระบบวิเคราะห์ท่อส่งน้ำและพยาธิสภาพร้านอาหารผ่าน Journey พิเศษ</p>
+            </div>
+            <div class="text-xs bg-white border border-[#EAECEF] px-3 py-1.5 rounded-md text-[#6B778C] font-mono font-bold shadow-sm">
+                JOURNEY: MULTI_STAGE_ACTIVE
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <section class="bg-white border border-[#EAECEF] rounded-xl p-5 shadow-sm flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-2 mb-4 border-b border-[#EAECEF] pb-2">
+                        <span class="text-base">🧬</span>
+                        <h2 class="text-base font-bold text-[#172B4D]">Phase 1: ตั้งค่าโครงสร้างร่างกายร้าน (Master Setup)</h2>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-[#6B778C] mb-1">Fix Cost (ค่าใช้จ่ายคงที่รายเดือนรวมทั้งหมด / บาท)</label>
+                            <input type="number" id="fixCost" value="50000" class="w-full bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-2 text-[#172B4D] focus:outline-none focus:border-[#0052CC] font-mono text-sm font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-[#6B778C] mb-1">เวลาเปิด - ปิดร้าน</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="flex items-center bg-[#F4F5F7] border border-[#DFE1E6] rounded-md px-2">
+                                    <span class="text-xs text-[#6B778C] mr-1">เปิด</span>
+                                    <input type="time" id="openTime" value="10:00" class="w-full bg-transparent border-0 p-2 text-[#172B4D] focus:outline-none font-mono text-xs font-bold">
+                                </div>
+                                <div class="flex items-center bg-[#F4F5F7] border border-[#DFE1E6] rounded-md px-2">
+                                    <span class="text-xs text-[#6B778C] mr-1">ปิด</span>
+                                    <input type="time" id="closeTime" value="22:00" class="w-full bg-transparent border-0 p-2 text-[#172B4D] focus:outline-none font-mono text-xs font-bold">
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-[#6B778C] mb-1">Platform GP (%)</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-1.5 text-center">
+                                    <span class="block text-[10px] text-[#6B778C] font-bold mb-0.5">Grab</span>
+                                    <input type="number" id="gpGrab" value="30" class="w-full bg-transparent border-0 text-center text-[#172B4D] focus:outline-none font-mono font-bold text-xs">
+                                </div>
+                                <div class="bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-1.5 text-center">
+                                    <span class="block text-[10px] text-[#6B778C] font-bold mb-0.5">LINE MAN</span>
+                                    <input type="number" id="gpLine" value="30" class="w-full bg-transparent border-0 text-center text-[#172B4D] focus:outline-none font-mono font-bold text-xs">
+                                </div>
+                                <div class="bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-1.5 text-center">
+                                    <span class="block text-[10px] text-[#6B778C] font-bold mb-0.5">Shopee</span>
+                                    <input type="number" id="gpShopee" value="30" class="w-full bg-transparent border-0 text-center text-[#172B4D] focus:outline-none font-mono font-bold text-xs">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-semibold text-[#6B778C] mb-1">ยอดขายเฉลี่ยรายวันปกติ</label>
+                                <input type="number" id="avgSales" value="15000" class="w-full bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-2 text-[#172B4D] focus:outline-none focus:border-[#0052CC] font-mono text-xs font-bold">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-[#6B778C] mb-1">ยอดสูงสุด (Max Capacity)</label>
+                                <input type="number" id="maxSales" value="30000" class="w-full bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-2 text-[#172B4D] focus:outline-none focus:border-[#0052CC] font-mono text-xs font-bold">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white border border-[#EAECEF] rounded-xl p-5 shadow-sm flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-2 mb-4 border-b border-[#EAECEF] pb-2">
+                        <span class="text-lg">🩺</span>
+                        <h2 class="text-base font-bold text-[#172B4D]">Phase 2: ชีพจรรายวัน (Daily Pulse Input)</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-[#F4F5F7] p-3 rounded-lg border border-[#DFE1E6]">
+                            <span class="block text-xs font-bold text-[#172B4D] mb-2">1. รายรับแยกตามช่องทาง [ ยอดเงิน (บาท) ] × [ ออเดอร์ (บิล) ]</span>
+                            <div class="space-y-2">
+                                <div class="grid grid-cols-12 gap-2 items-center">
+                                    <div class="col-span-3 text-xs font-bold text-[#6B778C]">Grab</div>
+                                    <input type="number" id="salesGrab" value="9505" class="col-span-5 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
+                                    <input type="number" id="billGrab" value="45" class="col-span-4 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
+                                </div>
+                                <div class="grid grid-cols-12 gap-2 items-center">
+                                    <div class="col-span-3 text-xs font-bold text-[#6B778C]">LINE MAN</div>
+                                    <input type="number" id="salesLine" value="3800" class="col-span-5 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
+                                    <input type="number" id="billLine" value="20" class="col-span-4 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
+                                </div>
+                                <div class="grid grid-cols-12 gap-2 items-center">
+                                    <div class="col-span-3 text-xs font-bold text-[#6B778C]">Shopee</div>
+                                    <input type="number" id="salesShopee" value="1200" class="col-span-5 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
+                                    <input type="number" id="billShopee" value="9" class="col-span-4 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
+                                </div>
+                                <div class="grid grid-cols-12 gap-2 items-center">
+                                    <div class="col-span-3 text-xs font-bold text-[#6B778C]">หน้าร้าน</div>
+                                    <input type="number" id="salesOffline" value="6510" class="col-span-5 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
+                                    <input type="number" id="billOffline" value="27" class="col-span-4 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-semibold text-[#6B778C] mb-1">2. จ่ายค่าแรงรวมวันนี้</label>
+                                <input type="number" id="laborCost" value="4500" class="w-full bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-2 text-[#172B4D] font-mono font-bold text-xs text-center">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-[#6B778C] mb-1">3. จำนวนหัวพนักงาน</label>
+                                <input type="number" id="staffCount" value="3" class="w-full bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-2 text-[#172B4D] font-mono font-bold text-xs text-center">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-[#6B778C] mb-1">4. ควักจ่ายซื้อวัตถุดิบวันนี้ (บาท)</label>
+                            <input type="number" id="materialCost" value="5500" class="w-full bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-2 text-[#172B4D] font-mono font-bold text-sm text-center">
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-5">
+                    <button id="btnScanReverse" type="button" class="w-full bg-[#0052CC] hover:bg-[#0065FF] text-white font-bold py-3.5 px-4 rounded-lg shadow-md active:scale-95 transition-all text-sm tracking-wide">
+                        ⚡ รันระบบ Reverse Engine วิเคราะห์ห้อง X-Ray v1.6
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <hr class="border-[#EAECEF] my-8">
+
+        <main id="diagnosticResult" class="hidden space-y-6">
+            <h2 class="text-lg font-black text-[#172B4D] flex items-center gap-2">📋 ผลวิเคราะห์แล็บปฏิบัติการย้อนกลับ</h2>
+            
+            <div id="mainResultDashboard" class="space-y-6">
+                <div class="bg-white border border-[#EAECEF] rounded-xl p-5 shadow-sm">
+                    <h3 class="text-xs font-bold text-[#6B778C] uppercase tracking-widest border-b border-[#EAECEF] pb-2 mb-3">GENERAL OPERATIONAL REPORT</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left font-medium">
+                            <tbody class="divide-y divide-[#EAECEF]">
+                                <tr><td class="py-2.5 text-[#6B778C]">ยอดขายรวม (Gross Revenue)</td><td id="tblGross" class="py-2.5 text-right font-black font-mono text-[#0052CC] text-base">-</td></tr>
+                                <tr><td class="py-2.5 text-[#6B778C]">ยอดรวมเดลิเวอรี่ (Total Delivery)</td><td id="tblDeliveryGross" class="py-2.5 text-right font-mono text-[#172B4D]">-</td></tr>
+                                <tr><td class="py-2.5 text-[#6B778C]">ยอดรวมหัก GP% เดลิเวอรี่</td><td id="tblDeliveryNet" class="py-2.5 text-right font-mono text-[#172B4D]">-</td></tr>
+                                <tr><td class="py-2.5 text-[#6B778C]">สรุปยอดหน้าร้าน เงินสด/โอน</td><td id="tblOffline" class="py-2.5 text-right font-black font-mono text-[#36B37E]">-</td></tr>
+                                <tr><td class="py-2.5 text-[#6B778C]">สัดส่วน เดลิเวอรี่ / หน้าร้าน</td><td id="tblTrafficRatio" class="py-2.5 text-right font-mono font-bold text-[#6B778C]">-</td></tr>
+                                <tr><td class="py-2.5 text-[#6B778C]">รวมค่าใช้จ่ายประจำวัน (Total Expenses)</td><td id="tblExpenses" class="py-2.5 text-right font-mono text-[#FF5630] font-bold">-</td></tr>
+                                <tr class="border-t-2 border-[#EAECEF]"><td class="py-3 text-[#172B4D] font-bold">ยอดสุทธิเข้ากระเป๋าจริง (Net Cash)</td><td id="tblNetCash" class="py-3 text-right font-black font-mono text-[#36B37E] text-lg">-</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <p class="text-xs font-bold text-[#6B778C] italic text-center sm:text-left">💡 แตะที่คาร์ดใบใดก็ได้ด้านล่างเพื่อเปิดหน้าต่างเจาะลึกพยาธิสภาพแยกรายสถานี</p>
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div id="boxSPI" onclick="switchView('spi')" class="bg-white border border-[#EAECEF] p-4 rounded-xl shadow-sm text-center flex flex-col items-center justify-between cursor-pointer transition-all hover:border-[#0052CC] hover:bg-slate-50">
+                        <span class="text-xs font-bold text-[#6B778C] uppercase">ดัชนีกำไร SPI</span>
+                        <div class="relative w-24 h-24 my-2 flex items-center justify-center">
+                            <svg class="absolute w-full h-full" viewBox="0 0 100 100"><circle class="circle-bg" cx="50" cy="50" r="45"/><circle id="spiCircularProgress" class="circle-progress" cx="50" cy="50" r="45" stroke-dasharray="282.7" stroke-dashoffset="282.7"/></svg>
+                            <span id="outSPI" class="text-base font-black text-[#0052CC] font-mono">0%</span>
+                        </div>
+                        <div id="outSpiDiffBox" class="text-[10px] font-bold px-2 py-0.5 rounded-full mt-1">-</div>
+                    </div>
+                    <div id="boxPrime" onclick="switchView('prime')" class="bg-white border p-4 rounded-xl shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:bg-slate-50">
+                        <span class="text-xs font-bold text-[#6B778C]">🥩 Prime Cost วันนี้</span>
+                        <div id="outPrimeCost" class="text-lg font-black font-mono text-[#172B4D] mt-2">-</div>
+                        <span class="text-[10px] text-[#6B778C] font-semibold mt-1">Standard: 55-60%</span>
+                    </div>
+                    <div id="boxLabor" onclick="switchView('labor')" class="bg-white border p-4 rounded-xl shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:bg-slate-50">
+                        <span class="text-xs font-bold text-[#6B778C]">👥 Labor Cost วันนี้</span>
+                        <div id="outLaborCost" class="text-lg font-black font-mono text-[#172B4D] mt-2">-</div>
+                        <span class="text-[10px] text-[#6B778C] font-semibold mt-1">Standard: 25-35%</span>
+                    </div>
+                    <div id="boxMaterial" onclick="switchView('material')" class="bg-white border p-4 rounded-xl shadow-sm flex flex-col justify-between cursor-pointer transition-all hover:bg-slate-50">
+                        <span class="text-xs font-bold text-[#6B778C]">🍲 Material Cost วันนี้</span>
+                        <div id="outMaterialCost" class="text-lg font-black font-mono text-[#172B4D] mt-2">-</div>
+                        <span class="text-[10px] text-[#6B778C] font-semibold mt-1">Standard: 28-35%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="stationDetailView" class="hidden bg-white border border-[#EAECEF] rounded-xl p-6 shadow-md space-y-6">
+                <div class="flex justify-between items-center border-b border-[#EAECEF] pb-3">
+                    <button type="button" onclick="switchView('main')" class="text-xs font-bold text-[#0052CC] hover:text-[#0065FF] flex items-center gap-1 bg-[#0052CC]/10 px-3 py-1.5 rounded-md transition-all">
+                        ◀ ย้อนกลับหน้าหลัก
+                    </button>
+                    <span class="text-xs font-mono font-bold text-[#6B778C]">STATION DIAGNOSTIC APP</span>
+                </div>
+
+                <div id="stationDynamicContainer" class="space-y-5">
+                    </div>
+
+                <div class="border-t border-[#EAECEF] pt-5 mt-6">
+                    <div class="bg-slate-50 border border-[#EAECEF] rounded-xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h4 class="text-sm font-black text-[#172B4D]">Deli Daily : Lite Bundle</h4>
+                            <p class="text-xs text-[#6B778C] mt-1 leading-normal max-w-xl">
+                                นำชุดเครื่องมือและพิมพ์เขียวมาตรฐานสากลไปเริ่มต้นปรับใช้งานจริง เพื่ออุดรอยรั่วหน้าครัวรายวัน และขยับร้านอาหารของคุณให้ดีขึ้นวันละ 1%
+                            </p>
+                        </div>
+                        <a href="https://shop.line.me" target="_blank" class="w-full sm:w-auto bg-[#0052CC] hover:bg-[#0065FF] text-white font-black text-xs py-3 px-5 rounded-lg text-center shadow transition-all whitespace-nowrap">
+                            เริ่มต้นใช้งาน Lite Bundle
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</body>
+</html>
