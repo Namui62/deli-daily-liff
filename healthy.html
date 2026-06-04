@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deli Daily LIFF v1.5 - ห้อง X-Ray ร้านอาหาร (Fixed Button)</title>
+    <title>Deli Daily LIFF v1.5 - ห้อง X-Ray ร้านอาหาร (Fixed & Swapped)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -78,7 +78,6 @@
                 const materialCostPct = (materialCost / totalGross) * 100;
                 const splh = totalLaborHours > 0 ? (netCashReceipts / totalLaborHours) : 0;
                 const spi = avgSales > 0 ? (netCashReceipts / avgSales) * 80 : 0;
-                const taxLeak = totalGross - netCashReceipts;
 
                 // Per Ticket Size Math
                 const totalTickets = bGrab + bLine + bShopee + bOffline;
@@ -126,11 +125,7 @@
                 bLabor.className = `text-[10px] px-2 py-0.5 rounded font-black border ${(laborCostPct >= 25 && laborCostPct <= 35) ? 'bg-[#E3FCEF] text-[#006644] border-[#ABF5D1]' : 'bg-[#FFEBE6] text-[#BF2600] border-[#FFBDAD]'}`;
                 bDeli.className = `text-[10px] px-2 py-0.5 rounded font-black border ${pRatio <= 50 ? 'bg-[#E3FCEF] text-[#006644] border-[#ABF5D1]' : 'bg-[#FFF0B3] text-[#172B4D] border-[#FFE380]'}`;
 
-                // Part 3: Render Platform Tax Leak Info
-                document.getElementById('outTaxLeak').innerText = Math.round(taxLeak).toLocaleString();
-                document.getElementById('outTaxLeakSub').innerText = `(วันนี้คุณจ่ายค่าตงให้แอปไป ${Math.round(taxLeak).toLocaleString()} บาท ซึ่งสูงกว่าค่าแรงพนักงานทุกคนรวมกันในวันนี้ที่จ่ายไป ${Math.round(laborCost).toLocaleString()} บาท!)`;
-
-                // Part 4: Global Compliance Metrics Data mapping
+                // Part 3: Global Compliance Metrics Data mapping
                 document.getElementById('outPrimeCost').innerText = `${Math.round(totalExpenses).toLocaleString()} ฿ (${primeCostPct.toFixed(1)}%)`;
                 document.getElementById('outLaborCost').innerText = `${Math.round(laborCost).toLocaleString()} ฿ (${laborCostPct.toFixed(1)}%)`;
                 document.getElementById('outMaterialCost').innerText = `${Math.round(materialCost).toLocaleString()} ฿ (${materialCostPct.toFixed(1)}%)`;
@@ -138,7 +133,7 @@
                 const boxPrime = document.getElementById('boxPrime');
                 boxPrime.className = `p-4 rounded-lg border ${primeCostPct <= 60 ? 'bg-[#E3FCEF] border-[#ABF5D1]' : 'bg-[#FFEBE6] border-[#FFBDAD]'}`;
 
-                // Part 5: Labor Productivity (SPLH Framework Scale mapping)
+                // Part 4: Labor Productivity (SPLH Framework Scale mapping)
                 document.getElementById('outSPLH').innerText = Math.round(splh).toLocaleString() + " ฿ / ชม.";
                 document.getElementById('outSPLHSub').innerText = `(เฉลี่ยพนักงาน 1 คน ช่วยรีดเงินสดเข้าบ้านให้คุณได้ชั่วโมงละ ${Math.round(splh).toLocaleString()} บาท)`;
                 
@@ -153,7 +148,7 @@
                     sCafe.className = "flex-1 sm:flex-none border border-[#36B37E] p-2 rounded text-center transition-all bg-[#E3FCEF] text-[#006644] font-bold";
                 }
 
-                // Part 6: Per Ticket Matrix data mapping
+                // Part 5: Per Ticket Matrix Data Bug Fixed Mapping
                 document.getElementById('outTotalTickets').innerText = totalTickets.toLocaleString();
                 document.getElementById('ticketGrab').innerText = Math.round(tGrab).toLocaleString() + " ฿";
                 document.getElementById('ticketLine').innerText = Math.round(tLine).toLocaleString() + " ฿";
@@ -233,7 +228,7 @@
                                 </div>
                                 <div class="bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-1.5 text-center">
                                     <span class="block text-[10px] text-[#6B778C] font-bold mb-0.5">Shopee</span>
-                                    <input type="number" id="gpShopee" value="30" class="w-full bg-transparent border-0 text-center text-[#172B4D] focus:outline-none font-mono font-bold text-xs">
+                                    <input type="number" id="gpShopee" value="30" class="w-full bg-transparent border-0 text-center text-slate-200 focus:outline-none font-mono font-bold text-xs">
                                 </div>
                             </div>
                         </div>
@@ -320,47 +315,6 @@
 
         <main id="diagnosticResult" class="hidden space-y-6">
             
-            <div class="bg-white border border-[#EAECEF] rounded-xl p-6 shadow-sm relative overflow-hidden flex flex-col items-center text-center">
-                
-                <div class="absolute top-4 right-4 flex gap-2">
-                    <span id="badgeCogs" class="text-[10px] px-2 py-0.5 rounded font-black tracking-wide border">🥩 COGS</span>
-                    <span id="badgeLabor" class="text-[10px] px-2 py-0.5 rounded font-black tracking-wide border">👥 LABOR</span>
-                    <span id="badgeDelivery" class="text-[10px] px-2 py-0.5 rounded font-black tracking-wide border">🛵 DELI</span>
-                </div>
-
-                <h3 class="text-xs font-black text-[#6B778C] uppercase tracking-widest mb-2 w-full text-left sm:text-center border-b sm:border-b-0 border-[#EAECEF] pb-2 sm:pb-0">
-                    ดัชนีพลังทำกำไรสุทธิ (SPI)
-                </h3>
-
-                <div class="relative w-40 h-40 my-3 flex items-center justify-center">
-                    <svg class="absolute w-full h-full" viewBox="0 0 100 100">
-                        <circle class="circle-bg" cx="50" cy="50" r="45"/>
-                        <circle id="spiCircularProgress" class="circle-progress" cx="50" cy="50" r="45" stroke-dasharray="282.7" stroke-dashoffset="282.7"/>
-                    </svg>
-                    <div class="text-center z-10">
-                        <span id="outSPI" class="text-3xl font-black text-[#0052CC] font-mono tracking-tighter">0%</span>
-                    </div>
-                </div>
-
-                <div id="outSpiDiffBox" class="text-xs font-bold px-3 py-1 rounded-full mt-1">
-                    -
-                </div>
-
-                <div class="text-[10px] text-[#6B778C] font-bold uppercase mt-4 tracking-wider">
-                    ดีขึ้นวันละ 1% (Kaizen Mindset)
-                </div>
-            </div>
-
-            <div class="bg-white border-l-4 border-[#FF5630] border-[#EAECEF] rounded-r-xl p-5 shadow-sm">
-                <div class="text-xs font-bold text-[#FF5630] uppercase tracking-wide">⚠️ THE PLATFORM TAX LEAK (รูรั่วเม็ดเงินแฝง)</div>
-                <div class="text-xl font-bold text-[#172B4D] mt-1 font-mono">
-                    ค่าตงเดลิเวอรีที่จ่ายทิ้งวันนี้: <span id="outTaxLeak" class="text-[#FF5630] font-black">0</span> บาท
-                </div>
-                <div id="outTaxLeakSub" class="text-xs text-[#6B778C] mt-1 font-medium leading-relaxed">
-                    -
-                </div>
-            </div>
-
             <div class="bg-white border border-[#EAECEF] rounded-xl p-5 shadow-sm">
                 <h3 class="text-xs font-bold text-[#6B778C] uppercase tracking-widest border-b border-[#EAECEF] pb-2 mb-3">GENERAL OPERATIONAL REPORT</h3>
                 <div class="overflow-x-auto">
@@ -396,6 +350,37 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <div class="bg-white border border-[#EAECEF] rounded-xl p-6 shadow-sm relative overflow-hidden flex flex-col items-center text-center">
+                
+                <div class="absolute top-4 right-4 flex gap-2">
+                    <span id="badgeCogs" class="text-[10px] px-2 py-0.5 rounded font-black tracking-wide border">🥩 COGS</span>
+                    <span id="badgeLabor" class="text-[10px] px-2 py-0.5 rounded font-black tracking-wide border">👥 LABOR</span>
+                    <span id="badgeDelivery" class="text-[10px] px-2 py-0.5 rounded font-black tracking-wide border">🛵 DELI</span>
+                </div>
+
+                <h3 class="text-xs font-black text-[#6B778C] uppercase tracking-widest mb-2 w-full text-left sm:text-center border-b sm:border-b-0 border-[#EAECEF] pb-2 sm:pb-0">
+                    ดัชนีพลังทำกำไรสุทธิ (SPI)
+                </h3>
+
+                <div class="relative w-40 h-40 my-3 flex items-center justify-center">
+                    <svg class="absolute w-full h-full" viewBox="0 0 100 100">
+                        <circle class="circle-bg" cx="50" cy="50" r="45"/>
+                        <circle id="spiCircularProgress" class="circle-progress" cx="50" cy="50" r="45" stroke-dasharray="282.7" stroke-dashoffset="282.7"/>
+                    </svg>
+                    <div class="text-center z-10">
+                        <span id="outSPI" class="text-3xl font-black text-[#0052CC] font-mono tracking-tighter">0%</span>
+                    </div>
+                </div>
+
+                <div id="outSpiDiffBox" class="text-xs font-bold px-3 py-1 rounded-full mt-1">
+                    -
+                </div>
+
+                <div class="text-[10px] text-[#6B778C] font-bold uppercase mt-4 tracking-wider">
+                    ดีขึ้นวันละ 1% (Kaizen Mindset)
                 </div>
             </div>
 
