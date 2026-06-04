@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deli Daily LIFF v1.5 - ห้อง X-Ray ร้านอาหาร</title>
+    <title>Deli Daily LIFF v1.5 - ห้อง X-Ray ร้านอาหาร (Fixed Button)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,6 +18,162 @@
         .circle-bg { fill: none; stroke: #EAECEF; stroke-width: 3.8; }
         .circle-progress { fill: none; stroke: #36B37E; stroke-width: 3.8; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dasharray 0.5s ease-out; }
     </style>
+
+    <script>
+        window.onload = function() {
+            const scanBtn = document.getElementById('btnScanReverse');
+            if(scanBtn) {
+                scanBtn.addEventListener('click', runReverseEngine);
+            }
+        };
+
+        function runReverseEngine() {
+            try {
+                // Phase 1 Setup Variables
+                const fixCost = parseFloat(document.getElementById('fixCost').value) || 0;
+                const openTime = document.getElementById('openTime').value;
+                const closeTime = document.getElementById('closeTime').value;
+                const avgSales = parseFloat(document.getElementById('avgSales').value) || 0;
+                const gpGrab = (parseFloat(document.getElementById('gpGrab').value) || 0) / 100;
+                const gpLine = (parseFloat(document.getElementById('gpLine').value) || 0) / 100;
+                const gpShopee = (parseFloat(document.getElementById('gpShopee').value) || 0) / 100;
+
+                // Phase 2 Multi-Column Pulse Variables
+                const sGrab = parseFloat(document.getElementById('salesGrab').value) || 0;
+                const bGrab = parseFloat(document.getElementById('billGrab').value) || 0;
+                const sLine = parseFloat(document.getElementById('salesLine').value) || 0;
+                const bLine = parseFloat(document.getElementById('billLine').value) || 0;
+                const sShopee = parseFloat(document.getElementById('salesShopee').value) || 0;
+                const bShopee = parseFloat(document.getElementById('billShopee').value) || 0;
+                const sOffline = parseFloat(document.getElementById('salesOffline').value) || 0;
+                const bOffline = parseFloat(document.getElementById('billOffline').value) || 0;
+                
+                const laborCost = parseFloat(document.getElementById('laborCost').value) || 0;
+                const staffCount = parseFloat(document.getElementById('staffCount').value) || 0;
+                const materialCost = parseFloat(document.getElementById('materialCost').value) || 0;
+
+                // Validation Soft Guard
+                if ((sGrab + sLine + sShopee + sOffline) <= 0 || staffCount <= 0) {
+                    alert("⚠️ [Soft Guard] กรุณากรอกยอดรับเงิน และจำนวนพนักงานปฏิบัติงานหน้างานจริงเพื่อประมวลผล!");
+                    return;
+                }
+
+                // Core Mathematical Calculations
+                const totalGross = sGrab + sLine + sShopee + sOffline;
+                const deliveryGross = sGrab + sLine + sShopee;
+                const deliveryNet = (sGrab * (1 - gpGrab)) + (sLine * (1 - gpLine)) + (sShopee * (1 - gpShopee));
+                const netCashReceipts = deliveryNet + sOffline;
+                const totalExpenses = laborCost + materialCost;
+
+                // Operating Labor Clock
+                let [openH, openM] = openTime.split(':').map(Number);
+                let [closeH, closeM] = closeTime.split(':').map(Number);
+                let totalHours = (closeH + closeM/60) - (openH + openM/60);
+                if (totalHours <= 0) totalHours += 24; 
+                const totalLaborHours = totalHours * staffCount;
+
+                // Financial Ratios
+                const primeCostPct = (totalExpenses / totalGross) * 100;
+                const laborCostPct = (laborCost / totalGross) * 100;
+                const materialCostPct = (materialCost / totalGross) * 100;
+                const splh = totalLaborHours > 0 ? (netCashReceipts / totalLaborHours) : 0;
+                const spi = avgSales > 0 ? (netCashReceipts / avgSales) * 80 : 0;
+                const taxLeak = totalGross - netCashReceipts;
+
+                // Per Ticket Size Math
+                const totalTickets = bGrab + bLine + bShopee + bOffline;
+                const tGrab = bGrab > 0 ? (sGrab / bGrab) : 0;
+                const tLine = bLine > 0 ? (sLine / bLine) : 0;
+                const tShopee = bShopee > 0 ? (sShopee / bShopee) : 0;
+                const tOffline = bOffline > 0 ? (sOffline / bOffline) : 0;
+
+                // Display Core Container
+                document.getElementById('diagnosticResult').classList.remove('hidden');
+
+                // Part 1: Render General Operational Report Table
+                document.getElementById('tblGross').innerText = Math.round(totalGross).toLocaleString() + " ฿";
+                document.getElementById('tblDeliveryGross').innerText = Math.round(deliveryGross).toLocaleString() + " ฿";
+                document.getElementById('tblDeliveryNet').innerText = Math.round(deliveryNet).toLocaleString() + " ฿";
+                document.getElementById('tblOffline').innerText = Math.round(sOffline).toLocaleString() + " ฿";
+                
+                const pRatio = totalGross > 0 ? ((deliveryGross / totalGross) * 100) : 0;
+                const oRatio = totalGross > 0 ? ((sOffline / totalGross) * 100) : 0;
+                document.getElementById('tblTrafficRatio').innerText = `Delivery ${pRatio.toFixed(0)}% : Walk-in ${oRatio.toFixed(0)}%`;
+                document.getElementById('tblExpenses').innerText = Math.round(totalExpenses).toLocaleString() + " ฿";
+                document.getElementById('tblNetCash').innerText = Math.round(netCashReceipts).toLocaleString() + " ฿";
+
+                // Part 2: Premium SPI Circular Gauge Renderer
+                document.getElementById('outSPI').innerText = spi.toFixed(1) + "%";
+                const circularOffset = 282.7 - (282.7 * Math.min(spi, 100)) / 100;
+                document.getElementById('spiCircularProgress').style.strokeDashoffset = circularOffset;
+
+                const spiDiffBox = document.getElementById('outSpiDiffBox');
+                const spiBaselineDiff = spi - 80;
+                if (spiBaselineDiff >= 0) {
+                    spiDiffBox.className = "text-xs font-bold px-3 py-1 rounded-full mt-1 bg-[#E3FCEF] text-[#006644]";
+                    spiDiffBox.innerText = `+${spiBaselineDiff.toFixed(1)}% vs Baseline (80%)`;
+                } else {
+                    spiDiffBox.className = "text-xs font-bold px-3 py-1 rounded-full mt-1 bg-[#FFEBE6] text-[#BF2600]";
+                    spiDiffBox.innerText = `${spiBaselineDiff.toFixed(1)}% vs Baseline (80%)`;
+                }
+
+                // Component Embedded Icon Indicators Status Colors
+                const bCogs = document.getElementById('badgeCogs');
+                const bLabor = document.getElementById('badgeLabor');
+                const bDeli = document.getElementById('badgeDelivery');
+
+                bCogs.className = `text-[10px] px-2 py-0.5 rounded font-black border ${materialCostPct <= 35 ? 'bg-[#E3FCEF] text-[#006644] border-[#ABF5D1]' : 'bg-[#FFEBE6] text-[#BF2600] border-[#FFBDAD]'}`;
+                bLabor.className = `text-[10px] px-2 py-0.5 rounded font-black border ${(laborCostPct >= 25 && laborCostPct <= 35) ? 'bg-[#E3FCEF] text-[#006644] border-[#ABF5D1]' : 'bg-[#FFEBE6] text-[#BF2600] border-[#FFBDAD]'}`;
+                bDeli.className = `text-[10px] px-2 py-0.5 rounded font-black border ${pRatio <= 50 ? 'bg-[#E3FCEF] text-[#006644] border-[#ABF5D1]' : 'bg-[#FFF0B3] text-[#172B4D] border-[#FFE380]'}`;
+
+                // Part 3: Render Platform Tax Leak Info
+                document.getElementById('outTaxLeak').innerText = Math.round(taxLeak).toLocaleString();
+                document.getElementById('outTaxLeakSub').innerText = `(วันนี้คุณจ่ายค่าตงให้แอปไป ${Math.round(taxLeak).toLocaleString()} บาท ซึ่งสูงกว่าค่าแรงพนักงานทุกคนรวมกันในวันนี้ที่จ่ายไป ${Math.round(laborCost).toLocaleString()} บาท!)`;
+
+                // Part 4: Global Compliance Metrics Data mapping
+                document.getElementById('outPrimeCost').innerText = `${Math.round(totalExpenses).toLocaleString()} ฿ (${primeCostPct.toFixed(1)}%)`;
+                document.getElementById('outLaborCost').innerText = `${Math.round(laborCost).toLocaleString()} ฿ (${laborCostPct.toFixed(1)}%)`;
+                document.getElementById('outMaterialCost').innerText = `${Math.round(materialCost).toLocaleString()} ฿ (${materialCostPct.toFixed(1)}%)`;
+
+                const boxPrime = document.getElementById('boxPrime');
+                boxPrime.className = `p-4 rounded-lg border ${primeCostPct <= 60 ? 'bg-[#E3FCEF] border-[#ABF5D1]' : 'bg-[#FFEBE6] border-[#FFBDAD]'}`;
+
+                // Part 5: Labor Productivity (SPLH Framework Scale mapping)
+                document.getElementById('outSPLH').innerText = Math.round(splh).toLocaleString() + " ฿ / ชม.";
+                document.getElementById('outSPLHSub').innerText = `(เฉลี่ยพนักงาน 1 คน ช่วยรีดเงินสดเข้าบ้านให้คุณได้ชั่วโมงละ ${Math.round(splh).toLocaleString()} บาท)`;
+                
+                const sQuick = document.getElementById('scaleQuick');
+                const sCafe = document.getElementById('scaleCafe');
+                sQuick.className = "flex-1 sm:flex-none border p-2 rounded text-center transition-all bg-[#F4F5F7] text-[#6B778C] border-[#EAECEF]";
+                sCafe.className = "flex-1 sm:flex-none border p-2 rounded text-center transition-all bg-[#F4F5F7] text-[#6B778C] border-[#EAECEF]";
+
+                if(splh >= 500) {
+                    sQuick.className = "flex-1 sm:flex-none border border-[#36B37E] p-2 rounded text-center transition-all bg-[#E3FCEF] text-[#006644] font-bold";
+                } else if(splh >= 350 && splh < 500) {
+                    sCafe.className = "flex-1 sm:flex-none border border-[#36B37E] p-2 rounded text-center transition-all bg-[#E3FCEF] text-[#006644] font-bold";
+                }
+
+                // Part 6: Per Ticket Matrix data mapping
+                document.getElementById('outTotalTickets').innerText = totalTickets.toLocaleString();
+                document.getElementById('ticketGrab').innerText = Math.round(tGrab).toLocaleString() + " ฿";
+                document.getElementById('ticketLine').innerText = Math.round(tLine).toLocaleString() + " ฿";
+                document.getElementById('ticketShopee').innerText = Math.round(tShopee).toLocaleString() + " ฿";
+                document.getElementById('ticketOffline').innerText = Math.round(tOffline).toLocaleString() + " ฿";
+
+                // Bot Alert Area Theme Color mapping
+                const diagnosticAlert = document.getElementById('diagnosticAlert');
+                const alertIcon = document.getElementById('alertIcon');
+                diagnosticAlert.className = `border rounded-xl p-5 flex items-start gap-3 transition-all ${primeCostPct <= 60 ? 'bg-[#E3FCEF] border-[#ABF5D1]' : 'bg-[#FFEBE6] border-[#FFBDAD]'}`;
+                alertIcon.innerText = primeCostPct <= 60 ? "❇️" : "🚨";
+
+                // Smooth execution scroll down
+                document.getElementById('diagnosticResult').scrollIntoView({ behavior: 'smooth' });
+            } catch (err) {
+                console.error("Diagnostic Engine v1.5 Runtime Error: ", err);
+                alert("พบข้อผิดพลาดในระบบคำนวณ: " + err.message);
+            }
+        }
+    </script>
 </head>
 <body class="bg-[#F8F9FA] text-[#172B4D] min-h-screen antialiased p-4 sm:p-6">
 
@@ -113,7 +269,7 @@
                             <div class="space-y-2">
                                 <div class="grid grid-cols-12 gap-2 items-center">
                                     <div class="col-span-3 text-xs font-bold text-[#6B778C]">Grab</div>
-                                    <input type="number" id="salesGrab" value="9500" placeholder="บาท" class="col-span-5 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
+                                    <input type="number" id="salesGrab" value="9505" placeholder="บาท" class="col-span-5 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
                                     <input type="number" id="billGrab" value="45" placeholder="บิล" class="col-span-4 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
                                 </div>
                                 <div class="grid grid-cols-12 gap-2 items-center">
@@ -124,12 +280,12 @@
                                 <div class="grid grid-cols-12 gap-2 items-center">
                                     <div class="col-span-3 text-xs font-bold text-[#6B778C]">Shopee</div>
                                     <input type="number" id="salesShopee" value="1200" placeholder="บาท" class="col-span-5 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
-                                    <input type="number" id="billShopee" value="8" placeholder="บิล" class="col-span-4 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
+                                    <input type="number" id="billShopee" value="9" placeholder="บิล" class="col-span-4 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
                                 </div>
                                 <div class="grid grid-cols-12 gap-2 items-center">
                                     <div class="col-span-3 text-xs font-bold text-[#6B778C]">หน้าร้าน</div>
-                                    <input type="number" id="salesOffline" value="6500" placeholder="บาท" class="col-span-5 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
-                                    <input type="number" id="billOffline" value="26" placeholder="บิล" class="col-span-4 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
+                                    <input type="number" id="salesOffline" value="6510" placeholder="บาท" class="col-span-5 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
+                                    <input type="number" id="billOffline" value="27" placeholder="บิล" class="col-span-4 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
                                 </div>
                             </div>
                         </div>
@@ -153,7 +309,7 @@
                 </div>
 
                 <div class="mt-5">
-                    <button id="btnScanReverse" type="button" class="w-full bg-[#0052CC] hover:bg-[#0065FF] text-white font-bold py-3 px-4 rounded-lg shadow-md active:scale-[0.99] transition-all text-sm tracking-wide block relative z-30">
+                    <button id="btnScanReverse" type="button" class="w-full bg-[#0052CC] hover:bg-[#0065FF] text-white font-bold py-3.5 px-4 rounded-lg shadow-md active:scale-95 transition-all text-sm tracking-wide">
                         ⚡ รันระบบ Reverse Engine วิเคราะห์ห้อง X-Ray v1.5
                     </button>
                 </div>
@@ -323,7 +479,6 @@
 
             <div class="bg-white border border-[#EAECEF] rounded-xl p-5 shadow-sm space-y-3">
                 <h3 class="text-xs font-bold text-[#6B778C] uppercase tracking-widest border-b border-[#EAECEF] pb-2">คำแนะนำระดับปฏิบัติการ (OPERATIONAL ADVICE)</h3>
-                
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-medium leading-relaxed">
                     <div class="p-3 bg-[#F4F5F7] rounded border-l-4 border-[#0052CC]">
                         <div class="font-bold text-[#172B4D] mb-0.5">COGS Control</div>
@@ -354,154 +509,5 @@
 
         </main>
     </div>
-
-    <script>
-        function runReverseEngine() {
-            try {
-                // Phase 1 Setup Variables
-                const fixCost = parseFloat(document.getElementById('fixCost').value) || 0;
-                const openTime = document.getElementById('openTime').value;
-                const closeTime = document.getElementById('closeTime').value;
-                const avgSales = parseFloat(document.getElementById('avgSales').value) || 0;
-                const gpGrab = (parseFloat(document.getElementById('gpGrab').value) || 0) / 100;
-                const gpLine = (parseFloat(document.getElementById('gpLine').value) || 0) / 100;
-                const gpShopee = (parseFloat(document.getElementById('gpShopee').value) || 0) / 100;
-
-                // Phase 2 Multi-Column Pulse Variables
-                const sGrab = parseFloat(document.getElementById('salesGrab').value) || 0;
-                const bGrab = parseFloat(document.getElementById('billGrab').value) || 0;
-                const sLine = parseFloat(document.getElementById('salesLine').value) || 0;
-                const bLine = parseFloat(document.getElementById('billLine').value) || 0;
-                const sShopee = parseFloat(document.getElementById('salesShopee').value) || 0;
-                const bShopee = parseFloat(document.getElementById('billShopee').value) || 0;
-                const sOffline = parseFloat(document.getElementById('salesOffline').value) || 0;
-                const bOffline = parseFloat(document.getElementById('billOffline').value) || 0;
-                
-                const laborCost = parseFloat(document.getElementById('laborCost').value) || 0;
-                const staffCount = parseFloat(document.getElementById('staffCount').value) || 0;
-                const materialCost = parseFloat(document.getElementById('materialCost').value) || 0;
-
-                // Validation Soft Guard
-                if ((sGrab + sLine + sShopee + sOffline) <= 0 || staffCount <= 0) {
-                    alert("⚠️ [Soft Guard] กรุณากรอกยอดรับเงิน และจำนวนพนักงานปฏิบัติงานหน้างานจริงเพื่อประมวลผล!");
-                    return;
-                }
-
-                // Core Mathematical Calculations
-                const totalGross = sGrab + sLine + sShopee + sOffline;
-                const deliveryGross = sGrab + sLine + sShopee;
-                const deliveryNet = (sGrab * (1 - gpGrab)) + (sLine * (1 - gpLine)) + (sShopee * (1 - gpShopee));
-                const netCashReceipts = deliveryNet + sOffline;
-                const totalExpenses = laborCost + materialCost;
-
-                // Operating Labor Clock
-                let [openH, openM] = openTime.split(':').map(Number);
-                let [closeH, closeM] = closeTime.split(':').map(Number);
-                let totalHours = (closeH + closeM/60) - (openH + openM/60);
-                if (totalHours <= 0) totalHours += 24; 
-                const totalLaborHours = totalHours * staffCount;
-
-                // Financial Ratios
-                const primeCostPct = (totalExpenses / totalGross) * 100;
-                const laborCostPct = (laborCost / totalGross) * 100;
-                const materialCostPct = (materialCost / totalGross) * 100;
-                const splh = totalLaborHours > 0 ? (netCashReceipts / totalLaborHours) : 0;
-                const spi = avgSales > 0 ? (netCashReceipts / avgSales) * 80 : 0;
-                const taxLeak = totalGross - netCashReceipts;
-
-                // Per Ticket Size Math
-                const totalTickets = bGrab + bLine + bShopee + bOffline;
-                const tGrab = bGrab > 0 ? (sGrab / bGrab) : 0;
-                const tLine = bLine > 0 ? (sLine / bLine) : 0;
-                const tShopee = bShopee > 0 ? (sShopee / bShopee) : 0;
-                const tOffline = bOffline > 0 ? (sOffline / bOffline) : 0;
-
-                // Display Core Container
-                document.getElementById('diagnosticResult').classList.remove('hidden');
-
-                // Part 1: Render General Operational Report Table
-                document.getElementById('tblGross').innerText = Math.round(totalGross).toLocaleString() + " ฿";
-                document.getElementById('tblDeliveryGross').innerText = Math.round(deliveryGross).toLocaleString() + " ฿";
-                document.getElementById('tblDeliveryNet').innerText = Math.round(deliveryNet).toLocaleString() + " ฿";
-                document.getElementById('tblOffline').innerText = Math.round(sOffline).toLocaleString() + " ฿";
-                
-                const pRatio = totalGross > 0 ? ((deliveryGross / totalGross) * 100) : 0;
-                const oRatio = totalGross > 0 ? ((sOffline / totalGross) * 100) : 0;
-                document.getElementById('tblTrafficRatio').innerText = `Delivery ${pRatio.toFixed(0)}% : Walk-in ${oRatio.toFixed(0)}%`;
-                document.getElementById('tblExpenses').innerText = Math.round(totalExpenses).toLocaleString() + " ฿";
-                document.getElementById('tblNetCash').innerText = Math.round(netCashReceipts).toLocaleString() + " ฿";
-
-                // Part 2: Premium SPI Circular Gauge Renderer
-                document.getElementById('outSPI').innerText = spi.toFixed(1) + "%";
-                const circularOffset = 282.7 - (282.7 * Math.min(spi, 100)) / 100;
-                document.getElementById('spiCircularProgress').style.strokeDashoffset = circularOffset;
-
-                const spiDiffBox = document.getElementById('outSpiDiffBox');
-                const spiBaselineDiff = spi - 80;
-                if (spiBaselineDiff >= 0) {
-                    spiDiffBox.className = "text-xs font-bold px-3 py-1 rounded-full mt-1 bg-[#E3FCEF] text-[#006644]";
-                    spiDiffBox.innerText = `+${spiBaselineDiff.toFixed(1)}% vs Baseline (80%)`;
-                } else {
-                    spiDiffBox.className = "text-xs font-bold px-3 py-1 rounded-full mt-1 bg-[#FFEBE6] text-[#BF2600]";
-                    spiDiffBox.innerText = `${spiBaselineDiff.toFixed(1)}% vs Baseline (80%)`;
-                }
-
-                // Component Embedded Icon Indicators Status Colors
-                const bCogs = document.getElementById('badgeCogs');
-                const bLabor = document.getElementById('badgeLabor');
-                const bDeli = document.getElementById('badgeDelivery');
-
-                bCogs.className = `text-[10px] px-2 py-0.5 rounded font-black border ${materialCostPct <= 35 ? 'bg-[#E3FCEF] text-[#006644] border-[#ABF5D1]' : 'bg-[#FFEBE6] text-[#BF2600] border-[#FFBDAD]'}`;
-                bLabor.className = `text-[10px] px-2 py-0.5 rounded font-black border ${(laborCostPct >= 25 && laborCostPct <= 35) ? 'bg-[#E3FCEF] text-[#006644] border-[#ABF5D1]' : 'bg-[#FFEBE6] text-[#BF2600] border-[#FFBDAD]'}`;
-                bDeli.className = `text-[10px] px-2 py-0.5 rounded font-black border ${pRatio <= 50 ? 'bg-[#E3FCEF] text-[#006644] border-[#ABF5D1]' : 'bg-[#FFF0B3] text-[#172B4D] border-[#FFE380]'}`;
-
-                // Part 3: Render Platform Tax Leak Info
-                document.getElementById('outTaxLeak').innerText = Math.round(taxLeak).toLocaleString();
-                document.getElementById('outTaxLeakSub').innerText = `(วันนี้คุณจ่ายค่าตงให้แอปไป ${Math.round(taxLeak).toLocaleString()} บาท ซึ่งสูงกว่าค่าแรงพนักงานทุกคนรวมกันในวันนี้ที่จ่ายไป ${Math.round(laborCost).toLocaleString()} บาท!)`;
-
-                // Part 4: Global Compliance Metrics Data mapping
-                document.getElementById('outPrimeCost').innerText = `${Math.round(totalExpenses).toLocaleString()} ฿ (${primeCostPct.toFixed(1)}%)`;
-                document.getElementById('outLaborCost').innerText = `${Math.round(laborCost).toLocaleString()} ฿ (${laborCostPct.toFixed(1)}%)`;
-                document.getElementById('outMaterialCost').innerText = `${Math.round(materialCost).toLocaleString()} ฿ (${materialCostPct.toFixed(1)}%)`;
-
-                const boxPrime = document.getElementById('boxPrime');
-                boxPrime.className = `p-4 rounded-lg border ${primeCostPct <= 60 ? 'bg-[#E3FCEF] border-[#ABF5D1]' : 'bg-[#FFEBE6] border-[#FFBDAD]'}`;
-
-                // Part 5: Labor Productivity (SPLH Framework Scale mapping)
-                document.getElementById('outSPLH').innerText = Math.round(splh).toLocaleString() + " ฿ / ชม.";
-                document.getElementById('outSPLHSub').innerText = `(เฉลี่ยพนักงาน 1 คน ช่วยรีดเงินสดเข้าบ้านให้คุณได้ชั่วโมงละ ${Math.round(splh).toLocaleString()} บาท)`;
-                
-                const sQuick = document.getElementById('scaleQuick');
-                const sCafe = document.getElementById('scaleCafe');
-                sQuick.className = "flex-1 sm:flex-none border p-2 rounded text-center transition-all bg-[#F4F5F7] text-[#6B778C] border-[#EAECEF]";
-                sCafe.className = "flex-1 sm:flex-none border p-2 rounded text-center transition-all bg-[#F4F5F7] text-[#6B778C] border-[#EAECEF]";
-
-                if(splh >= 500) {
-                    sQuick.className = "flex-1 sm:flex-none border border-[#36B37E] p-2 rounded text-center transition-all bg-[#E3FCEF] text-[#006644] font-bold";
-                } else if(splh >= 350 && splh < 500) {
-                    sCafe.className = "flex-1 sm:flex-none border border-[#36B37E] p-2 rounded text-center transition-all bg-[#E3FCEF] text-[#006644] font-bold";
-                }
-
-                // Part 6: Per Ticket Matrix data mapping
-                document.getElementById('outTotalTickets').innerText = totalTickets.toLocaleString();
-                document.getElementById('ticketGrab').innerText = Math.round(tGrab).toLocaleString() + " ฿";
-                document.getElementById('ticketLine').innerText = Math.round(tLine).toLocaleString() + " ฿";
-                document.getElementById('ticketShopee').innerText = Math.round(tShopee).toLocaleString() + " ฿";
-                document.getElementById('ticketOffline').innerText = Math.round(tOffline).toLocaleString() + " ฿";
-
-                // Bot Alert Area Theme Color mapping
-                const diagnosticAlert = document.getElementById('diagnosticAlert');
-                const alertIcon = document.getElementById('alertIcon');
-                diagnosticAlert.className = `border rounded-xl p-5 flex items-start gap-3 transition-all ${primeCostPct <= 60 ? 'bg-[#E3FCEF] border-[#ABF5D1]' : 'bg-[#FFEBE6] border-[#FFBDAD]'}`;
-                alertIcon.innerText = primeCostPct <= 60 ? "❇️" : "🚨";
-
-                // Smooth execution scroll down
-                document.getElementById('diagnosticResult').scrollIntoView({ behavior: 'smooth' });
-            } catch (err) {
-                console.error("Diagnostic Engine v1.5 Runtime Error: ", err);
-                alert("พบข้อผิดพลาดในระบบคำนวณ: " + err.message);
-            }
-        }
-    </script>
 </body>
 </html>
