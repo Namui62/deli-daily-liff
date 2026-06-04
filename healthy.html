@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deli Daily LIFF v1.5 - ห้อง X-Ray ร้านอาหาร (Fixed & Swapped)</title>
+    <title>Deli Daily LIFF v1.5 - ห้อง X-Ray ร้านอาหาร (Fixed 100%)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -125,7 +125,7 @@
                 bLabor.className = `text-[10px] px-2 py-0.5 rounded font-black border ${(laborCostPct >= 25 && laborCostPct <= 35) ? 'bg-[#E3FCEF] text-[#006644] border-[#ABF5D1]' : 'bg-[#FFEBE6] text-[#BF2600] border-[#FFBDAD]'}`;
                 bDeli.className = `text-[10px] px-2 py-0.5 rounded font-black border ${pRatio <= 50 ? 'bg-[#E3FCEF] text-[#006644] border-[#ABF5D1]' : 'bg-[#FFF0B3] text-[#172B4D] border-[#FFE380]'}`;
 
-                // Part 3: Global Compliance Metrics Data mapping
+                // Part 3: Global Compliance Metrics
                 document.getElementById('outPrimeCost').innerText = `${Math.round(totalExpenses).toLocaleString()} ฿ (${primeCostPct.toFixed(1)}%)`;
                 document.getElementById('outLaborCost').innerText = `${Math.round(laborCost).toLocaleString()} ฿ (${laborCostPct.toFixed(1)}%)`;
                 document.getElementById('outMaterialCost').innerText = `${Math.round(materialCost).toLocaleString()} ฿ (${materialCostPct.toFixed(1)}%)`;
@@ -133,7 +133,7 @@
                 const boxPrime = document.getElementById('boxPrime');
                 boxPrime.className = `p-4 rounded-lg border ${primeCostPct <= 60 ? 'bg-[#E3FCEF] border-[#ABF5D1]' : 'bg-[#FFEBE6] border-[#FFBDAD]'}`;
 
-                // Part 4: Labor Productivity (SPLH Framework Scale mapping)
+                // Part 4: Labor Productivity (SPLH)
                 document.getElementById('outSPLH').innerText = Math.round(splh).toLocaleString() + " ฿ / ชม.";
                 document.getElementById('outSPLHSub').innerText = `(เฉลี่ยพนักงาน 1 คน ช่วยรีดเงินสดเข้าบ้านให้คุณได้ชั่วโมงละ ${Math.round(splh).toLocaleString()} บาท)`;
                 
@@ -148,7 +148,7 @@
                     sCafe.className = "flex-1 sm:flex-none border border-[#36B37E] p-2 rounded text-center transition-all bg-[#E3FCEF] text-[#006644] font-bold";
                 }
 
-                // Part 5: Per Ticket Matrix Data Bug Fixed Mapping
+                // Part 5: Per Ticket Matrix
                 document.getElementById('outTotalTickets').innerText = totalTickets.toLocaleString();
                 document.getElementById('ticketGrab').innerText = Math.round(tGrab).toLocaleString() + " ฿";
                 document.getElementById('ticketLine').innerText = Math.round(tLine).toLocaleString() + " ฿";
@@ -164,7 +164,7 @@
                 // Smooth execution scroll down
                 document.getElementById('diagnosticResult').scrollIntoView({ behavior: 'smooth' });
             } catch (err) {
-                console.error("Diagnostic Engine v1.5 Runtime Error: ", err);
+                console.error("Diagnostic Engine Runtime Error: ", err);
                 alert("พบข้อผิดพลาดในระบบคำนวณ: " + err.message);
             }
         }
@@ -228,7 +228,7 @@
                                 </div>
                                 <div class="bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-1.5 text-center">
                                     <span class="block text-[10px] text-[#6B778C] font-bold mb-0.5">Shopee</span>
-                                    <input type="number" id="gpShopee" value="30" class="w-full bg-transparent border-0 text-center text-slate-200 focus:outline-none font-mono font-bold text-xs">
+                                    <input type="number" id="gpShopee" value="30" class="w-full bg-transparent border-0 text-center text-[#172B4D] focus:outline-none font-mono font-bold text-xs">
                                 </div>
                             </div>
                         </div>
@@ -395,12 +395,12 @@
                     <div class="bg-[#F4F5F7] p-4 rounded-lg border border-[#EAECEF]" id="boxLabor">
                         <span class="text-xs font-bold text-[#6B778C] block">Labor Cost วันนี้</span>
                         <div id="outLaborCost" class="text-lg font-black font-mono mt-1 text-[#172B4D]">-</div>
-                        <div id="outLaborStandard" class="text-[10px] text-[#6B778C] font-semibold mt-1 font-mono">Standard: 25-35%</div>
+                        <div class="text-[10px] text-[#6B778C] font-semibold mt-1 font-mono">Standard: 25-35%</div>
                     </div>
                     <div class="bg-[#F4F5F7] p-4 rounded-lg border border-[#EAECEF]" id="boxMaterial">
                         <span class="text-xs font-bold text-[#6B778C] block">Material Cost วันนี้</span>
                         <div id="outMaterialCost" class="text-lg font-black font-mono mt-1 text-[#172B4D]">-</div>
-                        <div id="outMaterialStandard" class="text-[10px] text-[#6B778C] font-semibold mt-1 font-mono">Standard: 28-35%</div>
+                        <div class="text-[10px] text-[#6B778C] font-semibold mt-1 font-mono">Standard: 28-35%</div>
                     </div>
                 </div>
             </div>
@@ -418,10 +418,12 @@
                             <span class="text-[10px] font-bold block mt-0.5">Quick Service</span>
                             <span class="text-[9px] font-mono block">500 - 850 ฿</span>
                         </div>
+                        <div class="flex gap-2 w-full sm:w-auto">
                         <div id="scaleCafe" class="flex-1 sm:flex-none border border-[#EAECEF] p-2 rounded text-center transition-all bg-[#F4F5F7] text-[#6B778C]">
                             <span class="block text-base">☕</span>
                             <span class="text-[10px] font-bold block mt-0.5">Cafe/Casual</span>
                             <span class="text-[9px] font-mono block">350 - 500 ฿</span>
+                        </div>
                         </div>
                     </div>
                 </div>
