@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deli Daily LIFF v2.2 - ห้อง X-Ray ร้านอาหาร (Master Final)</title>
+    <title>Deli Daily LIFF v2.5 - ห้อง X-Ray ร้านอาหาร (Clinical Final)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,27 +11,25 @@
     <style>
         body {
             font-family: 'Prompt', sans-serif;
-            background-color: #F8F9FA;
-            color: #172B4D;
+            background-color: #0A0A0A;
+            color: #E2E8F0;
         }
-        .circle-bg { fill: none; stroke: #2D2D2D; stroke-width: 10; }
+        .circle-bg { fill: none; stroke: #222222; stroke-width: 10; }
         .circle-progress { fill: none; stroke: #36B37E; stroke-width: 10; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dasharray 0.5s ease-out, stroke 0.3s ease; }
+        input[type="checkbox"]:checked { background-color: #FF5630; border-color: #FF5630; }
     </style>
 
     <script>
         let currentReportData = {
-            totalGross: 0, deliveryGross: 0, deliveryNet: 0, netCashReceipts: 0, totalExpenses: 0,
-            primeCostPct: 0, laborCostPct: 0, materialCostPct: 0, laborCost: 0, materialCost: 0,
-            staffCount: 0, totalLaborHours: 0, splh: 0, spi: 0, pRatio: 0, oRatio: 0,
-            tGrab: 0, tLine: 0, tShopee: 0, tOffline: 0, avgSales: 0, fixCost: 0,
-            sGrab: 0, sLine: 0, sShopee: 0, sOffline: 0, gpTaxLeak: 0, totalTickets: 0
+            totalGross: 0, deliveryGross: 0, deliveryNet: 0, netCashReceipts: 0,
+            laborCost: 0, materialCost: 0, staffCount: 0, totalLaborHours: 0, splh: 0, spi: 0,
+            pRatio: 0, oRatio: 0, tGrab: 0, tLine: 0, tShopee: 0, tOffline: 0, avgSales: 0, fixCost: 0,
+            sGrab: 0, sLine: 0, sShopee: 0, sOffline: 0, gpTaxLeak: 0, totalTickets: 0, yieldStd: 85
         };
 
         window.onload = function() {
             const scanBtn = document.getElementById('btnScanReverse');
-            if(scanBtn) {
-                scanBtn.addEventListener('click', runReverseEngine);
-            }
+            if(scanBtn) { scanBtn.addEventListener('click', runReverseEngine); }
         };
 
         function safeRender(id, value) {
@@ -46,13 +44,12 @@
             if (targetViewId === 'main') {
                 stationView.classList.add('hidden');
                 mainDashboard.classList.remove('hidden');
-                mainDashboard.scrollIntoView({ behavior: 'smooth' });
             } else {
                 mainDashboard.classList.add('hidden');
                 stationView.classList.remove('hidden');
                 renderStationData(targetViewId);
-                stationView.scrollIntoView({ behavior: 'smooth' });
             }
+            window.scrollTo({ top: document.getElementById('diagnosticResult').offsetTop, behavior: 'smooth' });
         }
 
         function runReverseEngine() {
@@ -61,11 +58,12 @@
                 const openTime = document.getElementById('openTime').value;
                 const closeTime = document.getElementById('closeTime').value;
                 currentReportData.avgSales = parseFloat(document.getElementById('avgSales').value) || 0;
+                currentReportData.yieldStd = parseFloat(document.getElementById('yieldStd').value) || 85;
                 
-                // คำนวณค่าธรรมเนียม GP แท้จริง 34.24% (GP 30% + VAT 7% ของหน้า Master Setup เพื่ออุดรูรั่วแฝง)
-                const gpGrab = (parseFloat(document.getElementById('gpGrab').value) || 30) * 1.07 / 100;
-                const gpLine = (parseFloat(document.getElementById('gpLine').value) || 30) * 1.07 / 100;
-                const gpShopee = (parseFloat(document.getElementById('gpShopee').value) || 30) * 1.07 / 100;
+                // คำนวณหักตงระบบ GP แท้จริง 34.24% (30% + VAT 7%)
+                const gpGrab = 0.3424;
+                const gpLine = 0.3424;
+                const gpShopee = 0.3424;
 
                 currentReportData.sGrab = parseFloat(document.getElementById('salesGrab').value) || 0;
                 const bGrab = parseFloat(document.getElementById('billGrab').value) || 0;
@@ -80,17 +78,16 @@
                 currentReportData.staffCount = parseFloat(document.getElementById('staffCount').value) || 0;
                 currentReportData.materialCost = parseFloat(document.getElementById('materialCost').value) || 0;
 
-                if ((currentReportData.sGrab + currentReportData.sLine + currentReportData.sShopee + currentReportData.sOffline) <= 0 || currentReportData.staffCount <= 0) {
-                    alert("⚠️ [Soft Guard] กรุณากรอกข้อมูลตัวเลขรับเงินและจำนวนพนักงานให้ครบถ้วน!");
+                if (currentReportData.sGrab + currentReportData.sLine + currentReportData.sShopee + currentReportData.sOffline <= 0 || currentReportData.staffCount <= 0) {
+                    alert("⚠️ [Soft Guard] กรุณากรอกข้อมูลรายรับและพนักงานให้ครบถ้วน!");
                     return;
                 }
 
-                // 2. MATHEMATICAL FORMULA ENGINE (ลอจิกวิเคราะห์กระแสเงินผันแปรตรง)
+                // ENGINE ลอจิกคณิตศาสตร์แปรผันตรงต่อเก๊ะ 100%
                 currentReportData.totalGross = currentReportData.sGrab + currentReportData.sLine + currentReportData.sShopee + currentReportData.sOffline;
                 currentReportData.deliveryGross = currentReportData.sGrab + currentReportData.sLine + currentReportData.sShopee;
                 currentReportData.deliveryNet = (currentReportData.sGrab * (1 - gpGrab)) + (currentReportData.sLine * (1 - gpLine)) + (currentReportData.sShopee * (1 - gpShopee));
                 currentReportData.netCashReceipts = currentReportData.deliveryNet + currentReportData.sOffline;
-                currentReportData.totalExpenses = currentReportData.laborCost + currentReportData.materialCost;
                 currentReportData.gpTaxLeak = currentReportData.deliveryGross - currentReportData.deliveryNet;
 
                 let [openH, openM] = openTime.split(':').map(Number);
@@ -99,12 +96,10 @@
                 if (totalHours <= 0) totalHours += 24; 
                 currentReportData.totalLaborHours = totalHours * currentReportData.staffCount;
 
-                currentReportData.primeCostPct = (currentReportData.totalExpenses / currentReportData.totalGross) * 100;
-                currentReportData.laborCostPct = (currentReportData.laborCost / currentReportData.totalGross) * 100;
-                currentReportData.materialCostPct = (currentReportData.materialCost / currentReportData.totalGross) * 100;
                 currentReportData.splh = currentReportData.totalLaborHours > 0 ? (currentReportData.netCashReceipts / currentReportData.totalLaborHours) : 0;
-                currentReportData.spi = currentReportData.avgSales > 0 ? (currentReportData.netCashReceipts / currentReportData.avgSales) * 80 : 0;
-                currentReportData.pRatio = currentReportData.totalGross > 0 ? ((currentReportData.deliveryGross / currentReportData.totalGross) * 100) : 0;
+                currentReportData.spi = currentReportData.avgSales > 0 ? (currentReportData.netCashReceipts / currentReportData.avgSales) * 100 : 0;
+                
+                currentReportData.pRatio = (currentReportData.deliveryGross / currentReportData.totalGross) * 100;
                 currentReportData.oRatio = 100 - currentReportData.pRatio;
 
                 currentReportData.totalTickets = bGrab + bLine + bShopee + bOffline;
@@ -113,509 +108,412 @@
                 currentReportData.tShopee = bShopee > 0 ? (currentReportData.sShopee / bShopee) : 0;
                 currentReportData.tOffline = bOffline > 0 ? (currentReportData.sOffline / bOffline) : 0;
 
-                // พ่นข้อมูลภาพรวมตารางคลินิกขาวลีน
+                // อัปเดต UI รายงานภาพใหญ่
                 document.getElementById('diagnosticResult').classList.remove('hidden');
                 document.getElementById('mainResultDashboard').classList.remove('hidden');
                 document.getElementById('stationDetailView').classList.add('hidden');
 
                 safeRender('tblGross', Math.round(currentReportData.totalGross).toLocaleString() + " ฿");
-                safeRender('tblDeliveryGross', Math.round(currentReportData.deliveryGross).toLocaleString() + " ฿");
-                safeRender('tblDeliveryNet', Math.round(currentReportData.deliveryNet).toLocaleString() + " ฿");
-                safeRender('tblOffline', Math.round(currentReportData.sOffline).toLocaleString() + " ฿");
-                safeRender('tblTrafficRatio', `Delivery ${currentReportData.pRatio.toFixed(0)}% : Walk-in ${currentReportData.oRatio.toFixed(0)}%`);
-                safeRender('tblExpenses', Math.round(currentReportData.totalExpenses).toLocaleString() + " ฿");
                 safeRender('tblNetCash', Math.round(currentReportData.netCashReceipts).toLocaleString() + " ฿");
 
-                // --- SPI Dynamic Theme Logic & Truncate Decimals (ตัดทศนิยมทิ้งโชว์เลขกลมยักษ์) ---
-                const outSPIElement = document.getElementById('outSPI');
+                // ลอจิกทุบทศนิยมทิ้ง (Truncate) ดันฟอนต์เป้ง
+                const spiScore = Math.floor(currentReportData.spi);
+                safeRender('outSPI', spiScore + "%");
+                
                 const progressCircle = document.getElementById('spiCircularProgress');
-                const spiDiffBox = document.getElementById('outSpiDiffBox');
-                const spiBaselineDiff = Math.floor(currentReportData.spi) - 80;
-
-                let spiColor = "text-[#36B37E]";
-                let spiStroke = "#36B37E";
-                let spiBadge = "bg-[#36B37E]/20 text-[#36B37E]";
-
-                if (currentReportData.spi < 60) {
-                    spiColor = "text-[#FF5630]";
-                    spiStroke = "#FF5630";
-                    spiBadge = "bg-[#FF5630]/20 text-[#FF5630]";
-                } else if (currentReportData.spi >= 60 && currentReportData.spi < 80) {
-                    spiColor = "text-[#FFAB00]";
-                    spiStroke = "#FFAB00";
-                    spiBadge = "bg-[#FFAB00]/20 text-[#FFAB00]";
-                }
-
-                if (outSPIElement) {
-                    outSPIElement.innerText = Math.floor(currentReportData.spi) + "%";
-                    outSPIElement.className = `text-3xl font-black font-mono tracking-tighter ${spiColor}`;
-                }
                 if (progressCircle) {
-                    const circularOffset = 282.7 - (282.7 * Math.min(currentReportData.spi, 100)) / 100;
+                    const circularOffset = 282.7 - (282.7 * Math.min(spiScore, 100)) / 100;
                     progressCircle.style.strokeDashoffset = circularOffset;
-                    progressCircle.style.stroke = spiStroke;
+                    progressCircle.style.stroke = spiScore >= 80 ? "#36B37E" : "#FF5630";
                 }
+
+                const spiBaselineDiff = spiScore - 80;
+                const spiDiffBox = document.getElementById('outSpiDiffBox');
                 if (spiDiffBox) {
-                    spiDiffBox.className = `text-sm font-black px-3 py-1.5 rounded-md font-mono ${spiBadge}`;
+                    spiDiffBox.className = `text-lg font-black px-3 py-1 rounded font-mono ${spiBaselineDiff >= 0 ? 'bg-[#36B37E]/20 text-[#36B37E]' : 'bg-[#FF5630]/20 text-[#FF5630]'}`;
                     spiDiffBox.innerText = (spiBaselineDiff >= 0 ? "+" : "") + spiBaselineDiff + "%";
                 }
 
-                // คำนวณ Profit Mix และสเกลเนื้อเงินสุทธิแปรผันตรงต่อเก๊ะ
-                const netProfitRatio = currentReportData.totalGross > 0 ? (currentReportData.netCashReceipts / currentReportData.totalGross) * 100 : 0;
-                safeRender('outNetProfitMix', Math.round(netProfitRatio) + "%");
-                safeRender('outSalesMixRatio', `🏛️ หน้าร้าน ${currentReportData.oRatio.toFixed(0)}% : 🛵 เดลิเวอรี ${currentReportData.pRatio.toFixed(0)}%`);
+                // สัดส่วนเนื้อกำไรหักมุมชนสัดส่วนยอดขาย
+                const totalNetProfitPct = Math.floor((currentReportData.netCashReceipts / currentReportData.totalGross) * 100);
+                safeRender('outNetProfitMix', totalNetProfitPct + "%");
+                safeRender('outSalesMixRatio', `🏛️ หน้าร้าน ${Math.round(currentReportData.oRatio)}% : 🛵 เดลิเวอรี ${Math.round(currentReportData.pRatio)}%`);
                 
-                const offlineProfitRatio = currentReportData.netCashReceipts > 0 ? (currentReportData.sOffline / currentReportData.netCashReceipts) * 100 : 0;
-                const deliveryProfitRatio = 100 - offlineProfitRatio;
-                safeRender('outProfitMixRatio', `🏛️ หน้าร้าน ${offlineProfitRatio.toFixed(0)}% : 🛵 เดลิเวอรี ${deliveryProfitRatio.toFixed(0)}%`);
+                const offlineProfitShare = currentReportData.netCashReceipts > 0 ? (currentReportData.sOffline / currentReportData.netCashReceipts) * 100 : 0;
+                const deliveryProfitShare = 100 - offlineProfitShare;
+                safeRender('outProfitMixRatio', `🏛️ หน้าร้าน ${Math.round(offlineProfitShare)}% : 🛵 เดลิเวอรี ${Math.round(deliveryProfitShare)}%`);
 
-                // --- 📊 DYNAMIC COLOR SPECTRUM LOGIC ---
-                let primeColor = "text-[#FF5630]";
-                if (currentReportData.primeCostPct <= 55) primeColor = "text-[#36B37E]";
-                else if (currentReportData.primeCostPct > 55 && currentReportData.primeCostPct <= 60) primeColor = "text-[#FFFFFF]";
+                // สับสเปกปุ่มไฟไซเรนกะพริบแจ้งพยาธิสภาพ
+                const materialCostPct = (currentReportData.materialCost / currentReportData.totalGross) * 100;
+                const laborCostPct = (currentReportData.laborCost / currentReportData.totalGross) * 100;
 
-                let laborColor = "text-[#FF5630]";
-                if (currentReportData.laborCostPct >= 25 && currentReportData.laborCostPct <= 28) laborColor = "text-[#FFFFFF]";
-                else if (currentReportData.laborCostPct > 28 && currentReportData.laborCostPct <= 31) laborColor = "text-[#36B37E]";
-                else if (currentReportData.laborCostPct > 31 && currentReportData.laborCostPct <= 35) laborColor = "text-[#FF5630]";
+                document.getElementById('badgeCogs').className = `text-[11px] px-3 py-1 rounded font-black ${materialCostPct <= 35 ? 'bg-[#36B37E]/20 text-[#36B37E]' : 'bg-[#FF5630]/20 text-[#FF5630] animate-pulse border border-[#FF5630]/50'}`;
+                document.getElementById('badgeLabor').className = `text-[11px] px-3 py-1 rounded font-black ${laborCostPct <= 30 ? 'bg-[#36B37E]/20 text-[#36B37E]' : 'bg-[#FF5630]/20 text-[#FF5630] animate-pulse border border-[#FF5630]/50'}`;
+                document.getElementById('badgeDelivery').className = `text-[11px] px-3 py-1 rounded font-black ${deliveryProfitShare >= 30 ? 'bg-[#36B37E]/20 text-[#36B37E]' : 'bg-[#FF5630]/20 text-[#FF5630] animate-pulse border border-[#FF5630]/50'}`;
 
-                let materialColor = "text-[#FF5630]";
-                if (currentReportData.materialCostPct <= 30) materialColor = "text-[#36B37E]";
-                else if (currentReportData.materialCostPct > 30 && currentReportData.materialCostPct <= 35) materialColor = "text-[#FFFFFF]";
+                // แผงกล่องข้อมูลย่อย
+                safeRender('outPrimeValue', Math.round(currentReportData.gpTaxLeak).toLocaleString() + " ฿");
+                safeRender('outLaborValue', Math.round(currentReportData.laborCost).toLocaleString() + " ฿");
+                safeRender('outMaterialValue', Math.round(currentReportData.materialCost).toLocaleString() + " ฿");
 
-                // [LOCKED TARGET CENTER] ผูกข้อมูลเงินบาทกลางช่องและดีดสัดส่วน % สีตัดสถานะไปฝั่งขวาตามรูปสั่งห้ามหลุด
-                safeRender('outPrimeCostValue', Math.round(currentReportData.totalExpenses).toLocaleString() + " ฿");
-                const outPrimePct = document.getElementById('outPrimeCostPct');
-                if (outPrimePct) {
-                    outPrimePct.innerText = `(${currentReportData.primeCostPct.toFixed(1)}%)`;
-                    outPrimePct.className = `text-2xl font-black font-mono tracking-wide ${primeColor}`;
-                }
-
-                safeRender('outLaborCostValue', Math.round(currentReportData.laborCost).toLocaleString() + " ฿");
-                const outLaborPct = document.getElementById('outLaborCostPct');
-                if (outLaborPct) {
-                    outLaborPct.innerText = `(${currentReportData.laborCostPct.toFixed(1)}%)`;
-                    outLaborPct.className = `text-2xl font-black font-mono tracking-wide ${laborColor}`;
-                }
-
-                safeRender('outMaterialCostValue', Math.round(currentReportData.materialCost).toLocaleString() + " ฿");
-                const outMaterialPct = document.getElementById('outMaterialCostPct');
-                if (outMaterialPct) {
-                    outMaterialPct.innerText = `(${currentReportData.materialCostPct.toFixed(1)}%)`;
-                    outMaterialPct.className = `text-2xl font-black font-mono tracking-wide ${materialColor}`;
-                }
-
-                // สลับขอบคาร์ด
-                document.getElementById('boxPrime').className = `bg-zinc-900 border p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.01] grid grid-cols-12 items-center group ${currentReportData.primeCostPct <= 60 ? 'border-[#36B37E]/40' : 'border-[#FF5630]/40'}`;
-                document.getElementById('boxLabor').className = `bg-zinc-900 border p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.01] grid grid-cols-12 items-center group ${(currentReportData.laborCostPct >= 25 && currentReportData.laborCostPct <= 35) ? 'border-[#36B37E]/40' : 'border-[#FF5630]/40'}`;
-                document.getElementById('boxMaterial').className = `bg-zinc-900 border p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.01] grid grid-cols-12 items-center group ${currentReportData.materialCostPct <= 35 ? 'border-[#36B37E]/40' : 'border-[#FF5630]/40'}`;
-
-                // แถบไอคอนสถานะ 3 ชิ้นแปรผันสีตามความรอดแท้จริง
-                const bCogs = document.getElementById('badgeCogs');
-                const bLabor = document.getElementById('badgeLabor');
-                const bDeli = document.getElementById('badgeDelivery');
-                if(bCogs) bCogs.className = `text-[10px] px-2.5 py-0.5 rounded font-black ${currentReportData.materialCostPct <= 35 ? 'bg-[#36B37E]/20 text-[#36B37E] border border-[#36B37E]/40' : 'bg-[#FF5630]/20 text-[#FF5630] border border-[#FF5630]/40'}`;
-                if(bLabor) bLabor.className = `text-[10px] px-2.5 py-0.5 rounded font-black ${(currentReportData.laborCostPct >= 25 && currentReportData.laborCostPct <= 35) ? 'bg-[#36B37E]/20 text-[#36B37E] border border-[#36B37E]/40' : 'bg-[#FF5630]/20 text-[#FF5630] border border-[#FF5630]/40'}`;
-                if(bDeli) bDeli.className = `text-[10px] px-2.5 py-0.5 rounded font-black ${currentReportData.pRatio <= 50 ? 'bg-[#36B37E]/20 text-[#36B37E] border border-[#36B37E]/40' : 'bg-[#FFAB00]/20 text-[#FFAB00] border border-[#FFAB00]/40'}`;
-
-                // พ่นค่าตั๋ว Ticket Size Matrix สมบูรณ์ (ดักจับการคำนวณออกครบถ้วนไม่ขึ้นขีดสแตติก)
+                // สรุปยอดบิลล่างเก๊ะ
                 safeRender('outTotalTickets', currentReportData.totalTickets.toLocaleString());
-                safeRender('ticketGrab', Math.round(currentReportData.tGrab).toLocaleString() + " ฿");
-                safeRender('ticketLine', Math.round(currentReportData.tLine).toLocaleString() + " ฿");
-                safeRender('ticketShopee', Math.round(currentReportData.tShopee).toLocaleString() + " ฿");
-                safeRender('ticketOffline', Math.round(currentReportData.tOffline).toLocaleString() + " ฿");
+                safeRender('ticketGrab', Math.round(currentReportData.tGrab) + " ฿");
+                safeRender('ticketLine', Math.round(currentReportData.tLine) + " ฿");
+                safeRender('ticketShopee', Math.round(currentReportData.tShopee) + " ฿");
+                safeRender('ticketOffline', Math.round(currentReportData.tOffline) + " ฿");
 
-                document.getElementById('diagnosticResult').scrollIntoView({ behavior: 'smooth' });
             } catch (err) {
-                console.error("v2.2 Stable Calculation Core Error: ", err);
-                alert("พบข้อผิดพลาดในระบบคำนวณ: " + err.message);
+                alert("ข้อผิดพลาดระบบคำนวณ: " + err.message);
             }
         }
 
-        // คอมไพล์สถาปัตยกรรมตัวเลขรายสถานี (Next-Page View) อิงตามลอจิกคณิตศาสตร์แปรผันตรงต่อเก๊ะ 100% ไร้ระบบ Hard-code
         function renderStationData(stationType) {
             const container = document.getElementById('stationDynamicContainer');
-            let htmlContent = "";
+            let html = "";
 
             if (stationType === 'prime') {
-                const targetTicketSize = Math.round((currentReportData.fixCost + currentReportData.laborCost) / Math.max(currentReportData.totalTickets, 1));
-                htmlContent = `
-                    <div class="space-y-4 border-b border-zinc-800 pb-4">
-                        <div class="text-[11px] uppercase tracking-widest text-zinc-500 font-bold">🔬 STATION 1: PLATFORM GP LEAK (The 3-Layer Micro Matrix)</div>
-                        <div class="text-sm font-mono flex justify-between py-1 text-red-400"><span>มูลค่าเนื้อเงินที่จ่ายเป็นค่าธรรมเนียม GP วันนี้:</span><span class="font-black text-lg">${Math.round(currentReportData.gpTaxLeak).toLocaleString()} ฿</span></div>
-                        <div class="text-[11px] font-mono text-zinc-400 mt-2">วิเคราะห์ความรอด Ticket Size แยกตามค่ายเดลิเวอรี่ (ราคาต่อบิล):</div>
-                        <div class="space-y-3 mt-2">
-                            <div class="bg-zinc-950 p-3 border border-zinc-900 rounded-lg space-y-1">
-                                <div class="flex justify-between text-xs font-bold text-zinc-400"><span>Grab Operation Stream</span></div>
-                                <div class="text-xs flex justify-between text-emerald-400"><span>[เลเยอร์บน] เส้นเป้าหมายความรอดเฉลี่ยร้านคุณ:</span><span>${targetTicketSize} ฿</span></div>
-                                <div class="text-xs flex justify-between text-white font-bold"><span>[เลเยอร์กลาง] ค่าเฉลี่ยบิลจริงหน้าระบบวันนี้:</span><span>${Math.round(currentReportData.tGrab)} ฿</span></div>
-                                <div class="text-xs flex justify-between text-rose-500"><span>[เลเยอร์ล่าง] มูลค่าเงินสดที่ถูกดูด GP ตัดทิ้งต่อบิล:</span><span>${Math.round(currentReportData.tGrab * 0.3424)} ฿</span></div>
-                            </div>
-                            <div class="bg-zinc-950 p-3 border border-zinc-900 rounded-lg space-y-1">
-                                <div class="flex justify-between text-xs font-bold text-zinc-400"><span>LINE MAN Operation Stream</span></div>
-                                <div class="text-xs flex justify-between text-emerald-400"><span>[เลเยอร์บน] เส้นเป้าหมายความรอดเฉลี่ยร้านคุณ:</span><span>${targetTicketSize} ฿</span></div>
-                                <div class="text-xs flex justify-between text-white font-bold"><span>[เลเยอร์กลาง] ค่าเฉลี่ยบิลจริงหน้าระบบวันนี้:</span><span>${Math.round(currentReportData.tLine)} ฿</span></div>
-                                <div class="text-xs flex justify-between text-rose-500"><span>[เลเยอร์ล่าง] มูลค่าเงินสดที่ถูกดูด GP ตัดทิ้งต่อบิล:</span><span>${Math.round(currentReportData.tLine * 0.3424)} ฿</span></div>
-                            </div>
+                const targetTicket = Math.round((currentReportData.fixCost + currentReportData.laborCost) / Math.max(currentReportData.totalTickets, 1)) + 50;
+                html = `
+                    <div class="space-y-6">
+                        <div class="text-[11px] uppercase tracking-widest text-zinc-500 font-bold">🔬 STATION 1: PLATFORM GP LEAK (เดลิเวอรี)</div>
+                        <div class="bg-zinc-900/50 p-4 border border-zinc-800 rounded-xl flex justify-between items-center">
+                            <span class="text-xs text-zinc-400">เงินค่าตงที่ถูกระบบแพลตฟอร์มตัดทิ้งวันนี้ (GP 34.24%):</span>
+                            <span class="text-xl font-black text-rose-500 font-mono">${Math.round(currentReportData.gpTaxLeak).toLocaleString()} ฿</span>
                         </div>
-                    </div>
-                    <div class="space-y-2">
-                        <div class="text-[11px] uppercase tracking-widest text-[#FF5630] font-bold">🩺 Clinical Diagnosis</div>
-                        <p class="text-xs text-zinc-300 leading-relaxed font-medium">
-                            ยอดขายเดลิเวอรีเยอะแต่กำไรน้อย ไปดูราคาเมนู ดัน Ticket Size ขึ้น บิลเล็กทำครัวเดือด พนักงานล้า ค่าแรงแฝงบวมน้ำ (SPLH ร่วง) หน้าร้านกำไรเนื้อ ๆ พนักงานใช้แรงเท่ากันแต่ได้เงินสดเต็มเก๊ะ
-                        </p>
-                    </div>
-                    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-2 mt-2">
-                        <h4 class="text-xs font-black text-[#FF5630]">📋 ACTIONABLE PRESCRIPTION</h4>
-                        <div class="space-y-1 text-xs text-zinc-300 font-semibold">
-                            <div class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4 text-[#0052CC]"> [ ] Menu Engineering: ถอดเมนูกำไรบางออกจากแอป หรืออัปราคาบนแอปขึ้นชดเชย GP</div>
-                            <div class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4 text-[#0052CC]"> [ ] Combo Set Design: จัดเซ็ตเมนูคู่พ่วงน้ำ/ของกินเล่น ใช้ Add-on ดักทางในหน้าแอป</div>
-                            <div class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4 text-[#0052CC]"> [ ] Ad Budget Cap: สั่งปิดระบบ Auto-Ads ล็อกเพดานงบโฆษณารายวัน (Daily Cap)</div>
-                            <div class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4 text-[#0052CC]"> [ ] Retention to LINE OA: ชวนลูกค้าสับมาสั่งตรงผ่าน LINE OA เพื่อตัดค่า GP เป็น 0%</div>
+
+                        <div class="space-y-3">
+                            <div class="text-xs font-bold text-zinc-400">📊 ดัชนีขนาดตั๋วเฉลี่ยรายแอป (Ticket Size 3-Layer Matrix)</div>
+                            ${['Grab', 'LINE MAN', 'Shopee'].map((app, idx) => {
+                                let actual = idx===0 ? currentReportData.tGrab : idx===1 ? currentReportData.tLine : currentReportData.tShopee;
+                                let gpLeak = actual * 0.3424;
+                                return `
+                                <div class="bg-zinc-950 p-4 border border-zinc-900 rounded-xl space-y-2">
+                                    <div class="text-xs font-black text-zinc-400 border-b border-zinc-900 pb-1 flex justify-between"><span>${app} Channel Stream</span> <span class="text-rose-400 font-mono">${Math.round(actual) <= 0 ? '❌ ไร้ออเดอร์' : '🚨 วิกฤตบิลเล็ก'}</span></div>
+                                    <div class="flex justify-between items-center text-xs text-emerald-400 font-medium"><span>[บน] เส้นเขียวเป้าหมายแนะนำความรอด:</span><span class="font-bold font-mono">${targetTicket} ฿</span></div>
+                                    <div class="flex justify-between items-center text-xs text-white font-bold"><span>[กลาง] ขนาดตั๋วเฉลี่ยจริงหน้าระบบ:</span><span class="font-mono text-sm">${Math.round(actual)} ฿</span></div>
+                                    <div class="flex justify-between items-center text-xs text-rose-500 font-medium"><span>[ล่าง] มูลค่าเงินสดที่โดน GP ดูดทิ้งต่อบิล:</span><span class="font-bold font-mono">-${Math.round(gpLeak)} ฿</span></div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+
+                        <div class="bg-zinc-950 p-4 border border-zinc-900 rounded-xl space-y-1.5">
+                            <div class="text-[11px] uppercase tracking-widest text-rose-500 font-bold">🩺 Clinical Diagnosis</div>
+                            <ul class="text-xs text-zinc-300 space-y-1 font-medium list-disc list-inside">
+                                <li>ยอดขายเดลิเวอรีเยอะแต่กำไรน้อย ไปดูราคาเมนู</li>
+                                <li>ดัน ticket size ขึ้น บิลเล็กทำครัวเดือด พนักงานล้า แต่ค่าแรงแฝงบวม</li>
+                                <li>หน้าร้านกำไรเนื้อๆ พนักงานใช้แรงเท่ากันแต่ได้เงินสดเต็มเก๊ะ</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-3">
+                            <h4 class="text-xs font-black text-rose-500 uppercase tracking-wider">📋 ใบสั่งยาคุมพฤติกรรมหน้าครัว (Actionable Prescription)</h4>
+                            <div class="space-y-2 text-xs text-zinc-300 font-semibold">
+                                <label class="flex items-start gap-2.5 cursor-pointer"><input type="checkbox" class="mt-0.5 rounded border-zinc-700 bg-zinc-800 text-rose-500 focus:ring-0 w-4 h-4"><span>Menu Engineering: ถอดเมนูกำไรบางออกจากแอป หรืออัปราคาบนแอปขึ้นชดเชย GP</span></label>
+                                <label class="flex items-start gap-2.5 cursor-pointer"><input type="checkbox" class="mt-0.5 rounded border-zinc-700 bg-zinc-800 text-rose-500 focus:ring-0 w-4 h-4"><span>Combo Set Design: จัดเซ็ตเมนูคู่พ่วงน้ำ/ของกินเล่น ใช้ add on ในหน้าแอป และเจาะดูราคาตั๋วลูกค้ากินเดี่ยว/กินกลุ่ม</span></label>
+                                <label class="flex items-start gap-2.5 cursor-pointer"><input type="checkbox" class="mt-0.5 rounded border-zinc-700 bg-zinc-800 text-rose-500 focus:ring-0 w-4 h-4"><span>Ad Budget Cap: สั่งปิดระบบ Auto-Ads ล็อกเพดานงบโฆษณารายวัน (Daily Cap) ไม่ให้งบบานปลาย</span></label>
+                                <label class="flex items-start gap-2.5 cursor-pointer"><input type="checkbox" class="mt-0.5 rounded border-zinc-700 bg-zinc-800 text-rose-500 focus:ring-0 w-4 h-4"><span>Retention to LINE OA: แนบการ์ด QR Code ชวนลูกค้าสับมาสั่งตรงผ่าน LINE OA ในครั้งถัดไปเพื่อตัดค่า GP เป็น 0%</span></label>
+                            </div>
                         </div>
                     </div>
                 `;
             } else if (stationType === 'material') {
-                const wasteEst = currentReportData.materialCost * 0.12;
-                htmlContent = `
-                    <div class="space-y-4 border-b border-zinc-800 pb-4">
-                        <div class="text-[11px] uppercase tracking-widest text-zinc-500 font-bold">🔬 STATION 2: MATERIAL COST (The Waste & Portion Matrix)</div>
-                        <div class="text-sm font-mono flex justify-between"><span>ต้นทุนวัตถุดิบควักจ่ายจริงรวมครัว:</span><span class="text-sky-400 font-black text-lg">${Math.round(currentReportData.materialCost).toLocaleString()} ฿</span></div>
-                        <div class="text-sm font-mono flex justify-between text-red-400"><span>ประมาณการมูลค่าขยะหลังครัวและ Yield Loss:</span><span class="font-black text-lg">${Math.round(wasteEst).toLocaleString()} ฿</span></div>
-                    </div>
-                    <div class="space-y-2">
-                        <div class="text-[11px] uppercase tracking-widest text-[#FF5630] font-bold">🩺 Clinical Diagnosis</div>
-                        <p class="text-xs text-zinc-300 leading-relaxed font-medium">
-                            ของหมดไวแต่เงินไม่เข้าเก๊ะ ยอดขายเท่าเดิมแต่บิลสั่งของพุ่ง ทุนจมดิ่ง จิตใต้สำนึกทำเงินรั่ว ช่วงครัวแตก พนักงานใช้มือสุ่มกะปริมาณตักเกินสูตร เงินสดไหลลงจานลูกค้าฟรี ขยะหลังร้านคือเงินทอนที่หายไป เนื้อสัตว์ตัดแต่งทิ้งหนาเกินเกณฑ์เพราะไม่มีคนคุม Yield
-                        </p>
-                    </div>
-                    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-2 mt-2">
-                        <h4 class="text-xs font-black text-[#FF5630]">📋 ACTIONABLE PRESCRIPTION</h4>
-                        <div class="space-y-1 text-xs text-zinc-300 font-semibold">
-                            <div class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4"> [ ] Portion Control Rules: ติดตั้งตราชั่งดิจิทัล บังคับชั่งน้ำหนักวัตถุดิบหลักรายจาน 100% ห้ามกะด้วยตา</div>
-                            <div class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4"> [ ] Yield Management Check: ตรวจสอบสัดส่วนเนื้อสัตว์ดิบหลังตัดแต่ง เปรียบเทียบลีนน้ำหนักจริง</div>
-                            <div class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4"> [ ] Waste Log Tracking: ตั้งถังขยะใส บังคับจดบันทึกบิลอาหารทำผิดพลาด/ของหมดอายุลงระบบทุกคืน</div>
-                            <div class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4"> [ ] Physical Stock Matching: นับสต็อกจริงหลังปิดร้าน (Physical Count) ดักจับของหายรั่วไหล</div>
+                const wasteEst = currentReportData.materialCost * (1 - (currentReportData.yieldStd/100));
+                html = `
+                    <div class="space-y-6">
+                        <div class="text-[11px] uppercase tracking-widest text-zinc-500 font-bold">🔬 STATION 2: MATERIAL COST (วัตถุดิบและขยะหลังครัว)</div>
+                        <div class="bg-zinc-950 p-4 border border-zinc-900 rounded-xl space-y-2 font-mono text-xs">
+                            <div class="flex justify-between"><span>ต้นทุนควักจ่ายวัตถุดิบรวมวันนี้:</span><span class="text-white font-bold">${Math.round(currentReportData.materialCost)} ฿</span></div>
+                            <div class="flex justify-between text-rose-400 border-t border-zinc-900 pt-2"><span>ขยะหลังครัว + ส่วนต่างสต็อกของหาย (${100-currentReportData.yieldStd}%):</span><span class="font-black text-sm">${Math.round(wasteEst)} ฿</span></div>
+                        </div>
+
+                        <div class="bg-zinc-950 p-4 border border-zinc-900 rounded-xl space-y-2">
+                            <div class="text-xs font-bold text-zinc-400">📊 ดัชนีประสิทธิภาพเนื้อวัตถุดิบหลัก (Yield & Portion Matrix)</div>
+                            <div class="bg-zinc-900/50 p-3 rounded-lg space-y-1 text-xs">
+                                <div class="flex justify-between text-emerald-400"><span>[บน] เส้นเขียวมาตรฐานน้ำหนักจานสากล:</span><span>เกณฑ์ 100%</span></div>
+                                <div class="flex justify-between text-white"><span>[กลาง] น้ำหนักเฉลี่ยหน้าเตา (จิตใต้สำนึกคนตัก):</span><span>มีเกณฑ์สุ่มตักเกินสูตร 🚨</span></div>
+                                <div class="flex justify-between text-rose-500"><span>[ล่าง] มูลค่าเฉือนทิ้งถังขยะแฝงจากรอยรั่วสต็อก:</span><span>~ ${Math.round(wasteEst)} ฿</span></div>
+                            </div>
+                        </div>
+
+                        <div class="bg-zinc-950 p-4 border border-zinc-900 rounded-xl space-y-1.5">
+                            <div class="text-[11px] uppercase tracking-widest text-rose-500 font-bold">🩺 Clinical Diagnosis</div>
+                            <ul class="text-xs text-zinc-300 space-y-1 font-medium list-disc list-inside">
+                                <li>ของหมดไวแต่เงินไม่เข้าเก๊ะ ยอดขายเท่าเดิมแต่บิลสั่งของพุ่ง ทุนจมดิ่ง</li>
+                                <li>จิตใต้สำนึกทำเงินรั่ว ช่วงครัวแตก พนักงานสุ่มกะปริมาณตักเกินสูตร เงินสดไหลลงจานฟรี</li>
+                                <li>ขยะหลังร้านคือเงินทอนที่หายไป เนื้อวัตถุดิบตัดแต่งทิ้งหนาเกินเกณฑ์เพราะขาดการบันทึก Waste Log</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-3">
+                            <h4 class="text-xs font-black text-rose-500 uppercase tracking-wider">📋 ใบสั่งยาคุมพฤติกรรมหน้างาน (Actionable Prescription)</h4>
+                            <div class="space-y-2 text-xs text-zinc-300 font-semibold">
+                                <label class="flex items-start gap-2.5 cursor-pointer"><input type="checkbox" class="mt-0.5 rounded border-zinc-700 bg-zinc-800 text-rose-500 focus:ring-0 w-4 h-4"><span>Portion Control Rules: ติดตั้งตราชั่งดิจิทัล บังคับชั่งน้ำหนักวัตถุดิบหลักรายจาน 100% ห้ามใช้ความรู้สึกกะ</span></label>
+                                <label class="flex items-start gap-2.5 cursor-pointer"><input type="checkbox" class="mt-0.5 rounded border-zinc-700 bg-zinc-800 text-rose-500 focus:ring-0 w-4 h-4"><span>Yield Management Check: ตรวจสอบสัดส่วนเนื้อสัตว์ดิบหลังตัดแต่ง ดักพฤติกรรมพนักงานเฉือนทิ้งหนาเกินสเปก</span></label>
+                                <label class="flex items-start gap-2.5 cursor-pointer"><input type="checkbox" class="mt-0.5 rounded border-zinc-700 bg-zinc-800 text-rose-500 focus:ring-0 w-4 h-4"><span>Waste Log Tracking: ตั้งถังขยะใสแยกพิกัด บังคับจดบันทึกอาหารทำผิด/ของเคลม/ของหมดอายุลงระบบทุกคืน</span></label>
+                                <label class="flex items-start gap-2.5 cursor-pointer"><input type="checkbox" class="mt-0.5 rounded border-zinc-700 bg-zinc-800 text-rose-500 focus:ring-0 w-4 h-4"><span>Physical Stock Matching: นับสต็อกจริงหลังปิดร้านประจำสัปดาห์ ชนยอดจัดซื้ออุดรูรั่วของหายพนักงานแอบหยิบกลับ</span></label>
+                            </div>
                         </div>
                     </div>
                 `;
             } else if (stationType === 'labor') {
-                const laborCapGoal = currentReportData.totalGross * 0.28;
-                htmlContent = `
-                    <div class="space-y-4 border-b border-zinc-800 pb-4">
-                        <div class="text-[11px] uppercase tracking-widest text-zinc-500 font-bold">🔬 STATION 3: LABOR COST (Hourly SPLH & Allocation Dissection)</div>
-                        <div class="text-sm font-mono flex justify-between"><span>เงินควักจ่ายค่าแรงรวมวันนี้:</span><span class="text-sky-400 font-black text-lg">${Math.round(currentReportData.laborCost).toLocaleString()} ฿</span></div>
-                        <div class="text-sm font-mono flex justify-between"><span>ขีดจำกัดงบค่าแรงรวมที่ปลอดภัยของร้านคุณ (28%):</span><span class="text-[#36B37E] font-black text-lg">${Math.round(laborCapGoal).toLocaleString()} ฿</span></div>
-                    </div>
-                    <div class="space-y-2">
-                        <div class="text-[11px] uppercase tracking-widest text-[#FF5630] font-bold">🩺 Clinical Diagnosis</div>
-                        <p class="text-xs text-zinc-300 leading-relaxed font-medium">
-                            ร้านโล่งแต่พนักงานเต็มร้าน ลูกค้าเงียบแต่คนล้นสเตชัน จ่ายค่าชั่วโมงวิ่งฟรีคุมเกมคุ้มค่าแรงต่ำ ปิดร้านช้าปั่นชั่วโมงทำงาน ระบบหลังครัวล้างจานล่าช้า บีบให้เกิดค่า OT บวมตอนท้ายวันโดยไม่จำเป็น หน้าร้านพนักงานใช้แรงเท่ากันแต่ได้เงินเต็ม ฝึกเด็กให้ทำ Multi-skilling โยนสลับข้ามแผนกได้จะคุมเกมลีนที่สุด
-                        </p>
-                    </div>
-                    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-2 mt-2">
-                        <h4 class="text-xs font-black text-[#FF5630]">📋 ACTIONABLE PRESCRIPTION</h4>
-                        <div class="space-y-1 text-xs text-zinc-300 font-semibold">
-                            <div class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4"> [ ] Sales-to-Labor Scheduling: ปรับตารางเวลาเข้า-ออกงานพนักงานพาร์ทไทม์ ตัดชั่วโมงคนช่วง Off-Peak</div>
-                            <div class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4"> [ ] Cross-Training (Multi-skilling): ฝึกพนักงานให้ทำหน้าที่ทดแทนกันได้ 100% โยนสลับแผนกได้ช่วงเงียบ</div>
-                            <div class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4"> [ ] Audit OT Operations: ตั้งกฎการอนุมัติ OT บีบขั้นตอนเคลียร์ร้านล้างจานให้จบใน 30 นาที</div>
-                            <div class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4"> [ ] Labor Cap Lock: ล็อกเพดานงบค่าแรงรายวัน ปล่อยพาร์ทไทม์กลับบ้านทันทีถ้ายอดรวมตกเกณฑ์</div>
+                const hourSplh = Math.round(currentReportData.splh);
+                html = `
+                    <div class="space-y-6">
+                        <div class="text-[11px] uppercase tracking-widest text-zinc-500 font-bold">🔬 STATION 3: LABOR COST (ตารางกะพนักงาน และ OT บวม)</div>
+                        <div class="bg-zinc-950 p-4 border border-zinc-900 rounded-xl space-y-2 font-mono text-xs">
+                            <div class="flex justify-between"><span>ชั่วโมงแรงงานรวมสะสมวันนี้:</span><span class="text-white font-bold">${currentReportData.totalLaborHours.toFixed(1)} ชม.</span></div>
+                            <div class="flex justify-between text-emerald-400 border-t border-zinc-900 pt-2"><span>ประสิทธิภาพยอดขายต่อชั่วโมงแรงงาน (SPLH จริง):</span><span class="font-black text-sm">${hourSplh} ฿/ชม.</span></div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="text-xs font-bold text-zinc-400">📊 ดัชนีโหลดแรงงานรายชั่วโมง (Hourly SPLH 3-Layer Matrix)</div>
+                            <div class="bg-zinc-950 p-4 border border-zinc-900 rounded-xl space-y-2 text-xs">
+                                <div class="text-xs font-black text-zinc-500 border-b border-zinc-900 pb-1">การกระจายโหลดแรงงานเฉลี่ยตามกะร้าน</div>
+                                <div class="flex justify-between items-center text-emerald-400"><span>[บน] เส้นเขียวเป้าหมาย SPLH รอดตายหน้าเก๊ะ:</span><span class="font-bold">600 ฿/ชม.</span></div>
+                                <div class="flex justify-between items-center text-white font-bold"><span>[กลาง] ค่า SPLH จริงที่ทำได้หน้างานคืนนี้:</span><span class="text-sm font-mono">${hourSplh} ฿/ชม.</span></div>
+                                <div class="flex justify-between items-center text-rose-500"><span>[ล่าง] สถานะค่าแรงจมบวมน้ำประจำวัน:</span><span class="font-bold font-mono">${hourSplh < 600 ? '🚨 มีชั่วโมงวิ่งฟรีสูญเปล่า' : '✅ แรงงานลีนกริบ'}</span></div>
+                            </div>
+                        </div>
+
+                        <div class="bg-zinc-950 p-4 border border-zinc-900 rounded-xl space-y-1.5">
+                            <div class="text-[11px] uppercase tracking-widest text-rose-500 font-bold">🩺 Clinical Diagnosis</div>
+                            <ul class="text-xs text-zinc-300 space-y-1 font-medium list-disc list-inside">
+                                <li>ร้านโล่งแต่พนักงานเต็มร้าน จ่ายค่าชั่วโมงวิ่งฟรีช่วงลูกค้าเงียบโดยไม่มีออเดอร์ค้ำ</li>
+                                <li>ปิดร้านช้าปั่นชั่วโมงทำงาน ครัวเคลียร์ระบบล่าช้า บีบให้เกิดค่า OT บวมตอนท้ายวันโดยไม่จำเป็น</li>
+                                <li>หน้าร้านพนักงานใช้แรงเท่ากันแต่ได้เงินเต็ม จัดกะทำ Multi-skilling โยนสลับข้ามสเตชันจะลีนที่สุด</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-3">
+                            <h4 class="text-xs font-black text-rose-500 uppercase tracking-wider">📋 ใบสั่งยาคุมพฤติกรรมหน้างาน (Actionable Prescription)</h4>
+                            <div class="space-y-2 text-xs text-zinc-300 font-semibold">
+                                <label class="flex items-start gap-2.5 cursor-pointer"><input type="checkbox" class="mt-0.5 rounded border-zinc-700 bg-zinc-800 text-rose-500 focus:ring-0 w-4 h-4"><span>Sales-to-Labor Scheduling: ปรับตารางเวลาเข้า-ออกงานพนักงานตามทราฟฟิกจริง ตัดชั่วโมงพาร์ทไทม์ช่วง Off-Peak</span></label>
+                                <label class="flex items-start gap-2.5 cursor-pointer"><input type="checkbox" class="mt-0.5 rounded border-zinc-700 bg-zinc-800 text-rose-500 focus:ring-0 w-4 h-4"><span>Cross-Training (Multi-skilling): ฝึกพนักงานให้ทำหน้าที่ทดแทนกันได้ ช่วงร้านเงียบบังคับโยนคนไปช่วยเตรียมครัวหรือแพ็กถุงทันที</span></label>
+                                <label class="flex items-start gap-2.5 cursor-pointer"><input type="checkbox" class="mt-0.5 rounded border-zinc-700 bg-zinc-800 text-rose-500 focus:ring-0 w-4 h-4"><span>Audit OT Operations: ตั้งกฎอนุมัติ OT เข้มงวด บีบสเต็ปล้างจานเคลียร์เก๊ะหลังครัวให้จบใน 30 นาที ดักพฤติกรรมลากกะ</span></label>
+                                <label class="flex items-start gap-2.5 cursor-pointer"><input type="checkbox" class="mt-0.5 rounded border-zinc-700 bg-zinc-800 text-rose-500 focus:ring-0 w-4 h-4"><span>Labor Cap Lock: ล็อกเพดานงบค่าแรงรวมรายวัน หากทราฟฟิกตกเกณฑ์ สั่งปล่อยพนักงานพาร์ทไทม์กลับบ้านก่อนเวลาทันที</span></label>
+                            </div>
                         </div>
                     </div>
                 `;
-            } else if (stationType === 'spi') {
-                htmlContent = `
-                    <div class="space-y-4 border-b border-zinc-800 pb-4">
-                        <div class="text-[11px] uppercase tracking-widest text-zinc-500 font-bold">🔬 MASTER FRAMEWORK: KAIZEN SCORE GEAR</div>
-                        <div class="text-sm font-mono flex justify-between"><span>ประสิทธิภาพความคุ้มค่าแรงงานรวม (SPLH):</span><span class="text-emerald-400 font-black text-lg">${Math.round(currentReportData.splh).toLocaleString()} ฿ / ชม.</span></div>
-                        <div class="text-xs text-zinc-400 leading-normal mt-1">สูตรคำนวณหักลบ 3 ส่วนเพื่อหาเนื้อเงินสุทธิในเก๊ะทำงานสัมพันธ์ร่วมกับระบบเปรียบเทียบสัดส่วน Sales Mix ชนเนื้อกำไร Profit Mix รายวันเรียบร้อย</div>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="text-[11px] uppercase tracking-widest text-[#36B37E] font-bold">🩺 Clinical Diagnosis</div>
-                        <p class="text-xs text-zinc-300 font-medium leading-relaxed">
-                            ระบบรันข้อมูลเปรียบเทียบสัดส่วนภูมิคุ้มกันความรอดของร้านอาหารสากลเรียบร้อย ยึดกรอบแนวคิดขยับขยายตัวเลขหน้าเก๊ะหน้าร้านและทราฟฟิกแอปให้ดีขึ้นวันละ 1% (Kaizen Mindset) ตรวจสอบรูรั่วฝากประจำวันเพื่อรักษาเสถียรภาพกระแสเงินสดสุทธิกลับบ้านอย่างปลอดภัยค่ำคืนนี้
-                        </p>
-                    </div>
-                `;
             }
-            container.innerHTML = htmlContent;
+            container.innerHTML = html;
         }
     </script>
 </head>
-<body class="bg-[#F8F9FA] text-[#172B4D] min-h-screen antialiased p-4 sm:p-6">
+<body class="bg-[#0A0A0A] text-[#E2E8F0] min-h-screen antialiased p-4 sm:p-6">
 
     <div class="max-w-4xl mx-auto">
-        <header class="border-b border-[#EAECEF] pb-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <header class="border-b border-zinc-900 pb-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div>
-                <h1 class="text-xl font-black text-[#0052CC] tracking-wide flex items-center gap-2">
-                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#0052CC]"></span>
-                    DELI DAILY LIFF <span class="text-xs bg-[#0052CC]/10 text-[#0052CC] px-2 py-0.5 rounded font-mono">v2.2 FINAL</span>
+                <h1 class="text-xl font-black text-white tracking-wide flex items-center gap-2">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#FF5630]"></span>
+                    DELI DAILY LIFF <span class="text-xs bg-zinc-900 text-rose-400 border border-zinc-800 px-2 py-0.5 rounded font-mono">v2.5 PRO</span>
                 </h1>
-                <p class="text-xs text-[#6B778C] font-medium tracking-wide mt-0.5">ระบบวิเคราะห์ท่อส่งน้ำและพยาธิสภาพร้านอาหารคำนวณย้อนกลับประจำวัน</p>
+                <p class="text-[11px] text-zinc-500 font-medium tracking-wide mt-0.5">ระบบห้อง X-Ray ดักรูรั่วคณิตศาสตร์กระแสเงินสดร้านอาหารแปรผันรายวัน</p>
             </div>
-            <div class="text-xs bg-white border border-[#EAECEF] px-3 py-1.5 rounded-md text-[#6B778C] font-mono font-bold shadow-sm">
-                ZONE: PRO_PRODUCTION_LOCKED
+            <div class="text-[10px] bg-zinc-950 border border-zinc-900 px-3 py-1.5 rounded text-zinc-400 font-mono font-bold tracking-wider">
+                LOCKED_CLINICAL_CORE_CORE
             </div>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <section class="bg-white border border-[#EAECEF] rounded-xl p-5 shadow-sm flex flex-col justify-between">
+            <section class="bg-zinc-950 border border-zinc-900 rounded-xl p-5 shadow-2xl flex flex-col justify-between">
                 <div>
-                    <div class="flex items-center gap-2 mb-4 border-b border-[#EAECEF] pb-2">
-                        <span class="text-base">🧬</span>
-                        <h2 class="text-base font-bold text-[#172B4D]">Phase 1: ตั้งค่าโครงสร้างร่างกายร้าน (Master Setup)</h2>
+                    <div class="flex items-center gap-2 mb-4 border-b border-zinc-900 pb-2">
+                        <span class="text-base">🔲</span>
+                        <h2 class="text-sm font-black text-white uppercase tracking-wider">Phase 1: ตั้งค่าร่างกายร้าน (Master Setup)</h2>
                     </div>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-semibold text-[#6B778C] mb-1">Fix Cost (ค่าใช้จ่ายคงที่รายเดือนรวมทั้งหมด / บาท)</label>
-                            <input type="number" id="fixCost" value="50000" class="w-full bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-2 text-[#172B4D] focus:outline-none focus:border-[#0052CC] font-mono text-sm font-bold">
+                            <label class="block text-[11px] font-bold text-zinc-400 mb-1">Fix Cost (ต้นทุนคงที่รวมรายเดือน / บาท)</label>
+                            <input type="number" id="fixCost" value="50000" class="w-full bg-zinc-900 border border-zinc-800 rounded p-2 text-white font-mono text-xs font-bold focus:outline-none focus:border-zinc-700">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-[#6B778C] mb-1">เวลาเปิด - ปิดร้าน</label>
+                            <label class="block text-[11px] font-bold text-zinc-400 mb-1">เวลาเปิด - ปิดร้าน</label>
                             <div class="grid grid-cols-2 gap-2">
-                                <div class="flex items-center bg-[#F4F5F7] border border-[#DFE1E6] rounded-md px-2">
-                                    <span class="text-xs text-[#6B778C] mr-1">เปิด</span>
-                                    <input type="time" id="openTime" value="10:00" class="w-full bg-transparent border-0 p-2 text-[#172B4D] focus:outline-none font-mono text-xs font-bold">
+                                <div class="flex items-center bg-zinc-900 border border-zinc-800 rounded px-2">
+                                    <span class="text-[10px] text-zinc-500 font-bold mr-1">เปิด</span>
+                                    <input type="time" id="openTime" value="10:00" class="w-full bg-transparent border-0 p-1.5 text-white font-mono text-xs font-bold focus:outline-none">
                                 </div>
-                                <div class="flex items-center bg-[#F4F5F7] border border-[#DFE1E6] rounded-md px-2">
-                                    <span class="text-xs text-[#6B778C] mr-1">ปิด</span>
-                                    <input type="time" id="closeTime" value="22:00" class="w-full bg-transparent border-0 p-2 text-[#172B4D] focus:outline-none font-mono text-xs font-bold">
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-[#6B778C] mb-1">Platform GP (%)</label>
-                            <div class="grid grid-cols-3 gap-2">
-                                <div class="bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-1.5 text-center">
-                                    <span class="block text-[10px] text-[#6B778C] font-bold mb-0.5">Grab</span>
-                                    <input type="number" id="gpGrab" value="30" class="w-full bg-transparent border-0 text-center text-[#172B4D] focus:outline-none font-mono font-bold text-xs">
-                                </div>
-                                <div class="bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-1.5 text-center">
-                                    <span class="block text-[10px] text-[#6B778C] font-bold mb-0.5">LINE MAN</span>
-                                    <input type="number" id="gpLine" value="30" class="w-full bg-transparent border-0 text-center text-[#172B4D] focus:outline-none font-mono font-bold text-xs">
-                                </div>
-                                <div class="bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-1.5 text-center">
-                                    <span class="block text-[10px] text-[#6B778C] font-bold mb-0.5">Shopee</span>
-                                    <input type="number" id="gpShopee" value="30" class="w-full bg-transparent border-0 text-center text-slate-200 focus:outline-none font-mono font-bold text-xs">
+                                <div class="flex items-center bg-zinc-900 border border-zinc-800 rounded px-2">
+                                    <span class="text-[10px] text-zinc-500 font-bold mr-1">ปิด</span>
+                                    <input type="time" id="closeTime" value="22:00" class="w-full bg-transparent border-0 p-1.5 text-white font-mono text-xs font-bold focus:outline-none">
                                 </div>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-xs font-semibold text-[#6B778C] mb-1">ยอดขายเฉลี่ยรายวันปกติ</label>
-                                <input type="number" id="avgSales" value="15000" class="w-full bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-2 text-[#172B4D] focus:outline-none focus:border-[#0052CC] font-mono text-xs font-bold">
+                                <label class="block text-[11px] font-bold text-zinc-400 mb-1">ยอดขายเฉลี่ยรายวันปกติ</label>
+                                <input type="number" id="avgSales" value="15000" class="w-full bg-zinc-900 border border-zinc-800 rounded p-2 text-white font-mono text-xs font-bold focus:outline-none focus:border-zinc-700">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-[#6B778C] mb-1">ยอดสูงสุด (Max Capacity)</label>
-                                <input type="number" id="maxSales" value="30000" class="w-full bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-2 text-[#172B4D] focus:outline-none focus:border-[#0052CC] font-mono text-xs font-bold">
+                                <label class="block text-[11px] font-bold text-zinc-400 mb-1">% Yield วัตถุดิบมาตรฐาน</label>
+                                <input type="number" id="yieldStd" value="85" class="w-full bg-zinc-900 border border-zinc-800 rounded p-2 text-emerald-400 font-mono text-xs font-bold focus:outline-none focus:border-zinc-700">
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section class="bg-white border border-[#EAECEF] rounded-xl p-5 shadow-sm flex flex-col justify-between">
+            <section class="bg-zinc-950 border border-zinc-900 rounded-xl p-5 shadow-2xl flex flex-col justify-between">
                 <div>
-                    <div class="flex items-center gap-2 mb-4 border-b border-[#EAECEF] pb-2">
-                        <span class="text-lg">🩺</span>
-                        <h2 class="text-base font-bold text-[#172B4D]">Phase 2: ชีพจรรายวัน (Daily Pulse Input)</h2>
+                    <div class="flex items-center gap-2 mb-4 border-b border-zinc-900 pb-2">
+                        <span class="text-base">🩺</span>
+                        <h2 class="text-sm font-black text-white uppercase tracking-wider">Phase 2: ชีพจรรายวัน (Daily Pulse Input)</h2>
                     </div>
                     <div class="space-y-3">
-                        <div class="bg-[#F4F5F7] p-3 rounded-lg border border-[#DFE1E6]">
-                            <span class="block text-xs font-bold text-[#172B4D] mb-2">1. รายรับแยกตามช่องทาง [ ยอดเงิน (บาท) ] × [ ออเดอร์ (บิล) ]</span>
-                            <div class="space-y-2">
+                        <div class="bg-zinc-900/40 p-3 rounded border border-zinc-900">
+                            <span class="block text-[10px] font-black text-zinc-400 uppercase tracking-wider mb-2">1. รายรับ [ ยอดเงิน (฿) ] × [ ออเดอร์ (บิล) ]</span>
+                            <div class="space-y-1.5">
                                 <div class="grid grid-cols-12 gap-2 items-center">
-                                    <div class="col-span-3 text-xs font-bold text-[#6B778C]">Grab</div>
-                                    <input type="number" id="salesGrab" value="9505" class="col-span-5 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
-                                    <input type="number" id="billGrab" value="45" class="col-span-4 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
+                                    <div class="col-span-3 text-xs font-bold text-zinc-400">Grab</div>
+                                    <input type="number" id="salesGrab" value="9505" class="col-span-5 bg-zinc-900 border border-zinc-800 rounded p-1 text-xs font-mono font-bold text-center text-white">
+                                    <input type="number" id="billGrab" value="45" class="col-span-4 bg-zinc-900 border border-zinc-800 rounded p-1 text-xs font-mono font-bold text-center text-zinc-400">
                                 </div>
                                 <div class="grid grid-cols-12 gap-2 items-center">
-                                    <div class="col-span-3 text-xs font-bold text-[#6B778C]">LINE MAN</div>
-                                    <input type="number" id="salesLine" value="3800" class="col-span-5 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
-                                    <input type="number" id="billLine" value="20" class="col-span-4 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
+                                    <div class="col-span-3 text-xs font-bold text-zinc-400">LINE MAN</div>
+                                    <input type="number" id="salesLine" value="3800" class="col-span-5 bg-zinc-900 border border-zinc-800 rounded p-1 text-xs font-mono font-bold text-center text-white">
+                                    <input type="number" id="billLine" value="20" class="col-span-4 bg-zinc-900 border border-zinc-800 rounded p-1 text-xs font-mono font-bold text-center text-zinc-400">
                                 </div>
                                 <div class="grid grid-cols-12 gap-2 items-center">
-                                    <div class="col-span-3 text-xs font-bold text-[#6B778C]">Shopee</div>
-                                    <input type="number" id="salesShopee" value="1200" class="col-span-5 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
-                                    <input type="number" id="billShopee" value="9" class="col-span-4 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
+                                    <div class="col-span-3 text-xs font-bold text-zinc-400">Shopee</div>
+                                    <input type="number" id="salesShopee" value="1200" class="col-span-5 bg-zinc-900 border border-zinc-800 rounded p-1 text-xs font-mono font-bold text-center text-white">
+                                    <input type="number" id="billShopee" value="9" class="col-span-4 bg-zinc-900 border border-zinc-800 rounded p-1 text-xs font-mono font-bold text-center text-zinc-400">
                                 </div>
                                 <div class="grid grid-cols-12 gap-2 items-center">
-                                    <div class="col-span-3 text-xs font-bold text-[#6B778C]">หน้าร้าน</div>
-                                    <input type="number" id="salesOffline" value="6510" class="col-span-5 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
-                                    <input type="number" id="billOffline" value="27" class="col-span-4 bg-white border border-[#DFE1E6] rounded p-1 text-xs font-mono font-bold text-center">
+                                    <div class="col-span-3 text-xs font-bold text-zinc-400">หน้าร้าน</div>
+                                    <input type="number" id="salesOffline" value="6510" class="col-span-5 bg-zinc-900 border border-zinc-800 rounded p-1 text-xs font-mono font-bold text-center text-emerald-400">
+                                    <input type="number" id="billOffline" value="27" class="col-span-4 bg-zinc-900 border border-zinc-800 rounded p-1 text-xs font-mono font-bold text-center text-zinc-400">
                                 </div>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-xs font-semibold text-[#6B778C] mb-1">2. จ่ายค่าแรงรวมวันนี้</label>
-                                <input type="number" id="laborCost" value="4500" class="w-full bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-2 text-[#172B4D] font-mono font-bold text-xs text-center">
+                                <label class="block text-[10px] font-bold text-zinc-400 mb-1">2. จ่ายค่าแรงรวมวันนี้</label>
+                                <input type="number" id="laborCost" value="4500" class="w-full bg-zinc-900 border border-zinc-800 rounded p-1.5 text-center font-mono font-bold text-xs text-white">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-[#6B778C] mb-1">3. จำนวนหัวพนักงาน</label>
-                                <input type="number" id="staffCount" value="3" class="w-full bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-2 text-[#172B4D] font-mono font-bold text-xs text-center">
+                                <label class="block text-[10px] font-bold text-zinc-400 mb-1">3. จำนวนหัวพนักงาน</label>
+                                <input type="number" id="staffCount" value="3" class="w-full bg-zinc-900 border border-zinc-800 rounded p-1.5 text-center font-mono font-bold text-xs text-white">
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-[#6B778C] mb-1">4. ควักจ่ายซื้อวัตถุดิบวันนี้ (บาท)</label>
-                            <input type="number" id="materialCost" value="5500" class="w-full bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-2 text-[#172B4D] font-mono font-bold text-sm text-center">
+                            <label class="block text-[10px] font-bold text-zinc-400 mb-1">4. ควักจ่ายซื้อวัตถุดิบครัววันนี้ (บาท)</label>
+                            <input type="number" id="materialCost" value="5500" class="w-full bg-zinc-900 border border-zinc-800 rounded p-1.5 text-center font-mono font-bold text-xs text-white">
                         </div>
                     </div>
                 </div>
-                <div class="mt-5">
-                    <button id="btnScanReverse" type="button" class="w-full bg-[#0052CC] hover:bg-[#0065FF] text-white font-bold py-3.5 px-4 rounded-lg shadow-md active:scale-95 transition-all text-sm tracking-wide">
-                        🚀 รันระบบ Reverse Engine วิเคราะห์ห้อง X-Ray v2.2
+                <div class="mt-4">
+                    <button id="btnScanReverse" type="button" class="w-full bg-zinc-900 border border-zinc-800 text-white hover:border-zinc-600 font-black py-3 px-4 rounded-xl shadow-xl active:scale-[0.98] transition-all text-xs tracking-wider uppercase">
+                        ⚡ สแกนพยาธิสภาพดักรูรั่วหน้าเก๊ะ
                     </button>
                 </div>
             </section>
         </div>
 
-        <hr class="border-[#EAECEF] my-8">
+        <hr class="border-zinc-900 my-8">
 
         <main id="diagnosticResult" class="hidden space-y-6">
             
             <div id="mainResultDashboard" class="hidden space-y-6">
-                <div class="bg-white border border-[#EAECEF] rounded-xl p-5 shadow-sm">
-                    <h3 class="text-xs font-bold text-[#6B778C] uppercase tracking-widest border-b border-[#EAECEF] pb-2 mb-3">GENERAL OPERATIONAL REPORT</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left font-medium">
-                            <tbody class="divide-y divide-[#EAECEF]">
-                                <tr><td class="py-2.5 text-[#6B778C]">ยอดขายรวม (Gross Revenue)</td><td id="tblGross" class="py-2.5 text-right font-black font-mono text-[#0052CC] text-base">-</td></tr>
-                                <tr><td class="py-2.5 text-[#6B778C]">ยอดรวมเดลิเวอรี่ (Total Delivery)</td><td id="tblDeliveryGross" class="py-2.5 text-right font-mono text-[#172B4D]">-</td></tr>
-                                <tr><td class="py-2.5 text-[#6B778C]">ยอดรวมหัก GP% เดลิเวอรี่</td><td id="tblDeliveryNet" class="py-2.5 text-right font-mono text-[#172B4D]">-</td></tr>
-                                <tr><td class="py-2.5 text-[#6B778C]">สรุปยอดหน้าร้าน เงินสด/โอน</td><td id="tblOffline" class="py-2.5 text-right font-black font-mono text-[#36B37E]">-</td></tr>
-                                <tr><td class="py-2.5 text-[#6B778C]">สัดส่วน เดลิเวอรี่ / หน้าร้าน</td><td id="tblTrafficRatio" class="py-2.5 text-right font-mono font-bold text-[#6B778C]">-</td></tr>
-                                <tr><td class="py-2.5 text-[#6B778C]">รวมค่าใช้จ่ายประจำวัน (Total Expenses)</td><td id="tblExpenses" class="py-2.5 text-right font-mono text-[#FF5630] font-bold">-</td></tr>
-                                <tr class="border-t-2 border-[#EAECEF]"><td class="py-3 text-[#172B4D] font-bold">ยอดสุทธิเข้ากระเป๋าจริง (Net Cash)</td><td id="tblNetCash" class="py-3 text-right font-black font-mono text-[#36B37E] text-lg">-</td></tr>
-                            </tbody>
-                        </table>
+                <div class="flex justify-center gap-4 text-xs font-black bg-zinc-950 p-2.5 rounded-xl border border-zinc-900 font-mono tracking-wide text-zinc-400">
+                    <span>🥩 COGS: 25-35%</span>
+                    <span>👥 LABOR: 20-30%</span>
+                    <span>🛵 GP: 34.24%</span>
+                </div>
+
+                <div class="bg-zinc-950 border border-zinc-900 rounded-xl p-5 text-white space-y-4 shadow-2xl">
+                    <div class="flex items-center justify-between border-b border-zinc-900 pb-4">
+                        <div class="flex items-center gap-4">
+                            <div class="relative w-20 h-20 flex items-center justify-center">
+                                <svg class="absolute w-full h-full" viewBox="0 0 100 100">
+                                    <circle class="circle-bg" cx="50" cy="50" r="45"/>
+                                    <circle id="spiCircularProgress" class="circle-progress" cx="50" cy="50" r="45" stroke-dasharray="282.7" stroke-dashoffset="282.7"/>
+                                </svg>
+                                <span id="outSPI" class="text-xl font-black text-white font-mono">0%</span>
+                            </div>
+                            <div>
+                                <h3 class="text-[11px] font-black text-zinc-500 uppercase tracking-widest">ดัชนีกำไร SPI (STORE POWER INDEX)</h3>
+                                <p class="text-[10px] text-zinc-400 font-medium mt-0.5">ขีดจำกัดมาตรฐานรอดตายของร้านคุณคือ 80%</p>
+                            </div>
+                        </div>
+                        <div id="outSpiDiffBox" class="text-base font-black px-3 py-1.5 rounded font-mono">-</div>
+                    </div>
+
+                    <div class="bg-zinc-900/40 p-4 rounded-xl border border-zinc-900 text-xs font-semibold space-y-2">
+                        <div class="text-zinc-400">💰 กำไรสุทธิวันนี้: <span id="outNetProfitMix" class="font-black text-[#36B37E] font-mono">-</span> ของยอดขายรวม</div>
+                        <div class="flex justify-between border-t border-zinc-900 pt-2 text-zinc-500 font-mono text-[11px]">
+                            <span>📊 สัดส่วนยอดขาย (Sales Mix):</span>
+                            <span id="outSalesMixRatio" class="text-zinc-300 font-bold">-</span>
+                        </div>
+                        <div class="flex justify-between border-t border-zinc-900 pt-2 text-rose-400 font-mono text-[11px]">
+                            <span>💸 สัดส่วนเนื้อกำไร (Profit Mix):</span>
+                            <span id="outProfitMixRatio" class="text-rose-500 font-black animate-pulse">- 🚨</span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 border-t border-zinc-900 pt-3">
+                        <span id="badgeCogs" class="tracking-widest">🥩 COGS</span>
+                        <span id="badgeLabor" class="tracking-widest">👥 LABOR</span>
+                        <span id="badgeDelivery" class="tracking-widest">🛵 DELI</span>
                     </div>
                 </div>
 
-                <div class="bg-[#1A1A1A] border-2 border-black rounded-xl p-5 text-white space-y-6 shadow-2xl">
-                    
-                    <div class="border-b border-zinc-800 pb-5">
-                        <h3 class="text-xs font-black text-zinc-400 uppercase tracking-widest mb-3 text-left">
-                            ดัชนีกำไร SPI (STORE POWER INDEX)
-                        </h3>
-                        
-                        <div class="flex flex-row items-center justify-between gap-4">
-                            <div class="flex items-center gap-6">
-                                <div class="relative w-24 h-24 flex items-center justify-center">
-                                    <svg class="absolute w-full h-full" viewBox="0 0 100 100">
-                                        <circle class="circle-bg" cx="50" cy="50" r="45"/>
-                                        <circle id="spiCircularProgress" class="circle-progress" cx="50" cy="50" r="45" stroke-dasharray="282.7" stroke-dashoffset="282.7"/>
-                                    </svg>
-                                    <span id="outSPI" class="text-2xl font-black text-white font-mono tracking-tighter">0%</span>
-                                </div>
-                                
-                                <div id="outSpiDiffBox" class="text-sm font-black px-3 py-1.5 rounded-md font-mono">
-                                    -
-                                </div>
-                            </div>
-                            
-                            <div class="text-right font-mono text-[11px] text-zinc-500 hidden sm:block">
-                                <span class="block text-zinc-600">0% Crit</span>
-                                <span class="text-zinc-400 font-bold block">Baseline: 80%</span>
-                            </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div id="boxPrime" onclick="switchView('prime')" class="bg-zinc-950 border border-zinc-900 rounded-xl p-4 cursor-pointer transition-all hover:border-zinc-700 flex justify-between items-center group">
+                        <div>
+                            <span class="block text-[10px] font-bold text-zinc-500 uppercase">🛵 DELI / GP LEAK</span>
+                            <span id="outPrimeValue" class="text-base font-black font-mono text-white mt-1 block">-</span>
                         </div>
-
-                        <div class="mt-4 pt-3 border-t border-zinc-900 text-xs font-medium space-y-1.5 text-zinc-300">
-                            <div>💰 เนื้อเนื้อกำไรสุทธิวันนี้แปรผันในเก๊ะ: <span id="outNetProfitMix" class="font-black text-[#36B37E] font-mono">-</span> ของยอดขายรวม</div>
-                            <div>📊 สัดส่วนยอดขาย (Sales Mix) &rarr; <span id="outSalesMixRatio" class="font-mono font-bold text-zinc-400">-</span></div>
-                            <div class="text-red-400">💸 สัดส่วนเนื้อกำไร (Profit Mix) &rarr; <span id="outProfitMixRatio" class="font-mono font-bold">-</span> 🚨</div>
-                        </div>
-
-                        <div class="flex gap-2 mt-4 pt-3 border-t border-zinc-900">
-                            <span id="badgeCogs" class="text-[10px] px-2.5 py-0.5 rounded font-black tracking-wide">🥩 COGS</span>
-                            <span id="badgeLabor" class="text-[10px] px-2.5 py-0.5 rounded font-black tracking-wide">👥 LABOR</span>
-                            <span id="badgeDelivery" class="text-[10px] px-2.5 py-0.5 rounded font-black tracking-wide">🛵 DELI</span>
-                        </div>
+                        <span class="text-zinc-700 group-hover:text-rose-500 transition-colors font-mono text-sm">➜</span>
                     </div>
 
-                    <div class="grid grid-cols-1 gap-4">
-                        <div id="boxPrime" onclick="switchView('prime')" class="bg-zinc-900 border rounded-xl p-5 cursor-pointer transition-all duration-300 hover:scale-[1.01] grid grid-cols-12 items-center group">
-                            <div class="col-span-5 flex flex-col">
-                                <span class="text-xs font-bold text-zinc-400">🛵 เดลิเวอรี / ค่าตงแฝง</span>
-                                <span class="text-[10px] text-zinc-500 mt-2 font-medium">Standard: 55-60%</span>
-                            </div>
-                            <div id="outPrimeCostValue" class="col-span-4 text-center text-xl font-black font-mono text-white tracking-wide">
-                                -
-                            </div>
-                            <div class="col-span-3 flex items-center justify-end gap-3 text-right">
-                                <div id="outPrimeCostPct" class="text-xl font-black font-mono tracking-tight">-</div>
-                                <span class="text-zinc-600 group-hover:text-sky-400 transition-colors font-mono text-sm">➜</span>
-                            </div>
+                    <div id="boxLabor" onclick="switchView('labor')" class="bg-zinc-950 border border-zinc-900 rounded-xl p-4 cursor-pointer transition-all hover:border-zinc-700 flex justify-between items-center group">
+                        <div>
+                            <span class="block text-[10px] font-bold text-zinc-500 uppercase">👥 LABOR COST</span>
+                            <span id="outLaborValue" class="text-base font-black font-mono text-white mt-1 block">-</span>
                         </div>
-
-                        <div id="boxLabor" onclick="switchView('labor')" class="bg-zinc-900 border rounded-xl p-5 cursor-pointer transition-all duration-300 hover:scale-[1.01] grid grid-cols-12 items-center group">
-                            <div class="col-span-5 flex flex-col">
-                                <span class="text-xs font-bold text-zinc-400">👥 ค่าแรง / ตารางกะพนักงาน</span>
-                                <span class="text-[10px] text-zinc-500 mt-2 font-medium">Standard: 25-35%</span>
-                            </div>
-                            <div id="outLaborCostValue" class="col-span-4 text-center text-xl font-black font-mono text-white tracking-wide">
-                                -
-                            </div>
-                            <div class="col-span-3 flex items-center justify-end gap-3 text-right">
-                                <div id="outLaborCostPct" class="text-xl font-black font-mono tracking-tight">-</div>
-                                <span class="text-zinc-600 group-hover:text-sky-400 transition-colors font-mono text-sm">➜</span>
-                            </div>
-                        </div>
-
-                        <div id="boxMaterial" onclick="switchView('material')" class="bg-zinc-900 border rounded-xl p-5 cursor-pointer transition-all duration-300 hover:scale-[1.01] grid grid-cols-12 items-center group">
-                            <div class="col-span-5 flex flex-col">
-                                <span class="text-xs font-bold text-zinc-400">🍲 วัตถุดิบ / ขยะหลังครัว</span>
-                                <span class="text-[10px] text-zinc-500 mt-2 font-medium">Standard: 28-35%</span>
-                            </div>
-                            <div id="outMaterialCostValue" class="col-span-4 text-center text-xl font-black font-mono text-white tracking-wide">
-                                -
-                            </div>
-                            <div class="col-span-3 flex items-center justify-end gap-3 text-right">
-                                <div id="outMaterialCostPct" class="text-xl font-black font-mono tracking-tight">-</div>
-                                <span class="text-zinc-600 group-hover:text-sky-400 transition-colors font-mono text-sm">➜</span>
-                            </div>
-                        </div>
+                        <span class="text-zinc-700 group-hover:text-rose-500 transition-colors font-mono text-sm">➜</span>
                     </div>
 
-                    <div class="border-t border-zinc-800 pt-4">
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest">PER TICKET SIZE MATRIX</span>
-                            <span class="text-xs font-mono font-bold text-zinc-500">Total Orders: <span id="outTotalTickets" class="text-sky-400">0</span> บิล</span>
+                    <div id="boxMaterial" onclick="switchView('material')" class="bg-zinc-950 border border-zinc-900 rounded-xl p-4 cursor-pointer transition-all hover:border-zinc-700 flex justify-between items-center group">
+                        <div>
+                            <span class="block text-[10px] font-bold text-zinc-500 uppercase">🥩 COGS / WASTE</span>
+                            <span id="outMaterialValue" class="text-base font-black font-mono text-white mt-1 block">-</span>
                         </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-zinc-200">
-                            <div class="bg-zinc-950 border border-zinc-900 p-3 rounded-lg"><span class="text-[10px] font-bold text-zinc-500 block">Grab Ticket</span><div id="ticketGrab" class="text-sm font-black font-mono mt-0.5">-</div></div>
-                            <div class="bg-zinc-950 border border-zinc-900 p-3 rounded-lg"><span class="text-[10px] font-bold text-zinc-500 block">LINE MAN Ticket</span><div id="ticketLine" class="text-sm font-black font-mono mt-0.5">-</div></div>
-                            <div class="bg-zinc-950 border border-zinc-900 p-3 rounded-lg"><span class="text-[10px] font-bold text-zinc-500 block">Shopee Ticket</span><div id="ticketShopee" class="text-sm font-black font-mono mt-0.5">-</div></div>
-                            <div class="bg-zinc-950 border border-zinc-900 p-3 rounded-lg"><span class="text-[10px] font-bold text-zinc-500 block">หน้าร้าน Ticket</span><div id="ticketOffline" class="text-sm font-black font-mono mt-0.5">-</div></div>
-                        </div>
+                        <span class="text-zinc-700 group-hover:text-rose-500 transition-colors font-mono text-sm">➜</span>
                     </div>
+                </div>
+
+                <div class="border-t border-zinc-900 pt-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">PER TICKET SIZE MATRIX</span>
+                        <span class="text-xs font-mono font-bold text-zinc-500">รวมทั้งหมด: <span id="outTotalTickets" class="text-white">0</span> บิล</span>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-zinc-300">
+                        <div class="bg-zinc-950 border border-zinc-900 p-3 rounded-xl font-mono"><span class="text-[9px] font-bold text-zinc-500 block uppercase">Grab Avg</span><div id="ticketGrab" class="text-xs font-black text-white mt-0.5">-</div></div>
+                        <div class="bg-zinc-950 border border-zinc-900 p-3 rounded-xl font-mono"><span class="text-[9px] font-bold text-zinc-500 block uppercase">LINE MAN Avg</span><div id="ticketLine" class="text-xs font-black text-white mt-0.5">-</div></div>
+                        <div class="bg-zinc-950 border border-zinc-900 p-3 rounded-xl font-mono"><span class="text-[9px] font-bold text-zinc-500 block uppercase">Shopee Avg</span><div id="ticketShopee" class="text-xs font-black text-white mt-0.5">-</div></div>
+                        <div class="bg-zinc-950 border border-zinc-900 p-3 rounded-xl font-mono"><span class="text-[9px] font-bold text-zinc-500 block uppercase">หน้าร้าน Avg</span><div id="ticketOffline" class="text-xs font-black text-emerald-400 mt-0.5">-</div></div>
+                    </div>
+                </div>
+
+                <div class="bg-zinc-950 border border-zinc-900 rounded-xl p-4 text-xs font-mono text-zinc-400 space-y-1">
+                    <div class="flex justify-between"><span>ยอดขายรวมหน้าร้านระบบ (Gross):</span><span id="tblGross" class="text-white">-</span></div>
+                    <div class="flex justify-between text-zinc-500"><span>สัดส่วนช่องทางเดินรถ:</span><span id="tblTrafficRatio">-</span></div>
                 </div>
             </div>
 
-            <div id="stationDetailView" class="hidden bg-[#1A1A1A] border-2 border-black rounded-xl p-6 shadow-2xl space-y-6">
-                <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
-                    <button type="button" onclick="switchView('main')" class="text-xs font-black text-white hover:text-sky-400 flex items-center gap-1 bg-zinc-900 border border-zinc-800 px-3 py-2 rounded-md transition-all">
-                        ◀ BACK TO DASHBOARD
+            <div id="stationDetailView" class="hidden bg-zinc-950 border border-zinc-900 rounded-xl p-6 shadow-2xl space-y-6">
+                <div class="flex justify-between items-center border-b border-zinc-900 pb-3">
+                    <button type="button" onclick="switchView('main')" class="text-[10px] font-black text-white hover:text-rose-500 flex items-center gap-1 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded transition-all">
+                        ◀ DASHBOARD
                     </button>
-                    <span class="text-xs font-mono font-black text-zinc-500 tracking-wider">DARKTONE CLINICAL CORE</span>
+                    <span class="text-[10px] font-mono font-black text-zinc-600 tracking-wider">DARKTONE CLINICAL CORE</span>
                 </div>
 
-                <div id="stationDynamicContainer" class="space-y-6 text-zinc-100">
-                    </div>
-
-                <div class="border-t border-zinc-800 pt-5 mt-6">
-                    <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div>
-                            <h4 class="text-sm font-black text-white">Deli Daily : Lite Bundle</h4>
-                            <p class="text-xs text-zinc-400 mt-1 max-w-xl">
-                                นำพิมพ์เขียวและคู่มือไปเริ่มใช้หน้าครัวเพื่อปรับระบบร้านอาหารให้ดีขึ้นวันละ 1%
-                            </p>
-                        </div>
-                        <a href="https://shop.line.me" target="_blank" class="w-full sm:w-auto bg-[#0052CC] hover:bg-[#0065FF] text-white font-black text-xs py-3 px-5 rounded-lg text-center shadow transition-all whitespace-nowrap">
-                            เริ่มต้นใช้งาน
-                        </a>
-                    </div>
-                </div>
+                <div id="stationDynamicContainer" class="space-y-6 text-zinc-100"></div>
             </div>
 
         </main>
