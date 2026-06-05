@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deli Daily LIFF v1.8.5 - ห้อง X-Ray ร้านอาหาร (Master Edition)</title>
+    <title>Deli Daily LIFF v1.9 - ห้อง X-Ray ร้านอาหาร (Dynamic Spectrum)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,6 @@
             background-color: #F8F9FA;
             color: #172B4D;
         }
-        /* ขยายเส้นรอบวงเกจให้หนาขึ้นสะใจตามสั่ง */
         .circle-bg { fill: none; stroke: #2D2D2D; stroke-width: 8; }
         .circle-progress { fill: none; stroke: #36B37E; stroke-width: 8; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dasharray 0.5s ease-out, stroke 0.3s ease; }
     </style>
@@ -107,12 +106,11 @@
                 currentReportData.tShopee = bShopee > 0 ? (sShopee / bShopee) : 0;
                 currentReportData.tOffline = bOffline > 0 ? (sOffline / bOffline) : 0;
 
-                // สวิตช์คอนเทนเนอร์ใหญ่
+                // Render บล็อกบน (คลินิกสะอาดลีน)
                 document.getElementById('diagnosticResult').classList.remove('hidden');
                 document.getElementById('mainResultDashboard').classList.remove('hidden');
                 document.getElementById('stationDetailView').classList.add('hidden');
 
-                // พ่นข้อมูลภาพรวมตารางคลินิกขาวลีน
                 safeRender('tblGross', Math.round(currentReportData.totalGross).toLocaleString() + " ฿");
                 safeRender('tblDeliveryGross', Math.round(currentReportData.deliveryGross).toLocaleString() + " ฿");
                 safeRender('tblDeliveryNet', Math.round(currentReportData.deliveryNet).toLocaleString() + " ฿");
@@ -121,60 +119,89 @@
                 safeRender('tblExpenses', Math.round(currentReportData.totalExpenses).toLocaleString() + " ฿");
                 safeRender('tblNetCash', Math.round(currentReportData.netCashReceipts).toLocaleString() + " ฿");
 
-                // --- ลอจิกปรับแต่งสีไดนามิกตามชีพจรพลังงานสุทธิ (SPI Dynamic Theme) ---
+                // --- SPI Dynamic Spectrum ลอจิกเกดเปลี่ยนตามสถานะความร้อน % ---
                 const outSPIElement = document.getElementById('outSPI');
                 const progressCircle = document.getElementById('spiCircularProgress');
                 const spiDiffBox = document.getElementById('outSpiDiffBox');
                 const spiBaselineDiff = currentReportData.spi - 80;
 
-                let currentColorClass = "text-[#36B37E]";
-                let strokeColor = "#36B37E";
-                let badgeClass = "bg-[#36B37E]/20 text-[#36B37E]";
+                let spiColor = "text-[#36B37E]";
+                let spiStroke = "#36B37E";
+                let spiBadge = "bg-[#36B37E]/20 text-[#36B37E]";
 
                 if (currentReportData.spi < 60) {
-                    currentColorClass = "text-[#FF5630]";
-                    strokeColor = "#FF5630";
-                    badgeClass = "bg-[#FF5630]/20 text-[#FF5630]";
+                    spiColor = "text-[#FF5630]";
+                    spiStroke = "#FF5630";
+                    spiBadge = "bg-[#FF5630]/20 text-[#FF5630]";
                 } else if (currentReportData.spi >= 60 && currentReportData.spi < 80) {
-                    currentColorClass = "text-[#FFAB00]";
-                    strokeColor = "#FFAB00";
-                    badgeClass = "bg-[#FFAB00]/20 text-[#FFAB00]";
+                    spiColor = "text-[#FFAB00]";
+                    spiStroke = "#FFAB00";
+                    spiBadge = "bg-[#FFAB00]/20 text-[#FFAB00]";
+                } else if (currentReportData.spi === 80) {
+                    spiColor = "text-[#FFFFFF]";
+                    spiStroke = "#FFFFFF";
+                    spiBadge = "bg-zinc-800 text-white";
                 }
 
-                // พ่นความหนาและสีไดนามิกลงเกจหลัก
                 if (outSPIElement) {
                     outSPIElement.innerText = currentReportData.spi.toFixed(1) + "%";
-                    outSPIElement.className = `text-3xl font-black font-mono tracking-tighter ${currentColorClass}`;
+                    outSPIElement.className = `text-2xl font-black font-mono tracking-tighter ${spiColor}`;
                 }
                 if (progressCircle) {
                     const circularOffset = 282.7 - (282.7 * Math.min(currentReportData.spi, 100)) / 100;
                     progressCircle.style.strokeDashoffset = circularOffset;
-                    progressCircle.style.stroke = strokeColor;
+                    progressCircle.style.stroke = spiStroke;
                 }
                 if (spiDiffBox) {
-                    spiDiffBox.className = `text-sm font-black px-3 py-1.5 rounded-md font-mono ${badgeClass}`;
+                    spiDiffBox.className = `text-sm font-black px-3 py-1.5 rounded-md font-mono ${spiBadge}`;
                     spiDiffBox.innerText = (spiBaselineDiff >= 0 ? "+" : "") + spiBaselineDiff.toFixed(1) + "%";
                 }
 
-                // ขยายฟอนต์ตัวเลขของร้านให้ตัวโตและเด่นสะดุดตากว่าข้อความมาตราฐานสากลด้านล่างอย่างสิ้นเชิง
-                document.getElementById('outPrimeCost').innerHTML = `<span class="text-2xl font-black font-mono tracking-wide text-white">${Math.round(currentReportData.totalExpenses).toLocaleString()} ฿</span> <span class="text-lg font-bold text-zinc-300">(${currentReportData.primeCostPct.toFixed(1)}%)</span>`;
-                document.getElementById('outLaborCost').innerHTML = `<span class="text-2xl font-black font-mono tracking-wide text-white">${Math.round(currentReportData.laborCost).toLocaleString()} ฿</span> <span class="text-lg font-bold text-zinc-300">(${currentReportData.laborCostPct.toFixed(1)}%)</span>`;
-                document.getElementById('outMaterialCost').innerHTML = `<span class="text-2xl font-black font-mono tracking-wide text-white">${Math.round(currentReportData.materialCost).toLocaleString()} ฿</span> <span class="text-lg font-bold text-zinc-300">(${currentReportData.materialCostPct.toFixed(1)}%)</span>`;
+                // --- 📊 DYNAMIC COLOR SPECTRUM LOGIC FOR SUB-CARDS ---
+                
+                // 1. ก้อนเดลิเวอรี / ค่าตงแฝง (Prime Cost)
+                let primeColor = "text-[#FF5630]"; // เกิน 60% แดงอันตราย
+                if (currentReportData.primeCostPct <= 55) primeColor = "text-[#36B37E]"; // เขียวดีเลิศ
+                else if (currentReportData.primeCostPct > 55 && currentReportData.primeCostPct <= 60) primeColor = "text-[#FFFFFF]"; // ขาวปกติ
 
-                // สลับขอบสาดไฟเตือนคาร์ดตามพยาธิสภาพดาต้าจริงรายวัน
-                document.getElementById('boxPrime').className = `bg-zinc-900 border p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between group ${currentReportData.primeCostPct <= 60 ? 'border-[#36B37E]/50' : 'border-[#FF5630]/50'}`;
-                document.getElementById('boxLabor').className = `bg-zinc-900 border p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between group ${(currentReportData.laborCostPct >= 25 && currentReportData.laborCostPct <= 35) ? 'border-[#36B37E]/50' : 'border-[#FF5630]/50'}`;
-                document.getElementById('boxMaterial').className = `bg-zinc-900 border p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between group ${currentReportData.materialCostPct <= 35 ? 'border-[#36B37E]/50' : 'border-[#FF5630]/50'}`;
+                // 2. ก้อนค่าแรง / ตารางกะพนักงาน (Labor Cost)
+                let laborColor = "text-[#FF5630]"; // ต่ำกว่า 25 หรือเกิน 35 แดง
+                if (currentReportData.laborCostPct >= 25 && currentReportData.laborCostPct <= 28) laborColor = "text-[#FFFFFF]"; // ขาว พนักงานเริ่มเหนื่อย
+                else if (currentReportData.laborCostPct > 28 && currentReportData.laborCostPct <= 31) laborColor = "text-[#36B37E]"; // เขียว Balance สมบูรณ์
+                else if (currentReportData.laborCostPct > 31 && currentReportData.laborCostPct <= 35) laborColor = "text-[#FF5630]"; // แดง พนักงานว่าง
 
-                // ระบบสลับสีไดนามิกชุดไฟเตือนไอคอนย่อย 3 ชิ้นใต้เกจ
+                // 3. ก้อนวัตถุดิบ / ขยะหลังครัว (Material Cost)
+                let materialColor = "text-[#FF5630]"; // เกิน 35% แดงซื้อของล้น
+                if (currentReportData.materialCostPct <= 30) materialColor = "text-[#36B37E]"; // เขียวคุมคลังเยี่ยม
+                else if (currentReportData.materialCostPct > 30 && currentReportData.materialCostPct <= 35) materialColor = "text-[#FFFFFF]"; // ขาวปกติ
+
+                // พ่นตัวเลขร้านแยกชิ้นไปตรึงชิดขวาสุดของแต่ละก้อนคู่กันตามสั่ง (No Ghost Data)
+                document.getElementById('outPrimeCostValue').innerText = Math.round(currentReportData.totalExpenses).toLocaleString() + " ฿";
+                document.getElementById('outPrimeCostPct').innerText = `(${currentReportData.primeCostPct.toFixed(1)}%)`;
+                document.getElementById('outPrimeCostPct').className = `text-2xl font-black font-mono tracking-wide ${primeColor}`;
+
+                document.getElementById('outLaborCostValue').innerText = Math.round(currentReportData.laborCost).toLocaleString() + " ฿";
+                document.getElementById('outLaborCostPct').innerText = `(${currentReportData.laborCostPct.toFixed(1)}%)`;
+                document.getElementById('outLaborCostPct').className = `text-2xl font-black font-mono tracking-wide ${laborColor}`;
+
+                document.getElementById('outMaterialCostValue').innerText = Math.round(currentReportData.materialCost).toLocaleString() + " ฿";
+                document.getElementById('outMaterialCostPct').innerText = `(${currentReportData.materialCostPct.toFixed(1)}%)`;
+                document.getElementById('outMaterialCostPct').className = `text-2xl font-black font-mono tracking-wide ${materialColor}`;
+
+                // เปลี่ยนสีกรอบคาร์ดภายนอกตามชีพจรจริง
+                document.getElementById('boxPrime').className = `bg-zinc-900 border p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between group ${currentReportData.primeCostPct <= 60 ? 'border-[#36B37E]/40' : 'border-[#FF5630]/40'}`;
+                document.getElementById('boxLabor').className = `bg-zinc-900 border p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between group ${(currentReportData.laborCostPct >= 25 && currentReportData.laborCostPct <= 35) ? 'border-[#36B37E]/40' : 'border-[#FF5630]/40'}`;
+                document.getElementById('boxMaterial').className = `bg-zinc-900 border p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between group ${currentReportData.materialCostPct <= 35 ? 'border-[#36B37E]/40' : 'border-[#FF5630]/40'}`;
+
+                // ผูกสีก้อนไฟไอคอนย่อย 3 ตัวใต้เกจหลัก
                 const bCogs = document.getElementById('badgeCogs');
                 const bLabor = document.getElementById('badgeLabor');
                 const bDeli = document.getElementById('badgeDelivery');
                 if(bCogs) bCogs.className = `text-[10px] px-2.5 py-0.5 rounded font-black ${currentReportData.materialCostPct <= 35 ? 'bg-[#36B37E]/20 text-[#36B37E] border border-[#36B37E]/40' : 'bg-[#FF5630]/20 text-[#FF5630] border border-[#FF5630]/40'}`;
                 if(bLabor) bLabor.className = `text-[10px] px-2.5 py-0.5 rounded font-black ${(currentReportData.laborCostPct >= 25 && currentReportData.laborCostPct <= 35) ? 'bg-[#36B37E]/20 text-[#36B37E] border border-[#36B37E]/40' : 'bg-[#FF5630]/20 text-[#FF5630] border border-[#FF5630]/40'}`;
-                if(bDeli) bDeli.className = `text-[10px] px-2.5 py-0.5 rounded font-black ${currentReportData.pRatio <= 50 ? 'bg-[#36B37E]/20 text-[#36B37E] border border-[#36B37E]/40' : 'bg-[#FFAB00]/20 text-[#FFAB00] border border-[#FFAB00]/40'}`;
+                if(bDeli) bDeli.className = `text-[10px] px-2.5 py-0.5 rounded font-black ${currentReportData.pRatio <= 50 ? 'bg-[#36B37E]/20 text-[#36B37E] border border-[#36B37E]/40' : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'}`;
 
-                // พ่นข้อมูล Ticket Size Matrix (ตัวเลขออเดอร์จะแสดงผลถูกต้องเรียบร้อย)
+                // พ่นค่าตั๋ว Ticket Size Matrix สมบูรณ์แบบ (ตัวเลขดีดขึ้นครบถ้วน)
                 safeRender('outTotalTickets', totalTickets.toLocaleString());
                 safeRender('ticketGrab', Math.round(currentReportData.tGrab).toLocaleString() + " ฿");
                 safeRender('ticketLine', Math.round(currentReportData.tLine).toLocaleString() + " ฿");
@@ -183,12 +210,12 @@
 
                 document.getElementById('diagnosticResult').scrollIntoView({ behavior: 'smooth' });
             } catch (err) {
-                console.error("v1.8 Core Process Error: ", err);
+                console.error("v1.9 Process Error: ", err);
                 alert("พบข้อผิดพลาดในระบบคำนวณ: " + err.message);
             }
         }
 
-        // คอมไพล์ชุดหน้าย่อยสแกนลึกแบบดาร์กโหมด (Darktone Layout Perfect Match 100%)
+        // หน้าต่างสแกนลึก Next-Page View สับเข้ากรอบดำแอปโมเดิร์น #1A1A1A เต็มตัวทุกล็อกโครงสร้าง
         function renderStationData(stationType) {
             const container = document.getElementById('stationDynamicContainer');
             let htmlContent = "";
@@ -301,7 +328,7 @@
             <div>
                 <h1 class="text-xl font-black text-[#0052CC] tracking-wide flex items-center gap-2">
                     <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#0052CC]"></span>
-                    DELI DAILY LIFF <span class="text-xs bg-[#0052CC]/10 text-[#0052CC] px-2 py-0.5 rounded font-mono">v1.8.5 MASTER</span>
+                    DELI DAILY LIFF <span class="text-xs bg-[#0052CC]/10 text-[#0052CC] px-2 py-0.5 rounded font-mono">v1.9 PRO</span>
                 </h1>
                 <p class="text-xs text-[#6B778C] font-medium tracking-wide mt-0.5">ระบบวิเคราะห์ท่อส่งน้ำและพยาธิสภาพร้านอาหารคำนวณย้อนกลับประจำวัน</p>
             </div>
@@ -409,14 +436,14 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-[#6B778C] mb-1">4. ควักจ่ายซื้อวัตถุดิบวันนี้ (บาท)</label>
+                            <label class="block text-xs font-semibold text-[#6B778C] mb-1">4. ควักจ่ายซื้อวัตถิบวันนี้ (บาท)</label>
                             <input type="number" id="materialCost" value="5500" class="w-full bg-[#F4F5F7] border border-[#DFE1E6] rounded-md p-2 text-[#172B4D] font-mono font-bold text-sm text-center">
                         </div>
                     </div>
                 </div>
                 <div class="mt-5">
                     <button id="btnScanReverse" type="button" class="w-full bg-[#0052CC] hover:bg-[#0065FF] text-white font-bold py-3.5 px-4 rounded-lg shadow-md active:scale-95 transition-all text-sm tracking-wide">
-                        ⚡ รันระบบ Reverse Engine วิเคราะห์ห้อง X-Ray v1.8.5
+                        🚀 รันระบบ Reverse Engine วิเคราะห์ห้อง X-Ray v1.9 PRO
                     </button>
                 </div>
             </section>
@@ -479,32 +506,47 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div id="boxPrime" onclick="switchView('prime')" class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between group">
-                            <div class="flex justify-between items-start">
+                    <div class="grid grid-cols-1 gap-4">
+                        <div id="boxPrime" onclick="switchView('prime')" class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.01] flex flex-row justify-between items-center group">
+                            <div class="flex flex-col">
                                 <span class="text-xs font-bold text-zinc-400">🛵 เดลิเวอรี / ค่าตงแฝง</span>
+                                <span id="outPrimeCostStandard" class="text-[10px] text-zinc-500 mt-2">Standard: 55-60%</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="text-right">
+                                    <div id="outPrimeCostValue" class="text-sm font-bold text-zinc-400 font-mono">-</div>
+                                    <div id="outPrimeCostPct" class="text-2xl font-black font-mono mt-0.5">-</div>
+                                </div>
                                 <span class="text-zinc-600 group-hover:text-sky-400 transition-colors font-mono text-sm">➜</span>
                             </div>
-                            <div id="outPrimeCost" class="mt-3 text-white"></div>
-                            <span class="text-[10px] font-semibold text-zinc-500 mt-1">Standard: 55-60%</span>
                         </div>
 
-                        <div id="boxLabor" onclick="switchView('labor')" class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between group">
-                            <div class="flex justify-between items-start">
+                        <div id="boxLabor" onclick="switchView('labor')" class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.01] flex flex-row justify-between items-center group">
+                            <div class="flex flex-col">
                                 <span class="text-xs font-bold text-zinc-400">👥 ค่าแรง / ตารางกะพนักงาน</span>
+                                <span id="outLaborCostStandard" class="text-[10px] text-zinc-500 mt-2">Standard: 25-35%</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="text-right">
+                                    <div id="outLaborCostValue" class="text-sm font-bold text-zinc-400 font-mono">-</div>
+                                    <div id="outLaborCostPct" class="text-2xl font-black font-mono mt-0.5">-</div>
+                                </div>
                                 <span class="text-zinc-600 group-hover:text-sky-400 transition-colors font-mono text-sm">➜</span>
                             </div>
-                            <div id="outLaborCost" class="mt-3 text-white"></div>
-                            <span class="text-[10px] font-semibold text-zinc-500 mt-1">Standard: 25-35%</span>
                         </div>
 
-                        <div id="boxMaterial" onclick="switchView('material')" class="bg-zinc-900 border border-zinc-800 p-4 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between group">
-                            <div class="flex justify-between items-start">
+                        <div id="boxMaterial" onclick="switchView('material')" class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.01] flex flex-row justify-between items-center group">
+                            <div class="flex flex-col">
                                 <span class="text-xs font-bold text-zinc-400">🍲 วัตถุดิบ / ขยะหลังครัว</span>
+                                <span id="outMaterialCostStandard" class="text-[10px] text-zinc-500 mt-2">Standard: 28-35%</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="text-right">
+                                    <div id="outMaterialCostValue" class="text-sm font-bold text-zinc-400 font-mono">-</div>
+                                    <div id="outMaterialCostPct" class="text-2xl font-black font-mono mt-0.5">-</div>
+                                </div>
                                 <span class="text-zinc-600 group-hover:text-sky-400 transition-colors font-mono text-sm">➜</span>
                             </div>
-                            <div id="outMaterialCost" class="mt-3 text-white"></div>
-                            <span class="text-[10px] font-semibold text-zinc-500 mt-1">Standard: 28-35%</span>
                         </div>
                     </div>
 
