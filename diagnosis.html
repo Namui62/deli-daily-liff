@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deli Daily LIFF v2.0 - ห้อง X-Ray ร้านอาหาร (Perfect Stable)</title>
+    <title>Deli Daily LIFF v2.1 - ห้อง X-Ray ร้านอาหาร (Perfect Frame)</title>
+    <!-- Tailwind CSS v3 Stable -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Prompt -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
@@ -18,6 +20,7 @@
         .circle-progress { fill: none; stroke: #36B37E; stroke-width: 10; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dasharray 0.5s ease-out, stroke 0.3s ease; }
     </style>
 
+    <!-- INDUSTRIAL CORE ENGINE v2.1 (STABLE ALIGNMENT) -->
     <script>
         let currentReportData = {
             totalGross: 0, deliveryGross: 0, deliveryNet: 0, netCashReceipts: 0, totalExpenses: 0,
@@ -106,7 +109,7 @@
                 currentReportData.tShopee = bShopee > 0 ? (sShopee / bShopee) : 0;
                 currentReportData.tOffline = bOffline > 0 ? (sOffline / bOffline) : 0;
 
-                // Render บล็อกบน (คลินิกสะอาดลีน)
+                // Render ส่วนภาพรวมบน (คลินิกสะอาดลีน)
                 document.getElementById('diagnosticResult').classList.remove('hidden');
                 document.getElementById('mainResultDashboard').classList.remove('hidden');
                 document.getElementById('stationDetailView').classList.add('hidden');
@@ -119,7 +122,7 @@
                 safeRender('tblExpenses', Math.round(currentReportData.totalExpenses).toLocaleString() + " ฿");
                 safeRender('tblNetCash', Math.round(currentReportData.netCashReceipts).toLocaleString() + " ฿");
 
-                // --- SPI Dynamic Theme Logic ---
+                // --- SPI เกจเปลี่ยนสีไดนามิกตามความร้อนแรงพลังงานสุทธิ ---
                 const outSPIElement = document.getElementById('outSPI');
                 const progressCircle = document.getElementById('spiCircularProgress');
                 const spiDiffBox = document.getElementById('outSpiDiffBox');
@@ -141,7 +144,7 @@
 
                 if (outSPIElement) {
                     outSPIElement.innerText = currentReportData.spi.toFixed(1) + "%";
-                    outSPIElement.className = `text-3xl font-black font-mono tracking-tighter ${spiColor}`;
+                    outSPIElement.className = `text-2xl font-black font-mono tracking-tighter ${spiColor}`;
                 }
                 if (progressCircle) {
                     const circularOffset = 282.7 - (282.7 * Math.min(currentReportData.spi, 100)) / 100;
@@ -170,7 +173,7 @@
                 if (currentReportData.materialCostPct <= 30) materialColor = "text-[#36B37E]";
                 else if (currentReportData.materialCostPct > 30 && currentReportData.materialCostPct <= 35) materialColor = "text-[#FFFFFF]";
 
-                // [LAYOUT FIXED] ดึงเงินบาทจริงกลับมาสถิติตำแหน่งฝั่งซ้ายขยายตัวหนาเด่นชัด ส่วน % ดีดไปตรึงชิดขวาสุดตามคำสั่งสั่งการ
+                // [RENDER ENGINE UPGRADE] พ่นค่าวัดเงินบาทดิบลื่นไหล ไม่ครอบแท็กซ้อนคลาสรวนระบบ
                 safeRender('outPrimeCostValue', Math.round(currentReportData.totalExpenses).toLocaleString() + " ฿");
                 const outPrimePct = document.getElementById('outPrimeCostPct');
                 if (outPrimePct) {
@@ -192,12 +195,12 @@
                     outMaterialPct.className = `text-2xl font-black font-mono tracking-wide ${materialColor}`;
                 }
 
-                // เปลี่ยนสีกรอบคาร์ดภายนอกตามชีพจรจริง
+                // สลับขอบสาดไฟเตือนคาร์ดตามชีพจรจริง
                 document.getElementById('boxPrime').className = `bg-zinc-900 border p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.01] flex flex-row justify-between items-center group ${currentReportData.primeCostPct <= 60 ? 'border-[#36B37E]/40' : 'border-[#FF5630]/40'}`;
                 document.getElementById('boxLabor').className = `bg-zinc-900 border p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.01] flex flex-row justify-between items-center group ${(currentReportData.laborCostPct >= 25 && currentReportData.laborCostPct <= 35) ? 'border-[#36B37E]/40' : 'border-[#FF5630]/40'}`;
                 document.getElementById('boxMaterial').className = `bg-zinc-900 border p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.01] flex flex-row justify-between items-center group ${currentReportData.materialCostPct <= 35 ? 'border-[#36B37E]/40' : 'border-[#FF5630]/40'}`;
 
-                // บังคับเปลี่ยนสีไฟไอคอนสถานะย่อย 3 ตัวใต้เกจหลัก
+                // ไฟแจ้งสถานะไอคอนย่อย 3 ตัวใต้เกจหลัก
                 const bCogs = document.getElementById('badgeCogs');
                 const bLabor = document.getElementById('badgeLabor');
                 const bDeli = document.getElementById('badgeDelivery');
@@ -205,7 +208,7 @@
                 if(bLabor) bLabor.className = `text-[10px] px-2.5 py-0.5 rounded font-black ${(currentReportData.laborCostPct >= 25 && currentReportData.laborCostPct <= 35) ? 'bg-[#36B37E]/20 text-[#36B37E] border border-[#36B37E]/40' : 'bg-[#FF5630]/20 text-[#FF5630] border border-[#FF5630]/40'}`;
                 if(bDeli) bDeli.className = `text-[10px] px-2.5 py-0.5 rounded font-black ${currentReportData.pRatio <= 50 ? 'bg-[#36B37E]/20 text-[#36B37E] border border-[#36B37E]/40' : 'bg-[#FFAB00]/20 text-[#FFAB00] border border-[#FFAB00]/40'}`;
 
-                // พ่นค่า Matrix บิลรวมทั้งหมด
+                // พ่นค่าตั๋ว Ticket Size Matrix
                 safeRender('outTotalTickets', totalTickets.toLocaleString());
                 safeRender('ticketGrab', Math.round(currentReportData.tGrab).toLocaleString() + " ฿");
                 safeRender('ticketLine', Math.round(currentReportData.tLine).toLocaleString() + " ฿");
@@ -214,12 +217,11 @@
 
                 document.getElementById('diagnosticResult').scrollIntoView({ behavior: 'smooth' });
             } catch (err) {
-                console.error("v2.0 App Logic Breakdown: ", err);
+                console.error("v2.1 Core App Logic Breakdown: ", err);
                 alert("พบข้อผิดพลาดในระบบคำนวณ: " + err.message);
             }
         }
 
-        // หน้าต่างสแกนโรคเชิงลึกธีมกรอบดำแอปโมเดิร์น #1A1A1A
         function renderStationData(stationType) {
             const container = document.getElementById('stationDynamicContainer');
             let htmlContent = "";
@@ -328,11 +330,12 @@
 <body class="bg-[#F8F9FA] text-[#172B4D] min-h-screen antialiased p-4 sm:p-6">
 
     <div class="max-w-4xl mx-auto">
+        <!-- Header -->
         <header class="border-b border-[#EAECEF] pb-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div>
                 <h1 class="text-xl font-black text-[#0052CC] tracking-wide flex items-center gap-2">
                     <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#0052CC]"></span>
-                    DELI DAILY LIFF <span class="text-xs bg-[#0052CC]/10 text-[#0052CC] px-2 py-0.5 rounded font-mono">v2.0 GOLDEN</span>
+                    DELI DAILY LIFF <span class="text-xs bg-[#0052CC]/10 text-[#0052CC] px-2 py-0.5 rounded font-mono">v2.1 PRO</span>
                 </h1>
                 <p class="text-xs text-[#6B778C] font-medium tracking-wide mt-0.5">ระบบวิเคราะห์ท่อส่งน้ำและพยาธิสภาพร้านอาหารคำนวณย้อนกลับประจำวัน</p>
             </div>
@@ -341,7 +344,9 @@
             </div>
         </header>
 
+        <!-- INPUT FORM AREA (โหมดคลินิกสะอาดลีน) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- PHASE 1: Master Setup -->
             <section class="bg-white border border-[#EAECEF] rounded-xl p-5 shadow-sm flex flex-col justify-between">
                 <div>
                     <div class="flex items-center gap-2 mb-4 border-b border-[#EAECEF] pb-2">
@@ -397,6 +402,7 @@
                 </div>
             </section>
 
+            <!-- PHASE 2: Daily Pulse Input -->
             <section class="bg-white border border-[#EAECEF] rounded-xl p-5 shadow-sm flex flex-col justify-between">
                 <div>
                     <div class="flex items-center gap-2 mb-4 border-b border-[#EAECEF] pb-2">
@@ -447,15 +453,18 @@
                 </div>
                 <div class="mt-5">
                     <button id="btnScanReverse" type="button" class="w-full bg-[#0052CC] hover:bg-[#0065FF] text-white font-bold py-3.5 px-4 rounded-lg shadow-md active:scale-95 transition-all text-sm tracking-wide">
-                        🚀 รันระบบ Reverse Engine วิเคราะห์ห้อง X-Ray v2.0
+                        🚀 รันระบบ Reverse Engine วิเคราะห์ห้อง X-Ray v2.1
                     </button>
                 </div>
             </section>
         </div>
 
+        <!-- OUTPUT MAIN CONTAINER -->
         <main id="diagnosticResult" class="hidden space-y-6">
             
+            <!-- STAGE 1: MAIN DASHBOARD VIEW -->
             <div id="mainResultDashboard" class="hidden space-y-6">
+                <!-- ตารางภาพรวมใหญ่ด้านบนสุด (โหมดคลินิกสะอาดลีน) -->
                 <div class="bg-white border border-[#EAECEF] rounded-xl p-5 shadow-sm">
                     <h3 class="text-xs font-bold text-[#6B778C] uppercase tracking-widest border-b border-[#EAECEF] pb-2 mb-3">GENERAL OPERATIONAL REPORT</h3>
                     <div class="overflow-x-auto">
@@ -473,8 +482,10 @@
                     </div>
                 </div>
 
+                <!-- เฟสโหมดกรอบสีดำสไตล์แอปโมเดิร์นดุดัน #1A1A1A ด้านล่างทั้งหมด -->
                 <div class="bg-[#1A1A1A] border-2 border-black rounded-xl p-5 text-white space-y-6 shadow-2xl">
                     
+                    <!-- ก้อน SPI (เกจหนาพิเศษ สลับช่องเปอร์เซ็นต์ส่วนต่างตรงกลาง ดึง Baseline คืนขวาสุด) -->
                     <div class="border-b border-zinc-800 pb-5">
                         <h3 class="text-xs font-black text-zinc-400 uppercase tracking-widest mb-4 text-left">
                             ดัชนีกำไร SPI (STORE POWER INDEX)
@@ -508,19 +519,24 @@
                         </div>
                     </div>
 
+                    <!-- คาร์ดสถานะย่อย 3 ใบ (จัดวางสเปกเงินบาทใหญ่เด่นฝั่งซ้าย และเปอร์เซ็นต์ตรึงชิดขวาสุดอย่างกริบและไม่แตกแถว) -->
                     <div class="grid grid-cols-1 gap-4">
+                        <!-- คาร์ดเดลิเวอรี / ค่าตงแฝง -->
                         <div id="boxPrime" onclick="switchView('prime')" class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.01] flex flex-row justify-between items-center group">
                             <div class="flex flex-col">
                                 <span class="text-xs font-bold text-zinc-400">🛵 เดลิเวอรี / ค่าตงแฝง</span>
+                                <!-- ยอดเนื้อเงินบาทจริง ขยายตัวใหญ่ หนา และเด่นชัดขึ้นฝั่งซ้ายของบิลตามภาพบรีฟ -->
                                 <div id="outPrimeCostValue" class="text-xl font-black font-mono text-white mt-1.5">-</div>
                                 <span class="text-[10px] text-zinc-500 mt-1 font-medium">Standard: 55-60%</span>
                             </div>
+                            <!-- ย้ายตัวเลขเปอร์เซ็นต์และลูกศรมาตรึงอยู่ฝั่งขวาสุดของแต่ละกลุ่มกล่องแบบไร้รอยต่อ -->
                             <div class="flex items-center gap-4 text-right">
                                 <div id="outPrimeCostPct" class="text-2xl font-black font-mono tracking-wide">-</div>
                                 <span class="text-zinc-600 group-hover:text-sky-400 transition-colors font-mono text-sm">➜</span>
                             </div>
                         </div>
 
+                        <!-- คาร์ดค่าแรง / ตารางกะพนักงาน -->
                         <div id="boxLabor" onclick="switchView('labor')" class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.01] flex flex-row justify-between items-center group">
                             <div class="flex flex-col">
                                 <span class="text-xs font-bold text-zinc-400">👥 ค่าแรง / ตารางกะพนักงาน</span>
@@ -533,6 +549,7 @@
                             </div>
                         </div>
 
+                        <!-- คาร์ดวัตถุดิบ / ขยะหลังครัว -->
                         <div id="boxMaterial" onclick="switchView('material')" class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.01] flex flex-row justify-between items-center group">
                             <div class="flex flex-col">
                                 <span class="text-xs font-bold text-zinc-400">🍲 วัตถุดิบ / ขยะหลังครัว</span>
@@ -546,6 +563,7 @@
                         </div>
                     </div>
 
+                    <!-- ค่าเฉลี่ยต่อบิล Per Ticket Size -->
                     <div class="border-t border-zinc-800 pt-4">
                         <div class="flex justify-between items-center mb-3">
                             <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest">PER TICKET SIZE MATRIX</span>
@@ -561,6 +579,7 @@
                 </div>
             </div>
 
+            <!-- STAGE 2: NEXT-PAGE DETAIL STATION VIEW -->
             <div id="stationDetailView" class="hidden bg-[#1A1A1A] border-2 border-black rounded-xl p-6 shadow-2xl space-y-6">
                 <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
                     <button type="button" onclick="switchView('main')" class="text-xs font-black text-white hover:text-sky-400 flex items-center gap-1 bg-zinc-900 border border-zinc-800 px-3 py-2 rounded-md transition-all">
@@ -570,7 +589,8 @@
                 </div>
 
                 <div id="stationDynamicContainer" class="space-y-6 text-zinc-100">
-                    </div>
+                    <!-- HTML จากฟังก์ชัน renderStationData จะมาวางก้อนข้อมูลตรงนี้ -->
+                </div>
 
                 <div class="border-t border-zinc-800 pt-5 mt-6">
                     <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
