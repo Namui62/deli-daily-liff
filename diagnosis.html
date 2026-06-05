@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deli Daily LIFF v2.0 - ห้อง X-Ray ร้านอาหาร (Golden Stable)</title>
+    <title>Deli Daily LIFF v2.0 - ห้อง X-Ray ร้านอาหาร (Perfect Stable)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,6 @@
             background-color: #F8F9FA;
             color: #172B4D;
         }
-        /* ขยายเส้นรอบวงเกจให้หนาคมชัดยิ่งขึ้นอีกระดับตามสั่ง */
         .circle-bg { fill: none; stroke: #2D2D2D; stroke-width: 10; }
         .circle-progress { fill: none; stroke: #36B37E; stroke-width: 10; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dasharray 0.5s ease-out, stroke 0.3s ease; }
     </style>
@@ -171,7 +170,7 @@
                 if (currentReportData.materialCostPct <= 30) materialColor = "text-[#36B37E]";
                 else if (currentReportData.materialCostPct > 30 && currentReportData.materialCostPct <= 35) materialColor = "text-[#FFFFFF]";
 
-                // Render ตัวเลขและเปอร์เซ็นต์แยกชิ้นล็อคในตระกร้าขวาหนาเด่นสมบูรณ์
+                // [LAYOUT FIXED] ดึงเงินบาทจริงกลับมาสถิติตำแหน่งฝั่งซ้ายขยายตัวหนาเด่นชัด ส่วน % ดีดไปตรึงชิดขวาสุดตามคำสั่งสั่งการ
                 safeRender('outPrimeCostValue', Math.round(currentReportData.totalExpenses).toLocaleString() + " ฿");
                 const outPrimePct = document.getElementById('outPrimeCostPct');
                 if (outPrimePct) {
@@ -454,8 +453,6 @@
             </section>
         </div>
 
-        <hr class="border-[#EAECEF] my-8">
-
         <main id="diagnosticResult" class="hidden space-y-6">
             
             <div id="mainResultDashboard" class="hidden space-y-6">
@@ -515,13 +512,11 @@
                         <div id="boxPrime" onclick="switchView('prime')" class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.01] flex flex-row justify-between items-center group">
                             <div class="flex flex-col">
                                 <span class="text-xs font-bold text-zinc-400">🛵 เดลิเวอรี / ค่าตงแฝง</span>
-                                <span class="text-[10px] text-zinc-500 mt-2 font-medium">Standard: 55-60%</span>
+                                <div id="outPrimeCostValue" class="text-xl font-black font-mono text-white mt-1.5">-</div>
+                                <span class="text-[10px] text-zinc-500 mt-1 font-medium">Standard: 55-60%</span>
                             </div>
                             <div class="flex items-center gap-4 text-right">
-                                <div class="flex flex-col items-end">
-                                    <div id="outPrimeCostValue" class="text-sm font-bold text-zinc-400 font-mono">-</div>
-                                    <div id="outPrimeCostPct" class="text-2xl font-black font-mono mt-0.5">-</div>
-                                </div>
+                                <div id="outPrimeCostPct" class="text-2xl font-black font-mono tracking-wide">-</div>
                                 <span class="text-zinc-600 group-hover:text-sky-400 transition-colors font-mono text-sm">➜</span>
                             </div>
                         </div>
@@ -529,13 +524,11 @@
                         <div id="boxLabor" onclick="switchView('labor')" class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.01] flex flex-row justify-between items-center group">
                             <div class="flex flex-col">
                                 <span class="text-xs font-bold text-zinc-400">👥 ค่าแรง / ตารางกะพนักงาน</span>
-                                <span class="text-[10px] text-zinc-500 mt-2 font-medium">Standard: 25-35%</span>
+                                <div id="outLaborCostValue" class="text-xl font-black font-mono text-white mt-1.5">-</div>
+                                <span class="text-[10px] text-zinc-500 mt-1 font-medium">Standard: 25-35%</span>
                             </div>
                             <div class="flex items-center gap-4 text-right">
-                                <div class="flex flex-col items-end">
-                                    <div id="outLaborCostValue" class="text-sm font-bold text-zinc-400 font-mono">-</div>
-                                    <div id="outLaborCostPct" class="text-2xl font-black font-mono mt-0.5">-</div>
-                                </div>
+                                <div id="outLaborCostPct" class="text-2xl font-black font-mono tracking-wide">-</div>
                                 <span class="text-zinc-600 group-hover:text-sky-400 transition-colors font-mono text-sm">➜</span>
                             </div>
                         </div>
@@ -543,13 +536,11 @@
                         <div id="boxMaterial" onclick="switchView('material')" class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.01] flex flex-row justify-between items-center group">
                             <div class="flex flex-col">
                                 <span class="text-xs font-bold text-zinc-400">🍲 วัตถุดิบ / ขยะหลังครัว</span>
-                                <span class="text-[10px] text-zinc-500 mt-2 font-medium">Standard: 28-35%</span>
+                                <div id="outMaterialCostValue" class="text-xl font-black font-mono text-white mt-1.5">-</div>
+                                <span class="text-[10px] text-zinc-500 mt-1 font-medium">Standard: 28-35%</span>
                             </div>
                             <div class="flex items-center gap-4 text-right">
-                                <div class="flex flex-col items-end">
-                                    <div id="outMaterialCostValue" class="text-sm font-bold text-zinc-400 font-mono">-</div>
-                                    <div id="outMaterialCostPct" class="text-2xl font-black font-mono mt-0.5">-</div>
-                                </div>
+                                <div id="outMaterialCostPct" class="text-2xl font-black font-mono tracking-wide">-</div>
                                 <span class="text-zinc-600 group-hover:text-sky-400 transition-colors font-mono text-sm">➜</span>
                             </div>
                         </div>
