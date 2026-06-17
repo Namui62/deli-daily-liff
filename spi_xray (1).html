@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Deli Daily — DD X-Ray Final</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Prompt', sans-serif; }
+        :root {
+            --green: #AAF631;
+            --blue: #2247FF;
+            --yellow: #F6EF31;
+            --amber: #FF9F0A;
+            --red: #FF3B30;
+            --bg: #121212;
+            --card: #242426;
+            --card2: #0F0F0F;
+            --border: #2C2C2E;
+            --muted: #8E8E93;
+            --text: #FFFFFF;
+        }
+    </style>
+</head>
+<body class="bg-[#121212] text-white flex justify-center items-center min-h-screen antialiased">
+
+    <main class="w-full max-w-[430px] bg-[#121212] min-h-screen relative flex flex-col pb-[100px]">
+
+        <div id="inputZone" class="p-6 bg-white text-[#172B4D] min-h-screen" style="display: block;">
+            <div class="flex items-center justify-between mb-5 pb-4 border-b border-[#EAECEF]">
+                <div>
+                    <div class="text-xl font-black text-[#2247FF] flex items-center gap-2">
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#2247FF]"></span>
+                        DELI DAILY
+                        <span class="text-xs bg-blue-100 text-[#2247FF] px-2 py-0.5 rounded-md font-bold">X-Ray</span>
+                    </div>
+                    <div class="text-[11px] text-[#6B778C] mt-1">เครื่องมือตรวจเช็กสุขภาพร้านอาหารหลังบ้าน</div>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <label class="text-xs font-bold text-[#6B778C] block mb-2">จำลองขนาดร้าน เพื่อโหลดค่าตัวเลขเบื้องต้น</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" id="sb_small" class="border-2 border-[#DFE1E6] rounded-xl p-2.5 text-center bg-white cursor-pointer transition-all" onclick="setPresetSize('small')">
+                        <span class="text-base">🏠</span><br><span class="font-black text-xs">ร้านเล็ก</span>
+                    </button>
+                    <button type="button" id="sb_medium" class="border-2 border-[#2247FF] rounded-xl p-2.5 text-center bg-blue-50 cursor-pointer transition-all font-bold" onclick="setPresetSize('medium')">
+                        <span class="text-base">🏪</span><br><span class="font-black text-xs">ร้านกลาง</span>
+                    </button>
+                    <button type="button" id="sb_large" class="border-2 border-[#DFE1E6] rounded-xl p-2.5 text-center bg-white cursor-pointer transition-all" onclick="setPresetSize('large')">
+                        <span class="text-base">🏬</span><br><span class="font-black text-xs">ร้านใหญ่</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-3 bg-[#F4F5F7] p-4 rounded-xl border border-[#DFE1E6] mb-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[11px] font-bold text-[#6B778C]">Fix Cost /เดือนรวม (฿)</label>
+                        <input type="number" id="fixCost" value="60000" class="w-full bg-white border border-[#DFE1E6] rounded-lg p-2 font-bold text-xs text-[#172B4D] outline-none mt-1">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-[#6B778C]">จำนวนชั่วโมงเปิดร้าน/วัน</label>
+                        <input type="number" id="openHours" value="8" class="w-full bg-white border border-[#DFE1E6] rounded-lg p-2 font-bold text-center text-xs text-[#172B4D] outline-none mt-1">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[11px] font-bold text-[#6B778C]">ยอดขายปกติ/วัน (฿)</label>
+                        <input type="number" id="avgSales" value="15000" class="w-full bg-white border border-[#DFE1E6] rounded-lg p-2 font-bold text-xs text-[#172B4D] outline-none mt-1">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-[#6B778C]">ยอดขายสูงสุด/วัน (฿)</label>
+                        <input type="number" id="maxSales" value="30000" class="w-full bg-white border border-[#DFE1E6] rounded-lg p-2 font-bold text-xs text-[#172B4D] outline-none mt-1">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[11px] font-bold text-[#6B778C] block mb-1">สัดส่วนค่า GP แพลตฟอร์ม (%)</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-white border border-[#DFE1E6] rounded-lg p-1.5 text-center">
+                            <span class="text-[9px] font-bold text-[#6B778C] block">Grab</span>
+                            <input type="number" id="gpGrab" value="30" class="w-full text-center font-bold text-xs outline-none bg-transparent">
+                        </div>
+                        <div class="bg-white border border-[#DFE1E6] rounded-lg p-1.5 text-center">
+                            <span class="text-[9px] font-bold text-[#6B778C] block">LINE MAN</span>
+                            <input type="number" id="gpLine" value="30" class="w-full text-center font-bold text-xs outline-none bg-transparent">
+                        </div>
+                        <div class="bg-white border border-[#DFE1E6] rounded-lg p-1.5 text-center">
+                            <span class="text-[9px] font-bold text-[#6B778C] block">Shopee</span>
+                            <input type="number" id="gpShopee" value="30" class="w-full text-center font-bold text-xs outline-none bg-transparent">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-[#F4F5F7] p-4 rounded-xl border border-[#DFE1E6] mb-4">
+                <div class="text-xs font-bold text-[#6B778C] mb-2 pb-1 border-b border-[#DFE1E6]">📊 ข้อมูลยอดขายและบิลวันนี้</div>
+                <div class="grid grid-cols-12 gap-2 text-center text-[10px] font-bold text-[#6B778C] mb-1">
+                    <div class="col-span-4 text-left">ช่องทาง</div>
+                    <div class="col-span-5">ยอดเงินรวม (฿)</div>
+                    <div class="col-span-3">บิลรวม</div>
+                </div>
+                <div id="channelInputContainer" class="space-y-2"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="text-xs font-bold text-[#6B778C]">ค่าแรงพนักงานวันนี้ (฿)</label>
+                    <input type="number" id="laborCost" value="1500" class="w-full bg-white border border-[#DFE1E6] rounded-lg p-2 font-bold text-center text-sm outline-none mt-1">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-[#6B778C]">จำนวนพนักงาน (คน)</label>
+                    <input type="number" id="staffCount" value="3" class="w-full bg-white border border-[#DFE1E6] rounded-lg p-2 font-bold text-center text-sm outline-none mt-1">
+                </div>
+            </div>
+            <div class="mb-6">
+                <label class="text-xs font-bold text-[#6B778C]">ค่าวัตถุดิบวันนี้รวม (฿)</label>
+                <input type="number" id="materialCost" value="4500" class="w-full bg-white border border-[#DFE1E6] rounded-lg p-2 font-bold text-center text-sm outline-none mt-1">
+            </div>
+
+            <button type="button" class="w-full h-[65px] bg-[#2247FF] hover:bg-blue-700 transition-colors text-white rounded-full flex flex-col items-center justify-center relative shadow-xl border border-blue-400/20 cursor-pointer transform active:scale-95 text-center outline-none" onclick="runXrayEngine()">
+                <div class="absolute left-5 w-5 h-5 border-2 border-white rounded-md flex items-center justify-center text-[9px] font-black">✓</div>
+                <span class="text-sm font-black tracking-wider">DD : X-RAY</span>
+                <span class="text-[10px] text-white/80 mt-0.5">สแกนดูมาตรฐานร้านหาจุดรั่ว</span>
+            </button>
+        </div>
+
+        <div id="resultZone" class="px-4 pt-4 flex-col" style="display: none;">
+            
+            <div class="flex items-center justify-between mb-4">
+                <div class="text-xs font-semibold text-[#AAF631] tracking-wider">DD X-RAY POWER REPORT</div>
+                <button type="button" class="text-xs font-bold bg-[#242426] border border-white/10 px-3 py-1.5 rounded-lg text-white/70 cursor-pointer" onclick="backToInput()">◀ กลับ</button>
+            </div>
+
+            <div class="grid grid-cols-12 gap-3 items-start mb-6">
+                <div class="col-span-7 flex flex-col justify-between py-1">
+                    <div>
+                        <span class="text-[11px] text-white/50 block">฿ ยอดขายรวม</span>
+                        <h2 id="rz_gross" class="text-2xl font-black tracking-tight mt-0.5">0</h2>
+                    </div>
+                    <div class="my-4">
+                        <span class="text-[11px] text-white/50 block">฿ กำไรสุทธิวันนี้</span>
+                        <h1 id="rz_profit" class="text-4xl font-black tracking-tight transition-colors duration-500">0</h1>
+                    </div>
+                    <div>
+                        <span class="text-[11px] text-white/50 block flex items-center gap-1">฿ คาดการณ์ <span class="bg-[#242426] border border-white/10 text-[9px] font-black px-1.5 py-0.5 rounded-md text-white">x30 วัน</span></span>
+                        <h2 id="rz_profit30" class="text-2xl font-black tracking-tight mt-1">0</h2>
+                    </div>
+                </div>
+
+                <div id="spiCard" class="col-span-5 bg-[#242426] border border-white/10 text-white rounded-2xl p-3 flex flex-col items-center justify-between min-h-[250px] transition-all duration-500 relative overflow-hidden">
+                    <span id="spiCardLabel" class="text-[10px] font-black tracking-widest text-white/60 self-start">HEALTH</span>
+                    
+                    <div class="w-24 h-24 relative flex flex-col items-center justify-center my-2">
+                        <svg viewBox="0 0 90 90" class="absolute inset-0 w-full h-full" style="transform:rotate(-90deg)">
+                            <circle id="spi_track" cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8" stroke-dasharray="4 3"/>
+                            <circle id="spi_arc" cx="45" cy="45" r="38" fill="none" stroke="#AAF631" stroke-width="8" stroke-linecap="round" stroke-dasharray="0 239" style="transition:stroke-dasharray .6s ease"/>
+                        </svg>
+                        <div id="spi_num" class="text-2xl font-black leading-none relative z-10">0%</div>
+                        <div id="spiCardSub" class="text-[9px] font-bold tracking-widest mt-0.5 relative z-10">SPI</div>
+                    </div>
+                    
+                    <div class="w-full bg-[#121212] rounded-xl p-2.5 text-[10px] text-left space-y-1.5 mt-2 text-white border border-white/5">
+                        <div class="flex justify-between items-center"><span class="text-white/60">Profits</span><span id="box_profit" class="font-bold">0%</span></div>
+                        <div class="flex justify-between items-center"><span class="text-white/60">Overhead</span><span id="box_overhead" class="font-bold">0%</span></div>
+                        <div class="flex justify-between items-center border-t border-white/10 pt-1.5 mt-1"><span class="text-white">Prime Cost</span><span id="box_prime" class="font-black">0%</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adviceSection" class="mb-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <span id="adviceBadge" class="px-3 py-1.5 rounded-full text-xs font-black tracking-wide whitespace-nowrap">GOOD</span>
+                    <span class="flex-1 bg-[#242426] border border-white/10 rounded-full px-4 py-1.5 text-xs font-bold text-white/80 text-center truncate">"<span id="adviceHeadline">คำแนะนำด่วน</span>"</span>
+                </div>
+                <div id="adviceText" class="bg-[#242426] border border-white/10 rounded-xl p-4 text-[11px] leading-relaxed font-medium">
+                    กำลังคำนวณสุขภาพร้าน...
+                </div>
+            </div>
+
+            <div class="bg-[#242426] rounded-xl p-4 border border-white/10 mb-6">
+                <div class="text-[11px] text-white/50 mb-2">โครงสร้างสัดส่วนจริง (Spectrum Bar บันทึกเป้าหมาย)</div>
+                <div class="w-full h-5 rounded-full overflow-hidden flex bg-[#121212] mb-3">
+                    <div id="bar_profit" class="h-full bg-[#AAF631] transition-all duration-300" style="width: 0%"></div>
+                    <div id="bar_overhead" class="h-full bg-[#F6EF31] transition-all duration-300" style="width: 0%"></div>
+                    <div id="bar_labor" class="h-full bg-[#FF9F0A] transition-all duration-300" style="width: 0%"></div>
+                    <div id="bar_cogs" class="h-full bg-[#FF3B30] transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <div class="grid grid-cols-4 gap-1 text-[9px] text-center text-white/60">
+                    <div class="flex items-center gap-1 justify-center"><span class="w-1.5 h-1.5 rounded-full bg-[#AAF631]"></span> กำไร (<span id="lbl_p_pct">0%</span>)</div>
+                    <div class="flex items-center gap-1 justify-center"><span class="w-1.5 h-1.5 rounded-full bg-[#F6EF31]"></span> ค่าตง+Fix (<span id="lbl_o_pct">0%</span>)</div>
+                    <div class="flex items-center gap-1 justify-center"><span class="w-1.5 h-1.5 rounded-full bg-[#FF9F0A]"></span> ค่าแรง (<span id="lbl_l_pct">0%</span>)</div>
+                    <div class="flex items-center gap-1 justify-center"><span class="w-1.5 h-1.5 rounded-full bg-[#FF3B30]"></span> วัตถุดิบ (<span id="lbl_c_pct">0%</span>)</div>
+                </div>
+                <div class="text-[9px] text-white/30 text-right mt-3">ปรับแต่งโมเดลจำลอง: <span id="adjustCount" class="text-[#AAF631] font-bold">0</span> ครั้ง</div>
+            </div>
+
+            <div class="bg-[#242426] border border-white/10 rounded-xl p-4 mb-6">
+                <div class="flex justify-between items-center mb-3">
+                    <div>
+                        <span class="text-xs font-bold text-white/80 block">Prime Cost & ต้นทุนแฝงรายวัน</span>
+                        <span class="text-[9px] text-white/40">คุมวัตถุดิบ + ค่าแรง ไม่ควรเกิน 60%</span>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-[#0F0F0F] border border-white/5 rounded-xl p-2.5 text-center">
+                        <span class="text-[10px] text-white/40 block">กำไรสุทธิวันนี้</span>
+                        <div id="pc_profit" class="text-xl font-black my-1 text-[#AAF631]">0%</div>
+                    </div>
+                    <div class="bg-[#0F0F0F] border border-white/5 rounded-xl p-2.5 text-center">
+                        <span class="text-[10px] text-white/40 block">Overhead + GP</span>
+                        <div id="pc_overhead" class="text-xl font-black my-1 text-[#F6EF31]">0%</div>
+                    </div>
+                    <div class="bg-[#0F0F0F] border border-white/5 rounded-xl p-2.5 text-center">
+                        <span class="text-[10px] text-white/40 block">Labor (ค่าแรง)</span>
+                        <div id="pc_labor" class="text-xl font-black my-1 text-[#FF9F0A]">0%</div>
+                        <div class="flex justify-center gap-2 mt-1">
+                            <button type="button" class="w-6 h-6 rounded-full bg-[#2247FF] flex items-center justify-center font-black text-white text-xs cursor-pointer" onclick="adjustPrimeCost('labor', -1)">−</button>
+                            <button type="button" class="w-6 h-6 rounded-full bg-[#2247FF] flex items-center justify-center font-black text-white text-xs cursor-pointer" onclick="adjustPrimeCost('labor', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="bg-[#0F0F0F] border border-white/5 rounded-xl p-2.5 text-center">
+                        <span class="text-[10px] text-white/40 block">COGs (วัตถุดิบ)</span>
+                        <div id="pc_cogs" class="text-xl font-black my-1 text-[#FF3B30]">0%</div>
+                        <div class="flex justify-center gap-2 mt-1">
+                            <button type="button" class="w-6 h-6 rounded-full bg-[#2247FF] flex items-center justify-center font-black text-white text-xs cursor-pointer" onclick="adjustPrimeCost('cogs', -1)">−</button>
+                            <button type="button" class="w-6 h-6 rounded-full bg-[#2247FF] flex items-center justify-center font-black text-white text-xs cursor-pointer" onclick="adjustPrimeCost('cogs', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-[#2247FF]/10 border border-[#2247FF]/30 rounded-xl px-4 py-3 mb-6 flex items-center gap-2.5">
+                <span class="text-lg">👆</span>
+                <span class="text-[11px] text-white/80 leading-snug">ลองกดปุ่มสีน้ำเงินด้านบน ปรับวัตถุดิบ-ค่าแรง ดูว่าคุมต้นทุนได้ กำไรจะเปลี่ยนไปแค่ไหน</span>
+            </div>
+
+            <div class="bg-[#242426] border border-white/10 rounded-xl p-4 mb-6">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-xs font-bold text-white/80">ลองจำลองขึ้นราคาต่อบิล</span>
+                </div>
+                
+                <div class="grid grid-cols-5 gap-1.5 bg-[#0F0F0F] p-2.5 rounded-xl border border-white/5 mb-4">
+                    <button type="button" class="tkt-btn py-1.5 rounded-lg font-black text-[11px] cursor-pointer transition-all bg-[#2247FF] text-white border border-transparent" onclick="selectTicketStep(0, this)">+0</button>
+                    <button type="button" class="tkt-btn py-1.5 rounded-lg font-black text-[11px] cursor-pointer transition-all bg-[#121212] text-white/60 border border-white/5" onclick="selectTicketStep(5, this)">+5</button>
+                    <button type="button" class="tkt-btn py-1.5 rounded-lg font-black text-[11px] cursor-pointer transition-all bg-[#121212] text-white/60 border border-white/5" onclick="selectTicketStep(10, this)">+10</button>
+                    <button type="button" class="tkt-btn py-1.5 rounded-lg font-black text-[11px] cursor-pointer transition-all bg-[#121212] text-white/60 border border-white/5" onclick="selectTicketStep(15, this)">+15</button>
+                    <button type="button" class="tkt-btn py-1.5 rounded-lg font-black text-[11px] cursor-pointer transition-all bg-[#121212] text-white/60 border border-white/5" onclick="selectTicketStep(20, this)">+20</button>
+                    <button type="button" class="tkt-btn py-1.5 rounded-lg font-black text-[11px] cursor-pointer transition-all bg-[#121212] text-white/60 border border-white/5" onclick="selectTicketStep(25, this)">+25</button>
+                    <button type="button" class="tkt-btn py-1.5 rounded-lg font-black text-[11px] cursor-pointer transition-all bg-[#121212] text-white/60 border border-white/5" onclick="selectTicketStep(30, this)">+30</button>
+                    <button type="button" class="tkt-btn py-1.5 rounded-lg font-black text-[11px] cursor-pointer transition-all bg-[#121212] text-white/60 border border-white/5" onclick="selectTicketStep(40, this)">+40</button>
+                    <button type="button" class="tkt-btn py-1.5 rounded-lg font-black text-[11px] cursor-pointer transition-all bg-[#121212] text-white/60 border border-white/5" onclick="selectTicketStep(50, this)">+50</button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-right mb-3">
+                    <div class="bg-[#121212] p-3 rounded-xl border border-white/5 flex flex-col justify-center">
+                        <span class="text-[11px] text-white/50 block text-right w-full">Grab</span>
+                        <div id="ch_grabDelta" class="text-xs font-bold text-[#AAF631] mt-1">+0 ฿</div>
+                        <div class="text-2xl font-black text-white mt-1 leading-none" id="ch_grabTicket">0.- <span class="text-[9px] text-[#AAF631] font-normal">เฉลี่ย/ออเดอร์</span></div>
+                    </div>
+                    <div class="bg-[#121212] p-3 rounded-xl border border-white/5 flex flex-col justify-center">
+                        <span class="text-[11px] text-white/50 block text-right w-full">LINE MAN</span>
+                        <div id="ch_lineDelta" class="text-xs font-bold text-[#AAF631] mt-1">+0 ฿</div>
+                        <div class="text-2xl font-black text-white mt-1 leading-none" id="ch_lineTicket">0.- <span class="text-[9px] text-[#AAF631] font-normal">เฉลี่ย/ออเดอร์</span></div>
+                    </div>
+                    <div class="bg-[#121212] p-3 rounded-xl border border-white/5 flex flex-col justify-center">
+                        <span class="text-[11px] text-white/50 block text-right w-full">Shopee</span>
+                        <div id="ch_shopeeDelta" class="text-xs font-bold text-[#AAF631] mt-1">+0 ฿</div>
+                        <div class="text-2xl font-black text-white mt-1 leading-none" id="ch_shopeeTicket">0.- <span class="text-[9px] text-[#AAF631] font-normal">เฉลี่ย/ออเดอร์</span></div>
+                    </div>
+                    <div class="bg-[#121212] p-3 rounded-xl border border-white/5 flex flex-col justify-center">
+                        <span class="text-[11px] text-white/50 block text-right w-full">หน้าร้าน</span>
+                        <div id="ch_offlineDelta" class="text-xs font-bold text-[#AAF631] mt-1">+0 ฿</div>
+                        <div class="text-2xl font-black text-white mt-1 leading-none" id="ch_offlineTicket">0.- <span class="text-[9px] text-[#AAF631] font-normal">เฉลี่ย/ออเดอร์</span></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-2 border-t border-white/5">
+                    <div class="bg-[#121212] p-2.5 rounded-xl text-center flex flex-col justify-center">
+                        <span class="text-[9px] text-white/40 block mb-1">ชั่วโมงแรงงานรวมวันนี้</span>
+                        <div id="rz_totalHours" class="text-sm font-black text-white">0 ชม.</div>
+                    </div>
+                    <div class="bg-[#121212] p-2.5 rounded-xl text-center flex flex-col justify-center">
+                        <span class="text-[9px] text-white/40 block mb-1">SPLH (ยอดขาย/ชั่วโมงเวร)</span>
+                        <div id="rz_splh" class="text-sm font-black text-[#AAF631]">0 ฿</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-[#242426] border border-white/10 rounded-xl p-4 mb-4">
+                <div class="text-xs font-bold text-white/80 mb-1">ในร้านตอนนี้ เรื่องไหนปวดหัวที่สุด</div>
+                <div class="text-[10px] text-white/40 mb-3">เลือก 1 อย่าง แล้วกดยืนยัน เพื่อรับคำแนะนำที่ตรงจุดที่สุดสำหรับร้านคุณ</div>
+                <div class="grid grid-cols-3 gap-2 mb-3">
+                    <button type="button" class="pain-btn border-2 border-white/5 bg-[#121212] rounded-xl p-2.5 text-center cursor-pointer transition-all" data-pain="cogs" onclick="selectPain('cogs', this)">
+                        <span class="block text-base mb-1">🥩</span>
+                        <span class="block text-[11px] font-semibold text-white">วัตถุดิบ</span>
+                        <span id="painVal_cogs" class="block text-[10px] text-white/50 mt-1">0%</span>
+                        <span class="block text-[9px] text-white/30 mt-0.5">ปรับ <span id="painCount_cogs">0</span> ครั้ง</span>
+                    </button>
+                    <button type="button" class="pain-btn border-2 border-white/5 bg-[#121212] rounded-xl p-2.5 text-center cursor-pointer transition-all" data-pain="labor" onclick="selectPain('labor', this)">
+                        <span class="block text-base mb-1">🧑‍🍳</span>
+                        <span class="block text-[11px] font-semibold text-white">ค่าแรง</span>
+                        <span id="painVal_labor" class="block text-[10px] text-white/50 mt-1">0%</span>
+                        <span class="block text-[9px] text-white/30 mt-0.5">ปรับ <span id="painCount_labor">0</span> ครั้ง</span>
+                    </button>
+                    <button type="button" class="pain-btn border-2 border-white/5 bg-[#121212] rounded-xl p-2.5 text-center cursor-pointer transition-all" data-pain="ticket" onclick="selectPain('ticket', this)">
+                        <span class="block text-base mb-1">🧾</span>
+                        <span class="block text-[11px] font-semibold text-white">ราคาต่อบิล</span>
+                        <span id="painVal_ticket" class="block text-[10px] text-white/50 mt-1">+0 ฿</span>
+                        <span class="block text-[9px] text-white/30 mt-0.5">ปรับ <span id="painCount_ticket">0</span> ครั้ง</span>
+                    </button>
+                </div>
+                <button type="button" id="painGenBtn" class="w-full py-2.5 rounded-xl font-bold text-xs bg-white/10 text-white/40 cursor-not-allowed transition-all" disabled onclick="confirmPainSelection()">เลือกก่อนเพื่อกดยืนยัน</button>
+            </div>
+
+            <div class="bg-[#242426] rounded-xl p-4 mb-4 shadow-lg border border-black">
+                <div class="text-sm font-black text-white mb-4 pb-3 border-b border-white/10 flex items-center gap-2">
+                    <span class="text-[#F6EF31]">💰</span> มิติเม็ดเงินหลังหยุดรอยรั่วซึม
+                </div>
+                <div class="space-y-2.5 text-[11px] text-white/90 font-medium">
+                    <div class="flex justify-between items-center"><span>โอกาสเซฟเงินฝั่งวัตถุดิบ (COGs)</span><span id="sv_cogs" class="text-[#AAF631] font-bold">+0 ฿</span></div>
+                    <div class="flex justify-between items-center"><span>โอกาสเซฟเงินฝั่งค่าแรง (Labor)</span><span id="sv_labor" class="text-[#AAF631] font-bold">+0 ฿</span></div>
+                    <div class="flex justify-between items-center"><span>ส่วนต่างยอดเพิ่มขึ้นจาก Ticket Size</span><span id="sv_ticket" class="text-[#AAF631] font-bold">+0 ฿</span></div>
+                    
+                    <div class="border-t border-dashed border-white/20 my-3"></div>
+                    
+                    <div class="flex justify-between items-center mt-2">
+                        <span class="font-bold text-white text-xs">โอกาสสร้างกำไรเพิ่มรวม/วัน</span>
+                        <span id="sv_total" class="text-xl font-black text-[#AAF631]">+0 ฿</span>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px] text-white/40 mt-1">
+                        <span>คำนวณจำลองผลลัพธ์รอบ 30 วัน</span>
+                        <span id="sv_month" class="font-bold text-[#AAF631]">+0 ฿</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full bg-[#242426] border-2 border-[#AAF631] rounded-2xl p-4 flex flex-col justify-between mb-8">
+                <div>
+                    <div class="text-xl mb-1">⚡</div>
+                    <h4 id="wl_title" class="text-sm font-black text-white tracking-wide">EARLY WAITLIST: PRO</h4>
+                    <span class="text-[10px] text-[#AAF631] font-bold block mt-0.5 mb-3">[ ออโตเมชันคุมร้านแบบเต็มรูปแบบ ]</span>
+                    <p id="wl_desc" class="text-xs text-white/70 leading-relaxed mb-3">
+                        ระบบดึงยอดขายจากแอปเดลิเวอรีเข้าชีทอัตโนมัติ ตัดปัญหาพนักงานคีย์บิลตกหล่น พร้อมเครื่องมือคำนวณการจัดกะพนักงานช่วยรีดค่าแรงส่วนเกิน
+                    </p>
+                    <div class="space-y-1.5 mb-4">
+                        <div class="flex items-start gap-2 text-[11px] text-white/80"><span class="text-[#AAF631]">✓</span><span>ดึงยอดขาย Grab, LINE MAN, Shopee เข้าระบบอัตโนมัติทุกวัน</span></div>
+                        <div class="flex items-start gap-2 text-[11px] text-white/80"><span class="text-[#AAF631]">✓</span><span>แจ้งเตือนทันทีเมื่อต้นทุนหรือค่าแรงเริ่มผิดปกติ</span></div>
+                        <div class="flex items-start gap-2 text-[11px] text-white/80"><span class="text-[#AAF631]">✓</span><span>เครื่องมือจัดกะพนักงาน ช่วยรีดค่าแรงส่วนเกิน</span></div>
+                        <div class="flex items-start gap-2 text-[11px] text-white/80"><span class="text-[#AAF631]">✓</span><span>ล็อกราคา 199.- ตลอดชีพ ไม่ขึ้นราคาแม้เปิดระบบเต็มรูปแบบแล้ว</span></div>
+                    </div>
+                </div>
+                <div class="text-right text-xs font-black text-[#AAF631] border-t border-white/5 pt-2.5">รับสิทธิ์สำหรับ 100 ร้านแรก</div>
+            </div>
+
+        </div>
+
+        <div id="stickyFooter" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-[410px] px-2 z-50">
+            <a id="joinWaitlistBtn" href="https://shop.line.me/@YOUR_LINE_OA_MYSHOP_LINK" target="_blank" class="w-full h-[65px] bg-[#2247FF] hover:bg-blue-700 transition-colors text-white rounded-full flex flex-col items-center justify-center relative shadow-2xl border border-blue-400/20 no-underline">
+                <div class="absolute left-5 w-5 h-5 border-2 border-white rounded-md flex items-center justify-center text-[9px] font-black">✓</div>
+                <span class="text-sm font-black tracking-wider">JOIN WAITLIST</span>
+                <span class="text-[10px] text-white/80 mt-0.5">199.- ล็อกสิทธิ์ตลอดชีพ (ใช้เป็นเครดิตตอนเปิดระบบ)</span>
+            </a>
+        </div>
+
+    </main>
+
+    <script>
+        // ============================================================
+        // 🔧 วางลิงก์ของคุณตรงนี้ 2 จุดแล้วเซฟ ไม่ต้องไปหาที่อื่นในโค้ด
+        const CONFIG = {
+            LINE_OA_URL: 'https://shop.line.me/@YOUR_LINE_OA_MYSHOP_LINK',   // ลิงก์ LINE OA ร้านคุณ (ปุ่ม JOIN WAITLIST)
+            N8N_WEBHOOK_URL: 'https://YOUR_N8N_WEBHOOK_URL'                  // Webhook n8n เก็บข้อมูลปุ่มเลือก pain
+        };
+        document.getElementById('joinWaitlistBtn').href = CONFIG.LINE_OA_URL;
+        // ============================================================
+
+        const CH_IDS = ['Grab', 'Line', 'Shopee', 'Offline'];
+        const CH_LABELS = ['Grab', 'LINE MAN', 'Shopee', 'หน้าร้าน (Cash/โอน)'];
+
+        const PRESET_DATA = {
+            small: {
+                fixCost: 30000, laborCost: 500, materialCost: 2400, staffCount: 1, avgSales: 8000, maxSales: 15000, openHours: 12,
+                sales: { Grab: 3500, Line: 2200, Shopee: 500, Offline: 1800 },
+                bill: { Grab: 15, Line: 10, Shopee: 3, Offline: 12 }
+            },
+            medium: {
+                fixCost: 60000, laborCost: 1500, materialCost: 4500, staffCount: 3, avgSales: 15000, maxSales: 30000, openHours: 8,
+                sales: { Grab: 9505, Line: 3800, Shopee: 1200, Offline: 6510 },
+                bill: { Grab: 45, Line: 20, Shopee: 9, Offline: 27 }
+            },
+            large: {
+                fixCost: 120000, laborCost: 3500, materialCost: 7500, staffCount: 7, avgSales: 25000, maxSales: 50000, openHours: 12,
+                sales: { Grab: 18000, Line: 9000, Shopee: 3000, Offline: 15000 },
+                bill: { Grab: 75, Line: 40, Shopee: 15, Offline: 50 }
+            }
+        };
+
+        let R = {}; 
+        let adjustedCogsPct = null, adjustedLaborPct = null, selectedTicketValue = 0, totalAdjustments = 0;
+        let painCogsCount = 0, painLaborCount = 0, painTicketCount = 0, selectedPain = null;
+
+        (function initInputs() {
+            const container = document.getElementById('channelInputContainer');
+            const def = PRESET_DATA.medium;
+            CH_IDS.forEach((id, idx) => {
+                const row = document.createElement('div');
+                row.className = 'grid grid-cols-12 gap-2 items-center';
+                row.innerHTML = `
+                    <div class="col-span-4 text-xs font-bold text-[#172B4D]">${CH_LABELS[idx]}</div>
+                    <input type="number" id="sales_${id}" value="${def.sales[id]}" class="col-span-5 bg-white border border-[#DFE1E6] rounded-lg p-1.5 font-bold text-center text-xs outline-none">
+                    <input type="number" id="bill_${id}" value="${def.bill[id]}" class="col-span-3 bg-white border border-[#DFE1E6] rounded-lg p-1.5 font-bold text-center text-xs outline-none">
+                `;
+                container.appendChild(row);
+            });
+        })();
+
+        function setPresetSize(size) {
+            const data = PRESET_DATA[size];
+            document.getElementById('fixCost').value = data.fixCost;
+            document.getElementById('laborCost').value = data.laborCost;
+            document.getElementById('materialCost').value = data.materialCost;
+            document.getElementById('staffCount').value = data.staffCount;
+            document.getElementById('avgSales').value = data.avgSales;
+            document.getElementById('maxSales').value = data.maxSales;
+            document.getElementById('openHours').value = data.openHours;
+            
+            CH_IDS.forEach(id => {
+                document.getElementById(`sales_${id}`).value = data.sales[id];
+                document.getElementById(`bill_${id}`).value = data.bill[id];
+            });
+
+            ['small', 'medium', 'large'].forEach(s => {
+                document.getElementById(`sb_${s}`).className = s === size ? 
+                    "border-2 border-[#2247FF] rounded-xl p-2.5 text-center bg-blue-50 cursor-pointer font-bold" : 
+                    "border-2 border-[#DFE1E6] rounded-xl p-2.5 text-center bg-white cursor-pointer";
+            });
+        }
+
+        function runXrayEngine() {
+            const fixCost = +document.getElementById('fixCost').value || 0;
+            const laborCost = +document.getElementById('laborCost').value || 0;
+            const materialCost = +document.getElementById('materialCost').value || 0;
+            const staffCount = +document.getElementById('staffCount').value || 1;
+            const avgSalesInput = +document.getElementById('avgSales').value || 10000;
+            const maxSalesInput = +document.getElementById('maxSales').value || 20000;
+            const openHours = +document.getElementById('openHours').value || 8;
+
+            const gpGrab = (+document.getElementById('gpGrab').value || 30) * 1.07 / 100;
+            const gpLine = (+document.getElementById('gpLine').value || 30) * 1.07 / 100;
+            const gpShopee = (+document.getElementById('gpShopee').value || 30) * 1.07 / 100;
+
+            const sGrab = +document.getElementById('sales_Grab').value || 0;
+            const bGrab = +document.getElementById('bill_Grab').value || 0;
+            const sLine = +document.getElementById('sales_Line').value || 0;
+            const bLine = +document.getElementById('bill_Line').value || 0;
+            const sShopee = +document.getElementById('sales_Shopee').value || 0;
+            const bShopee = +document.getElementById('bill_Shopee').value || 0;
+            const sOffline = +document.getElementById('sales_Offline').value || 0;
+            const bOffline = +document.getElementById('bill_Offline').value || 0;
+
+            const totalSales = sGrab + sLine + sShopee + sOffline;
+            if (totalSales <= 0) { alert('⚠️ กรุณากรอกยอดขาย'); return; }
+
+            // ดึงสูตร netCash จากไฟล์ v4 ต้นฉบับ
+            const deliveryNet = sGrab * (1 - gpGrab) + sLine * (1 - gpLine) + sShopee * (1 - gpShopee);
+            const netCashAfterGP = deliveryNet + sOffline;
+
+            // คำนวณสมการคณิตศาสตร์
+            const gpLeak = totalSales - netCashAfterGP;
+            const dailyFixCost = fixCost / 30;
+            const overhead = dailyFixCost + gpLeak;
+            const profit = totalSales - overhead - laborCost - materialCost;
+
+            const pPct = (profit / totalSales) * 100;
+            const oPct = (overhead / totalSales) * 100;
+            const lPct = (laborCost / totalSales) * 100;
+            const cPct = (materialCost / totalSales) * 100;
+
+            const totalHours = openHours * staffCount;
+            const splh = totalHours > 0 ? netCashAfterGP / totalHours : 0;
+            
+            // ดึงสูตร SPI กลับมาจากไฟล์ v4 ต้นฉบับ 100%
+            let spi = avgSalesInput > 0 ? (netCashAfterGP / avgSalesInput) * 80 : 0;
+            if (spi > 100) spi = 100; if (spi < 0) spi = 0;
+
+            const totalTickets = bGrab + bLine + bShopee + bOffline;
+
+            R = {
+                totalSales, profit, spi, totalHours, splh, oPct, lPct, cPct, totalTickets,
+                sGrab, bGrab, sLine, bLine, sShopee, bShopee, sOffline, bOffline
+            };
+
+            selectedTicketValue = 0;
+            adjustedCogsPct = null; adjustedLaborPct = null; totalAdjustments = 0;
+            painCogsCount = 0; painLaborCount = 0; painTicketCount = 0; selectedPain = null;
+            if(document.getElementById('adjustCount')) document.getElementById('adjustCount').innerText = '0';
+            resetPainSelectionUI();
+            
+            document.querySelectorAll('.tkt-btn').forEach((btn, idx) => {
+                btn.className = idx === 0 ? 
+                    "tkt-btn py-1.5 rounded-lg font-black text-[11px] cursor-pointer transition-all bg-[#2247FF] text-white border border-transparent" : 
+                    "tkt-btn py-1.5 rounded-lg font-black text-[11px] cursor-pointer transition-all bg-[#121212] text-white/60 border border-white/5";
+            });
+
+            renderXrayResult();
+            
+            // สลับหน้าจอ
+            document.getElementById('inputZone').style.display = 'none';
+            document.getElementById('resultZone').style.display = 'flex';
+            document.getElementById('stickyFooter').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function backToInput() {
+            document.getElementById('inputZone').style.display = 'block';
+            document.getElementById('resultZone').style.display = 'none';
+            document.getElementById('stickyFooter').style.display = 'none';
+            window.scrollTo(0, 0);
+        }
+
+        function renderXrayResult() {
+            const numFmt = (v) => Math.round(v).toLocaleString();
+            document.getElementById('rz_gross').innerText = numFmt(R.totalSales) + ' ฿';
+            document.getElementById('rz_profit').innerText = numFmt(R.profit) + ' ฿';
+            document.getElementById('rz_profit30').innerText = numFmt(R.profit * 30) + ' ฿';
+            document.getElementById('spi_num').innerText = Math.floor(R.spi) + '%';
+            document.getElementById('rz_totalHours').innerText = Math.round(R.totalHours) + ' ชม.';
+            document.getElementById('rz_splh').innerText = numFmt(R.splh) + ' ฿';
+
+            applyHealthTier(R.spi);
+            calculateDynamicSavings();
+        }
+
+        // เกณฑ์สุขภาพร้านโดยรวม อิงคะแนน SPI (>=80 ดี / 50-79 เริ่มรั่ว / <50 อันตราย)
+        function getSpiTier(spi) {
+            if (spi >= 80) {
+                return {
+                    color: '#AAF631', textColor: '#121212', badge: 'GOOD',
+                    headline: 'คำแนะนำด่วน',
+                    advice: 'ร้านสุขภาพดีเยี่ยม ค่าแรงและวัตถุดิบอยู่ในเกณฑ์ปลอดภัย รักษาระดับนี้ไว้ครับ'
+                };
+            } else if (spi >= 50) {
+                return {
+                    color: '#FF9F0A', textColor: '#121212', badge: 'เสี่ยง',
+                    headline: 'คำแนะนำด่วน',
+                    advice: 'ร้านยังพอประคองตัวได้ แต่เริ่มมีจุดรั่วไหล ควรรีบหาสาเหตุก่อนสะสมเป็นปัญหาใหญ่'
+                };
+            } else {
+                return {
+                    color: '#FF3B30', textColor: '#FFFFFF', badge: 'อันตราย',
+                    headline: 'คำแนะนำด่วน',
+                    advice: 'ร้านกำลังขาดทุนเงียบ ต้นทุนกินกำไรไปมากกว่าครึ่ง ควรรีบหาจุดรั่วก่อนเงินสดหมุนไม่ทัน'
+                };
+            }
+        }
+
+        function applyHealthTier(spi) {
+            const tier = getSpiTier(spi);
+            const spiCard = document.getElementById('spiCard');
+            const spiTrack = document.getElementById('spi_track');
+            const spiArc = document.getElementById('spi_arc');
+
+            // การ์ด SPI ทั้งใบเปลี่ยนสีพื้นหลังตามสถานะ พร้อมปรับสีตัวหนังสือให้อ่านง่าย
+            spiCard.style.background = tier.color;
+            document.getElementById('spiCardLabel').style.color = tier.textColor + 'aa';
+            document.getElementById('spi_num').style.color = tier.textColor;
+            document.getElementById('spiCardSub').style.color = tier.textColor;
+            document.getElementById('rz_profit').style.color = tier.color;
+
+            // วงแหวนนำทางปรับให้ตัดกับพื้นหลังสว่าง/มืด
+            const ringTrack = tier.textColor === '#121212' ? 'rgba(0,0,0,0.18)' : 'rgba(255,255,255,0.15)';
+            const ringArc = tier.textColor === '#121212' ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.6)';
+            spiTrack.setAttribute('stroke', ringTrack);
+            spiArc.setAttribute('stroke', ringArc);
+            const circ = 238.76;
+            spiArc.setAttribute('stroke-dasharray', `${(circ * spi / 100).toFixed(1)} ${circ}`);
+
+            // แถบ GOOD/เสี่ยง/อันตราย + คำแนะนำด่วน
+            const badge = document.getElementById('adviceBadge');
+            badge.innerText = tier.badge;
+            badge.style.background = tier.color;
+            badge.style.color = tier.textColor;
+            document.getElementById('adviceHeadline').innerText = tier.headline;
+            const adviceText = document.getElementById('adviceText');
+            adviceText.innerText = tier.advice;
+            adviceText.style.color = tier.color;
+        }
+
+        // เกณฑ์มาตรฐานร้านอาหารทั่วไป ใช้กับตัวเลขในกล่องดำ (กำไร / Overhead / Prime Cost)
+        function getMetricColor(type, value) {
+            if (type === 'profit') {
+                if (value >= 15) return '#AAF631';
+                if (value >= 5) return '#FF9F0A';
+                return '#FF3B30';
+            }
+            if (type === 'overhead') {
+                if (value <= 20) return '#AAF631';
+                if (value <= 35) return '#FF9F0A';
+                return '#FF3B30';
+            }
+            if (type === 'prime') {
+                if (value <= 60) return '#AAF631';
+                if (value <= 70) return '#FF9F0A';
+                return '#FF3B30';
+            }
+            return '#FFFFFF';
+        }
+
+        function selectTicketStep(val, element) {
+            totalAdjustments++;
+            painTicketCount++;
+            if(document.getElementById('adjustCount')) document.getElementById('adjustCount').innerText = totalAdjustments;
+            selectedTicketValue = val;
+
+            document.querySelectorAll('.tkt-btn').forEach(btn => {
+                btn.className = "tkt-btn py-1.5 rounded-lg font-black text-[11px] cursor-pointer transition-all bg-[#121212] text-white/60 border border-white/5";
+            });
+            element.className = "tkt-btn py-1.5 rounded-lg font-black text-[11px] cursor-pointer transition-all bg-[#2247FF] text-white border border-transparent";
+
+            calculateDynamicSavings();
+        }
+
+        function calculateDynamicSavings() {
+            const currentCogsPct = adjustedCogsPct !== null ? adjustedCogsPct : R.cPct;
+            const currentLaborPct = adjustedLaborPct !== null ? adjustedLaborPct : R.lPct;
+            const ticketBonus = selectedTicketValue;
+
+            const liveProfitPct = Math.max(0, 100 - currentCogsPct - currentLaborPct - R.oPct);
+            const livePrimePct = currentLaborPct + currentCogsPct;
+
+            document.getElementById('pc_profit').innerText = Math.round(liveProfitPct) + '%';
+            document.getElementById('pc_overhead').innerText = Math.round(R.oPct) + '%';
+            document.getElementById('pc_cogs').innerText = Math.round(currentCogsPct) + '%';
+            document.getElementById('pc_labor').innerText = Math.round(currentLaborPct) + '%';
+
+            // พ่นค่าเข้ากล่องดำ SPI Card แบบใหม่ Profits / Overhead / Prime Cost พร้อมสีตามเกณฑ์มาตรฐาน
+            document.getElementById('box_profit').innerText = Math.round(liveProfitPct) + '%';
+            document.getElementById('box_overhead').innerText = Math.round(R.oPct) + '%';
+            document.getElementById('box_prime').innerText = Math.round(livePrimePct) + '%';
+            document.getElementById('box_profit').style.color = getMetricColor('profit', liveProfitPct);
+            document.getElementById('box_overhead').style.color = getMetricColor('overhead', R.oPct);
+            document.getElementById('box_prime').style.color = getMetricColor('prime', livePrimePct);
+
+            // อัปเดตค่าและจำนวนครั้งที่ปรับ ในปุ่มเลือก "เจ็บปวดอันไหนมากที่สุด"
+            document.getElementById('painVal_cogs').innerText = Math.round(currentCogsPct) + '%';
+            document.getElementById('painVal_labor').innerText = Math.round(currentLaborPct) + '%';
+            document.getElementById('painVal_ticket').innerText = '+' + ticketBonus + ' ฿';
+            document.getElementById('painCount_cogs').innerText = painCogsCount;
+            document.getElementById('painCount_labor').innerText = painLaborCount;
+            document.getElementById('painCount_ticket').innerText = painTicketCount;
+
+            document.getElementById('lbl_p_pct').innerText = Math.round(liveProfitPct) + '%';
+            document.getElementById('lbl_o_pct').innerText = Math.round(R.oPct) + '%';
+            document.getElementById('lbl_l_pct').innerText = Math.round(currentLaborPct) + '%';
+            document.getElementById('lbl_c_pct').innerText = Math.round(currentCogsPct) + '%';
+            
+            document.getElementById('bar_profit').style.width = liveProfitPct + '%';
+            document.getElementById('bar_overhead').style.width = R.oPct + '%';
+            document.getElementById('bar_labor').style.width = currentLaborPct + '%';
+            document.getElementById('bar_cogs').style.width = currentCogsPct + '%';
+
+            const savedCogsVal = Math.max(0, ((R.cPct - currentCogsPct) / 100) * R.totalSales);
+            const savedLaborVal = Math.max(0, ((R.lPct - currentLaborPct) / 100) * R.totalSales);
+            const ticketGainVal = R.totalTickets * ticketBonus;
+            const grandTotalDaily = savedCogsVal + savedLaborVal + ticketGainVal;
+
+            const numFmt = (v) => Math.round(v).toLocaleString();
+            document.getElementById('sv_cogs').innerText = '+' + numFmt(savedCogsVal) + ' ฿';
+            document.getElementById('sv_labor').innerText = '+' + numFmt(savedLaborVal) + ' ฿';
+            document.getElementById('sv_ticket').innerText = '+' + numFmt(ticketGainVal) + ' ฿';
+            document.getElementById('sv_total').innerText = '+' + numFmt(grandTotalDaily) + ' ฿';
+            document.getElementById('sv_month').innerText = '+' + numFmt(grandTotalDaily * 30) + ' ฿';
+
+            const renderChDelta = (id, sales, bills) => {
+                const avg = bills > 0 ? sales / bills : 0;
+                document.getElementById(`ch_${id}Delta`).innerText = '+' + numFmt(bills * ticketBonus) + ' ฿';
+                document.getElementById(`ch_${id}Ticket`).innerHTML = `${numFmt(avg + ticketBonus)}.- <span class="text-[9px] text-[#AAF631] font-normal">เฉลี่ย/ออเดอร์</span>`;
+            };
+            
+            renderChDelta('grab', R.sGrab, R.bGrab);
+            renderChDelta('line', R.sLine, R.bLine);
+            renderChDelta('shopee', R.sShopee, R.bShopee);
+            renderChDelta('offline', R.sOffline, R.bOffline);
+        }
+
+        function adjustPrimeCost(type, direction) {
+            totalAdjustments++; 
+            if(document.getElementById('adjustCount')) document.getElementById('adjustCount').innerText = totalAdjustments;
+            
+            if (type === 'cogs') {
+                painCogsCount++;
+                if (adjustedCogsPct === null) adjustedCogsPct = R.cPct;
+                adjustedCogsPct = Math.max(15, Math.min(60, adjustedCogsPct + direction));
+            } else {
+                painLaborCount++;
+                if (adjustedLaborPct === null) adjustedLaborPct = R.lPct;
+                adjustedLaborPct = Math.max(10, Math.min(50, adjustedLaborPct + direction));
+            }
+            calculateDynamicSavings();
+        }
+        function selectPain(type, el) {
+            selectedPain = type;
+            document.querySelectorAll('.pain-btn').forEach(b => {
+                b.classList.remove('border-[#2247FF]', 'bg-[#0F2A6B]');
+                b.classList.add('border-white/5', 'bg-[#121212]');
+            });
+            el.classList.remove('border-white/5', 'bg-[#121212]');
+            el.classList.add('border-[#2247FF]', 'bg-[#0F2A6B]');
+
+            const genBtn = document.getElementById('painGenBtn');
+            genBtn.disabled = false;
+            genBtn.className = "w-full py-2.5 rounded-xl font-bold text-xs bg-[#2247FF] text-white cursor-pointer transition-all";
+            genBtn.innerText = "ยืนยันตัวเลือกนี้";
+        }
+
+        function confirmPainSelection() {
+            if (!selectedPain) return;
+
+            document.querySelectorAll('.pain-btn').forEach(b => b.disabled = true);
+            const genBtn = document.getElementById('painGenBtn');
+            genBtn.disabled = true;
+            genBtn.innerText = "✓ บันทึกแล้ว ขอบคุณครับ";
+            genBtn.className = "w-full py-2.5 rounded-xl font-bold text-xs bg-[#AAF631] text-[#121212] cursor-default transition-all";
+
+            updateWaitlistCopy(selectedPain);
+            sendPainDataToN8n();
+        }
+
+        function updateWaitlistCopy(pain) {
+            const copies = {
+                cogs: {
+                    title: 'EARLY WAITLIST: PRO — คุมต้นทุนวัตถุดิบ',
+                    desc: 'ระบบดึงยอดขายจากแอปเดลิเวอรีเข้าชีทอัตโนมัติ พร้อมแจ้งเตือนทันทีที่สัดส่วนต้นทุนวัตถุดิบเริ่มผิดปกติ ตัดปัญหาของหายไม่รู้ตัว'
+                },
+                labor: {
+                    title: 'EARLY WAITLIST: PRO — รีดค่าแรงส่วนเกิน',
+                    desc: 'ระบบดึงยอดขายจากแอปเดลิเวอรีเข้าชีทอัตโนมัติ พร้อมเครื่องมือคำนวณการจัดกะพนักงานช่วยรีดค่าแรงส่วนเกินทุกวัน'
+                },
+                ticket: {
+                    title: 'EARLY WAITLIST: PRO — ดันยอดต่อบิลให้สูงขึ้น',
+                    desc: 'ระบบดึงยอดขายจากแอปเดลิเวอรีเข้าชีทอัตโนมัติ พร้อมข้อมูลช่วยตัดสินใจตั้งราคาและโปรโมชันให้ยอดต่อบิลสูงขึ้นโดยไม่เสียลูกค้า'
+                }
+            };
+            const c = copies[pain];
+            if (!c) return;
+            document.getElementById('wl_title').innerText = c.title;
+            document.getElementById('wl_desc').innerText = c.desc;
+        }
+
+        function sendPainDataToN8n() {
+            const payload = {
+                selectedPain,
+                painCogsCount, painLaborCount, painTicketCount,
+                spi: Math.round(R.spi),
+                profit: Math.round(R.profit),
+                totalSales: Math.round(R.totalSales),
+                timestamp: new Date().toISOString()
+            };
+            // ส่งข้อมูลไปที่ webhook n8n (ตั้งค่า URL ได้ใน CONFIG ด้านบนของไฟล์)
+            fetch(CONFIG.N8N_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).catch(err => console.log('n8n webhook error', err));
+        }
+
+        function resetPainSelectionUI() {
+            document.querySelectorAll('.pain-btn').forEach(b => {
+                b.disabled = false;
+                b.classList.remove('border-[#2247FF]', 'bg-[#0F2A6B]');
+                b.classList.add('border-white/5', 'bg-[#121212]');
+            });
+            const genBtn = document.getElementById('painGenBtn');
+            if (genBtn) {
+                genBtn.disabled = true;
+                genBtn.innerText = "เลือกก่อนเพื่อกดยืนยัน";
+                genBtn.className = "w-full py-2.5 rounded-xl font-bold text-xs bg-white/10 text-white/40 cursor-not-allowed transition-all";
+            }
+        }
+    </script>
+</body>
+</html>
