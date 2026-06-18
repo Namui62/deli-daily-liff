@@ -363,23 +363,76 @@
         </div>
 
         <div id="stickyFooter" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-[410px] px-2 z-50">
-            <a id="joinWaitlistBtn" href="https://shop.line.me/@YOUR_LINE_OA_MYSHOP_LINK" target="_blank" class="w-full h-[65px] bg-[#2247FF] hover:bg-blue-700 transition-colors text-white rounded-full flex flex-col items-center justify-center relative shadow-2xl border border-blue-400/20 no-underline">
+            <button type="button" id="joinWaitlistBtn" onclick="openPaymentModal()" class="w-full h-[65px] bg-[#2247FF] hover:bg-blue-700 transition-colors text-white rounded-full flex flex-col items-center justify-center relative shadow-2xl border border-blue-400/20 cursor-pointer">
                 <div class="absolute left-5 w-5 h-5 border-2 border-white rounded-md flex items-center justify-center text-[9px] font-black">✓</div>
                 <span class="text-sm font-black tracking-wider">JOIN WAITLIST</span>
                 <span class="text-[10px] text-white/80 mt-0.5">199.- = ส่วนลด -199 บาท/เดือน ตลอดชีพ (100 ร้านแรก)</span>
-            </a>
+            </button>
+        </div>
+
+        <div id="paymentModal" class="hidden fixed inset-0 z-[60] bg-black/70 flex items-end justify-center">
+            <div class="w-full max-w-[410px] bg-[#1A1A1C] rounded-t-3xl p-5 pb-7 max-h-[88vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-sm font-black text-white">ชำระเงิน 199 บาท</span>
+                    <button type="button" onclick="closePaymentModal()" class="w-7 h-7 rounded-full bg-white/10 text-white/70 flex items-center justify-center text-sm">✕</button>
+                </div>
+
+                <div class="bg-white rounded-2xl p-4 flex flex-col items-center mb-4">
+                    <img id="qrImage" src="QR_IMAGE_PLACEHOLDER.png" alt="QR พร้อมเพย์ 199 บาท" class="w-48 h-48 object-contain mb-2" onerror="this.style.display='none'; document.getElementById('qrFallbackNote').classList.remove('hidden');">
+                    <span id="qrFallbackNote" class="hidden text-[11px] text-[#FF3B30] text-center">ยังไม่ได้แนบรูป QR — ดูวิธีใส่รูปด้านล่างในโค้ด CONFIG</span>
+                    <span class="text-[#121212] text-xs font-bold mt-1">สแกนจ่ายผ่านพร้อมเพย์ 199.- บาท</span>
+                </div>
+
+                <div class="bg-[#242426] border border-white/10 rounded-xl p-3.5 mb-4">
+                    <div class="text-[10px] text-white/40 mb-1">หรือโอนเข้าบัญชีนี้</div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span id="bankAccNumber" class="text-base font-black text-white tracking-wider">000-0-00000-0</span>
+                        <button type="button" onclick="copyAccountNumber()" id="copyBtn" class="text-[10px] font-bold bg-[#2247FF] text-white px-2.5 py-1.5 rounded-lg">คัดลอก</button>
+                    </div>
+                    <div id="bankAccName" class="text-xs text-white/60">ธนาคารกสิกรไทย • ชื่อบัญชี วิษาโรจน์ ...</div>
+                </div>
+
+                <div class="text-[11px] text-white/50 leading-relaxed mb-4 text-center">
+                    โอนหรือสแกนจ่าย 199 บาทแล้ว กดปุ่มด้านล่างเพื่อส่งสลิปยืนยันในแชท LINE จะได้รับสิทธิ์ Founding Member ทันทีครับ
+                </div>
+
+                <a id="confirmSlipBtn" href="https://shop.line.me/@YOUR_LINE_OA_MYSHOP_LINK" target="_blank" class="w-full h-[54px] bg-[#AAF631] text-[#121212] rounded-full flex items-center justify-center font-black text-sm no-underline">
+                    ส่งสลิปยืนยันใน LINE OA →
+                </a>
+            </div>
         </div>
 
     </main>
 
     <script>
         // ============================================================
-        // 🔧 วางลิงก์ของคุณตรงนี้ 2 จุดแล้วเซฟ ไม่ต้องไปหาที่อื่นในโค้ด
+        // 🔧 วางข้อมูลของคุณตรงนี้ 4 จุดแล้วเซฟ ไม่ต้องไปหาที่อื่นในโค้ด
         const CONFIG = {
-            LINE_OA_URL: 'https://shop.line.me/@YOUR_LINE_OA_MYSHOP_LINK',   // ลิงก์ LINE OA ร้านคุณ (ปุ่ม JOIN WAITLIST)
-            N8N_WEBHOOK_URL: 'https://YOUR_N8N_WEBHOOK_URL'                  // Webhook n8n เก็บข้อมูลปุ่มเลือก pain
+            LINE_OA_URL: 'https://lin.ee/qZhJrUV',   // ลิงก์ LINE OA ร้านคุณ (ปุ่มส่งสลิปยืนยัน)
+            N8N_WEBHOOK_URL: 'https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B',                 // Webhook n8n เก็บข้อมูลปุ่มเลือก pain
+            QR_IMAGE_URL: 'https://github.com/Namui62/deli-daily-liff/blob/main/S__39157769.jpg',                       // รูป QR พร้อมเพย์ 199 บาท (อัปโหลดรูปแล้ววางลิงก์/พาธที่นี่)
+            BANK_ACCOUNT_NUMBER: '104-8-20221-3',                          // เลขบัญชีร้าน
+            BANK_ACCOUNT_NAME: 'ธนาคารกสิกรไทย • ชื่อบัญชี วิศรุต ค้าโค'    // ธนาคาร + ชื่อบัญชี
         };
-        document.getElementById('joinWaitlistBtn').href = CONFIG.LINE_OA_URL;
+        document.getElementById('confirmSlipBtn').href = CONFIG.LINE_OA_URL;
+        document.getElementById('qrImage').src = CONFIG.QR_IMAGE_URL;
+        document.getElementById('bankAccNumber').innerText = CONFIG.BANK_ACCOUNT_NUMBER;
+        document.getElementById('bankAccName').innerText = CONFIG.BANK_ACCOUNT_NAME;
+
+        function openPaymentModal() {
+            document.getElementById('paymentModal').classList.remove('hidden');
+        }
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.add('hidden');
+        }
+        function copyAccountNumber() {
+            navigator.clipboard.writeText(CONFIG.BANK_ACCOUNT_NUMBER.replace(/-/g, '')).then(() => {
+                const btn = document.getElementById('copyBtn');
+                const old = btn.innerText;
+                btn.innerText = 'คัดลอกแล้ว ✓';
+                setTimeout(() => btn.innerText = old, 1500);
+            });
+        }
         // ============================================================
 
         const CH_IDS = ['Grab', 'Line', 'Shopee', 'Offline'];
