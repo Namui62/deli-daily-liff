@@ -291,7 +291,7 @@
                 </div>
             </div>
 
-            <div class="bg-[#242426] border border-white/10 rounded-xl p-4 mb-4">
+            <div id="painSection" class="bg-[#242426] border border-white/10 rounded-xl p-4 mb-4">
                 <div class="text-xs font-bold text-white/80 mb-1">ในร้านตอนนี้ เรื่องไหนปวดหัวที่สุด</div>
                 <div class="text-[10px] text-white/40 mb-3">เลือก 1 อย่าง แล้วกดยืนยัน เพื่อรับคำแนะนำที่ตรงจุดที่สุดสำหรับร้านคุณ</div>
                 <div class="grid grid-cols-3 gap-2 mb-3">
@@ -409,7 +409,7 @@
         // 🔧 วางข้อมูลของคุณตรงนี้ 4 จุดแล้วเซฟ ไม่ต้องไปหาที่อื่นในโค้ด
         const CONFIG = {
             LINE_OA_URL: 'https://lin.ee/qZhJrUV',   // ลิงก์ LINE OA ร้านคุณ (ปุ่มส่งสลิปยืนยัน)
-            N8N_WEBHOOK_URL: 'https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B',                 // Webhook n8n เก็บข้อมูลปุ่มเลือก pain
+            N8N_WEBHOOK_URL: 'https://primary-production-25a4.up.railway.app/webhook/DDOS-Module-B',                 // Webhook n8n เก็บข้อมูลปุ่มเลือก pain + event log
             QR_IMAGE_URL: 'https://raw.githubusercontent.com/Namui62/deli-daily-liff/main/S__39157769.jpg',                       // รูป QR พร้อมเพย์ 199 บาท (อัปโหลดรูปแล้ววางลิงก์/พาธที่นี่)
             BANK_ACCOUNT_NUMBER: '104-8-20221-3',                          // เลขบัญชีร้าน
             BANK_ACCOUNT_NAME: 'ธนาคารกสิกรไทย • ชื่อบัญชี วิศรุต ค้าโค'    // ธนาคาร + ชื่อบัญชี
@@ -420,6 +420,7 @@
         document.getElementById('bankAccName').innerText = CONFIG.BANK_ACCOUNT_NAME;
 
         function openPaymentModal() {
+            trackEvent('CLICK_WAITLIST');
             document.getElementById('paymentModal').classList.remove('hidden');
         }
         function closePaymentModal() {
@@ -434,6 +435,49 @@
             });
         }
         // ============================================================
+
+        // ------------------------------------------------------------
+        // 📡 EVENT TRACKING — ยิงเข้า webhook n8n เดิม แยกด้วย field eventType
+        // ฝั่ง n8n: เพิ่ม IF node เช็ค {{$json.eventType}} มีค่าไหม
+        //   มีค่า     -> ต่อ Google Sheets node ใหม่ append เข้า tab "EventLog"
+        //   ไม่มีค่า  -> ปล่อยเข้า flow เดิม (STATUS_CHECK / SALES_REPORT / pain confirm)
+        // ------------------------------------------------------------
+        function genSessionId() {
+            return 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+        }
+        // เก็บ session id ไว้ใน sessionStorage กันหลุดตอน re-render/กลับมาหน้าเดิมในแท็บเดียวกัน
+        let SESSION_ID;
+        try {
+            SESSION_ID = sessionStorage.getItem('dd_xray_session');
+            if (!SESSION_ID) {
+                SESSION_ID = genSessionId();
+                sessionStorage.setItem('dd_xray_session', SESSION_ID);
+            }
+        } catch (e) {
+            SESSION_ID = genSessionId(); // กรณี sessionStorage ใช้ไม่ได้ (เช่น private mode บางเบราว์เซอร์)
+        }
+
+        const trackedOnce = {}; // กันยิงซ้ำสำหรับ event ที่ควรเกิดครั้งเดียวต่อ session เช่น SCROLL_TO_PAIN
+
+        function trackEvent(eventType, extra) {
+            const payload = Object.assign({
+                eventType,
+                sessionId: SESSION_ID,
+                timestamp: new Date().toISOString(),
+                page: 'spi_xray'
+            }, extra || {});
+
+            fetch(CONFIG.N8N_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).catch(err => console.log('track event error', eventType, err));
+        }
+
+        // 1) PAGE_VIEW — ยิงทันทีที่สคริปต์โหลด (เปิดหน้าเว็บ)
+        trackEvent('PAGE_VIEW');
+
+        // ------------------------------------------------------------
 
         const CH_IDS = ['Grab', 'Line', 'Shopee', 'Offline'];
         const CH_LABELS = ['Grab', 'LINE MAN', 'Shopee', 'หน้าร้าน (Cash/โอน)'];
@@ -459,6 +503,8 @@
         let R = {}; 
         let adjustedCogsPct = null, adjustedLaborPct = null, selectedTicketValue = 0, totalAdjustments = 0;
         let painCogsCount = 0, painLaborCount = 0, painTicketCount = 0, selectedPain = null;
+        let currentPreset = 'medium'; // track ว่าใช้ preset ไหนล่าสุดตอนกด X-RAY
+        let manualEditFlag = false;   // track ว่าผู้ใช้แก้ตัวเลขเองหลังเลือก preset ไหม
 
         (function initInputs() {
             const container = document.getElementById('channelInputContainer');
@@ -473,9 +519,16 @@
                 `;
                 container.appendChild(row);
             });
+
+            // ผูก listener เช็คว่าผู้ใช้แก้ตัวเลขเองหลังเลือก preset หรือไม่ (เพื่อ track ความมั่นใจในตัวเลข)
+            document.querySelectorAll('#inputZone input[type="number"]').forEach(inp => {
+                inp.addEventListener('input', () => { manualEditFlag = true; });
+            });
         })();
 
         function setPresetSize(size) {
+            currentPreset = size;
+            manualEditFlag = false; // เพิ่งเลือก preset ใหม่ ถือว่ายังไม่แก้เอง
             const data = PRESET_DATA[size];
             document.getElementById('fixCost').value = data.fixCost;
             document.getElementById('laborCost').value = data.laborCost;
@@ -564,12 +617,24 @@
             });
 
             renderXrayResult();
+
+            // 2) CLICK_XRAY — กดปุ่มสแกนสำเร็จ พร้อมแนบว่าใช้ preset ไหน / แก้ตัวเลขเองไหม / ผล spi ที่ได้
+            trackEvent('CLICK_XRAY', {
+                preset: currentPreset,
+                manualEdit: manualEditFlag,
+                spi: Math.round(R.spi),
+                totalSales: Math.round(R.totalSales),
+                profit: Math.round(R.profit)
+            });
             
             // สลับหน้าจอ
             document.getElementById('inputZone').style.display = 'none';
             document.getElementById('resultZone').style.display = 'flex';
             document.getElementById('stickyFooter').style.display = 'block';
             window.scrollTo(0, 0);
+
+            // ผูก observer ของ section pain ใหม่ทุกครั้งที่เข้าหน้า result (เผื่อ DOM ของ observer เดิมถูกตัดการเชื่อมไปแล้ว)
+            observePainSection();
         }
 
         function backToInput() {
@@ -577,6 +642,24 @@
             document.getElementById('resultZone').style.display = 'none';
             document.getElementById('stickyFooter').style.display = 'none';
             window.scrollTo(0, 0);
+        }
+
+        // 3) SCROLL_TO_PAIN — ยิงครั้งเดียวต่อ session ตอนเลื่อนมาเห็น section เลือก pain
+        let painObserver = null;
+        function observePainSection() {
+            const el = document.getElementById('painSection');
+            if (!el || trackedOnce.scrollToPain) return;
+            if (painObserver) painObserver.disconnect();
+            painObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !trackedOnce.scrollToPain) {
+                        trackedOnce.scrollToPain = true;
+                        trackEvent('SCROLL_TO_PAIN');
+                        painObserver.disconnect();
+                    }
+                });
+            }, { threshold: 0.3 });
+            painObserver.observe(el);
         }
 
         function renderXrayResult() {
@@ -772,6 +855,9 @@
             genBtn.disabled = false;
             genBtn.className = "w-full py-2.5 rounded-xl font-bold text-xs bg-[#2247FF] text-white cursor-pointer transition-all";
             genBtn.innerText = "ยืนยันตัวเลือกนี้";
+
+            // 4) SELECT_PAIN — เลือกแล้วแต่ยังไม่กดยืนยัน (เก็บไว้ดูว่าเลือกแล้วลังเลไม่กดยืนยันกี่คน)
+            trackEvent('SELECT_PAIN', { selectedPain: type });
         }
 
         function confirmPainSelection() {
@@ -809,7 +895,11 @@
         }
 
         function sendPainDataToN8n() {
+            // 5) CONFIRM_PAIN — กดยืนยันตัวเลือกสำเร็จ (event เดิมของระบบ ใส่ eventType เพิ่มเพื่อให้เข้า funnel เดียวกัน)
             const payload = {
+                eventType: 'CONFIRM_PAIN',
+                sessionId: SESSION_ID,
+                page: 'spi_xray',
                 selectedPain,
                 painCogsCount, painLaborCount, painTicketCount,
                 spi: Math.round(R.spi),
